@@ -14,7 +14,7 @@ from src.commons.logger import Logger
 
 logger = Logger()
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, no-else-return
 
 
 class Ciphertext:
@@ -76,20 +76,7 @@ class Ciphertext:
         elif isinstance(other, int):
             result = self.cs.multiply_by_contant(ciphertext=self.value, constant=other)
         elif isinstance(other, float):
-            decimal_places = len(str(other).split(".")[1])
-            scaling_factor = 10**decimal_places
-            integer_value = int(other * scaling_factor)
-
-            if hasattr(self.cs, "modulo") and self.cs.modulo:
-                modulo = self.cs.modulo
-            elif hasattr(self.cs, "plaintext_modulo") and self.cs.plaintext_modulo:
-                modulo = self.cs.plaintext_modulo
-            else:
-                raise ValueError("Cryptosystem must have either modulo or plaintext_modulo")
-
-            logger.debug(f"{integer_value}*{scaling_factor}^-1 mod {modulo}")
-
-            constant = integer_value * pow(scaling_factor, -1, modulo)
+            constant = self.__convert_to_int(constant=other)
             result = self.cs.multiply_by_contant(ciphertext=self.value, constant=constant)
         else:
             raise ValueError(
@@ -105,6 +92,9 @@ class Ciphertext:
         Returns
             scalar multiplication of ciphertext
         """
+        if isinstance(constant, float):
+            constant = self.__convert_to_int(constant=constant)
+
         # Handle multiplication with a constant on the right
         result = self.cs.multiply_by_contant(ciphertext=self.value, constant=constant)
         return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
@@ -119,3 +109,30 @@ class Ciphertext:
         """
         result = self.cs.xor(ciphertext1=self.value, ciphertext2=other.value)
         return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
+
+    def __convert_to_int(self, constant: Union[int, float]) -> int:
+        """
+        Convert a constant to integer if it is float or negative
+        """
+        if hasattr(self.cs, "modulo") and self.cs.modulo:
+            modulo = self.cs.modulo
+        elif hasattr(self.cs, "plaintext_modulo") and self.cs.plaintext_modulo:
+            modulo = self.cs.plaintext_modulo
+        else:
+            raise ValueError("Cryptosystem must have either modulo or plaintext_modulo")
+
+        if isinstance(constant, int) and constant >= 0:
+            return constant
+        elif isinstance(constant, int) and constant < 0:
+            return constant % modulo
+        elif isinstance(constant, float) and constant >= 0:
+            decimal_places = len(str(constant).split(".")[1])
+            scaling_factor = 10**decimal_places
+            integer_value = int(constant * scaling_factor)
+            logger.debug(f"{integer_value}*{scaling_factor}^-1 mod {modulo}")
+            return integer_value * pow(scaling_factor, -1, modulo)
+        elif isinstance(constant, float) and constant < 0:
+            # TODO: think and implement this later
+            raise ValueError("Case constant float and negative not implemented yet")
+        else:
+            raise ValueError(f"Unimplemented case for constant type {type(constant)}")

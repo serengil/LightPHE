@@ -65,3 +65,33 @@ def test_api():
         _ = c1 ^ c2
 
     logger.info("✅ Paillier api test succeeded")
+
+
+def test_float_operations():
+    from lightphe import LightPHE
+
+    cs = LightPHE(algorithm_name="Paillier")
+
+    m1 = 1000
+    m2 = -10
+
+    c1 = cs.encrypt(plaintext=m1)
+    c2 = cs.encrypt(plaintext=m2)
+
+    assert cs.decrypt(c1 + c2) == m1 + m2
+    assert cs.decrypt(c2 + c1) == m1 + m2
+
+    k1 = 20
+    assert cs.decrypt(c1 * k1) == m1 * k1
+    assert cs.decrypt(k1 * c1) == m1 * k1
+
+    k2 = 1.05
+    assert cs.decrypt(c1 * k2) == m1 * k2
+    assert cs.decrypt(k2 * c1) == m1 * k2
+
+    k3 = -20
+    assert cs.decrypt(c1 * k3) == (m1 * k3) % cs.cs.plaintext_modulo
+    assert cs.decrypt(k3 * c1) == (m1 * k3) % cs.cs.plaintext_modulo
+
+    # TODO: think and implement this later
+    _ = -1.05
