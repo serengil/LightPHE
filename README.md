@@ -167,7 +167,7 @@ Please cite LightPHE in your publications if it helps your research. Here is its
 }
 ```
 
-Also, if you use LightPHE in your projects, please add `LightPHE` in the `requirements.txt`.
+Also, if you use LightPHE in your projects, please add `lightphe` in the `requirements.txt`.
 
 # License
 
