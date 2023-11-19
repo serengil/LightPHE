@@ -55,9 +55,9 @@ class Ciphertext:
         """
         Perform homomorphic addition methods
         Args:
-            other (Ciperhtext): its value will be added to self.value
+            other (Ciperhtext): some other ciphertext
         Returns:
-            ciphertext (Ciphertext): self.value + other.value
+            ciphertext (Ciphertext): homomorphic addition of ciphertext
         """
         result = self.cs.add(ciphertext1=self.value, ciphertext2=other.value)
         return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
@@ -66,9 +66,9 @@ class Ciphertext:
         """
         Perform homomorphic multiplication or multiply a ciphertext with a known constant
         Args:
-            other (int | Ciphertext)
+            other (int | float | Ciphertext): a known plain constant of some other ciphertext
         Returns
-            self.value * other.value | self.value * other
+            homomorphic multiplication of ciphertexts | scalar multiplication of ciphertext
         """
         if isinstance(other, Ciphertext):
             # Handle multiplication with another EncryptedObject
@@ -101,9 +101,9 @@ class Ciphertext:
         """
         Multiply a ciphertext with a known constant
         Args:
-            constant (int)
+            constant (int | float): a known plain constant
         Returns
-            self.value * constant
+            scalar multiplication of ciphertext
         """
         # Handle multiplication with a constant on the right
         result = self.cs.multiply_by_contant(ciphertext=self.value, constant=constant)
@@ -113,9 +113,9 @@ class Ciphertext:
         """
         Perform homomorphic xor
         Args:
-            other (int | Ciphertext)
+            other (| Ciphertext): some other ciphertext
         Returns
-            self.value ^ other.value
+            homomorphic xor of ciphertexts
         """
         result = self.cs.xor(ciphertext1=self.value, ciphertext2=other.value)
         return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
