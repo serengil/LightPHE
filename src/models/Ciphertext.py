@@ -48,10 +48,10 @@ class Ciphertext:
 
         self.cs: Homomorphic = cs
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)
 
-    def __add__(self, other):
+    def __add__(self, other: "Ciphertext") -> "Ciphertext":
         """
         Perform homomorphic addition methods
         Args:
@@ -60,11 +60,9 @@ class Ciphertext:
             ciphertext (Ciphertext): self.value + other.value
         """
         result = self.cs.add(ciphertext1=self.value, ciphertext2=other.value)
-        return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=self.keys, value=result
-        )
+        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
 
-    def __mul__(self, other):
+    def __mul__(self, other: Union["Ciphertext", int, float]) -> "Ciphertext":
         """
         Perform homomorphic multiplication or multiply a ciphertext with a known constant
         Args:
@@ -87,25 +85,19 @@ class Ciphertext:
             elif hasattr(self.cs, "plaintext_modulo") and self.cs.plaintext_modulo:
                 modulo = self.cs.plaintext_modulo
             else:
-                raise ValueError(
-                    "Cryptosystem must have either modulo or plaintext_modulo"
-                )
+                raise ValueError("Cryptosystem must have either modulo or plaintext_modulo")
 
             logger.debug(f"{integer_value}*{scaling_factor}^-1 mod {modulo}")
 
             constant = integer_value * pow(scaling_factor, -1, modulo)
-            result = self.cs.multiply_by_contant(
-                ciphertext=self.value, constant=constant
-            )
+            result = self.cs.multiply_by_contant(ciphertext=self.value, constant=constant)
         else:
             raise ValueError(
                 f"A ciphertext can be multiplied by either ciphertext itself or a scalar but it is {type(other)}"
             )
-        return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=self.keys, value=result
-        )
+        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
 
-    def __rmul__(self, constant):
+    def __rmul__(self, constant: Union[int, float]) -> "Ciphertext":
         """
         Multiply a ciphertext with a known constant
         Args:
@@ -115,11 +107,9 @@ class Ciphertext:
         """
         # Handle multiplication with a constant on the right
         result = self.cs.multiply_by_contant(ciphertext=self.value, constant=constant)
-        return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=self.keys, value=result
-        )
+        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
 
-    def __xor__(self, other):
+    def __xor__(self, other: "Ciphertext") -> "Ciphertext":
         """
         Perform homomorphic xor
         Args:
@@ -128,6 +118,4 @@ class Ciphertext:
             self.value ^ other.value
         """
         result = self.cs.xor(ciphertext1=self.value, ciphertext2=other.value)
-        return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=self.keys, value=result
-        )
+        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
