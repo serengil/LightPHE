@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Optional, Union
 
 from src.models.Ciphertext import Ciphertext
 from src.models.Algorithm import Algorithm
@@ -51,7 +51,16 @@ class LightPHE:
         algorithm_name: str,
         keys: Optional[dict] = None,
         key_size: Optional[int] = None,
-    ):
+    ) -> Union[
+        RSA,
+        ElGamal,
+        Paillier,
+        DamgardJurik,
+        OkamotoUchiyama,
+        Benaloh,
+        NaccacheStern,
+        EllipticCurveElGamal,
+    ]:
         """
         Build a cryptosystem among partially homomorphic algorithms
         Args:
@@ -102,9 +111,7 @@ class LightPHE:
             ciphertext (from src.models.Ciphertext import Ciphertext): encrypted message
         """
         ciphertext = self.cs.encrypt(plaintext=plaintext)
-        return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext
-        )
+        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext)
 
     def decrypt(self, ciphertext: Ciphertext) -> int:
         """
@@ -129,7 +136,7 @@ class LightPHE:
             algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext_new
         )
 
-    def export_keys(self, target_file: str, public: bool = False):
+    def export_keys(self, target_file: str, public: bool = False) -> None:
         """
         Export keys to a file
         Args:
@@ -175,7 +182,7 @@ class LightPHE:
             raise ValueError(f"File {target_file} must have public_key key")
         return keys
 
-    def recommend_key_size(self, algorithm_name: str):
+    def recommend_key_size(self, algorithm_name: str) -> int:
         """
         Recommend a key size in bits if it is not mentioned by the user
         Args:
