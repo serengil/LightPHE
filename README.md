@@ -143,6 +143,16 @@ All PRs are more than welcome! If you are planning to contribute a large patch, 
 
 You should be able run `make test` and `make lint` commands successfully before committing. Once a PR is created, GitHub test workflow will be run automatically and unit test results will be available in [GitHub actions](https://github.com/serengil/LightPHE/actions/workflows/tests.yml) before approval. Besides, workflow will evaluate the code with pylint as well.
 
+# Support
+
+There are many ways to support a project - starring⭐️ the GitHub repo is just one 🙏
+
+You can also support this work on [Patreon](https://www.patreon.com/serengil?repo=lightphe) or [GitHub Sponsors](https://github.com/sponsors/serengil).
+
+<a href="https://www.patreon.com/serengil?repo=lightphe">
+<img src="https://raw.githubusercontent.com/serengil/LightPHE/master/icons/patreon.png" width="30%" height="30%">
+</a>
+
 # Citation
 
 Please cite LightPHE in your publications if it helps your research. Here is its BibTex entry:
