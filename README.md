@@ -109,8 +109,8 @@ assert cs.decrypt(c1 + c2) == m1 + m2
 Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. Simply put, decryption of scalar multiplication of ciphertext is equivalent to that constant times plaintext as well.
 
 ```python
-# scalar multiplication
-k = 5
+# scalar multiplication (increase its value 5%)
+k = 1.05
 assert cs.decrypt(k * c1) == k * m1
 ```
 
