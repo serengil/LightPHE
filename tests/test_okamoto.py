@@ -1,6 +1,6 @@
 import pytest
-from src.cryptosystems.OkamotoUchiyama import OkamotoUchiyama
-from src.commons.logger import Logger
+from lightphe.cryptosystems.OkamotoUchiyama import OkamotoUchiyama
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

@@ -1,6 +1,6 @@
 import pytest
-from src.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
-from src.commons.logger import Logger
+from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

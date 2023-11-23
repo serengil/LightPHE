@@ -3,8 +3,8 @@ from typing import Optional
 import math
 import sympy
 from sympy.ntheory.modular import solve_congruence
-from src.models.Homomorphic import Homomorphic
-from src.commons.logger import Logger
+from lightphe.models.Homomorphic import Homomorphic
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

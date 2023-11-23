@@ -2,8 +2,8 @@ import random
 from math import gcd
 from typing import Optional
 import sympy
-from src.models.Homomorphic import Homomorphic
-from src.commons.logger import Logger
+from lightphe.models.Homomorphic import Homomorphic
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

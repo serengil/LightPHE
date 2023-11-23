@@ -1,18 +1,18 @@
 import json
 from typing import Optional, Union
 
-from src.models.Ciphertext import Ciphertext
-from src.models.Algorithm import Algorithm
-from src.cryptosystems.RSA import RSA
-from src.cryptosystems.ElGamal import ElGamal
-from src.cryptosystems.Paillier import Paillier
-from src.cryptosystems.DamgardJurik import DamgardJurik
-from src.cryptosystems.OkamotoUchiyama import OkamotoUchiyama
-from src.cryptosystems.Benaloh import Benaloh
-from src.cryptosystems.NaccacheStern import NaccacheStern
-from src.cryptosystems.GoldwasserMicali import GoldwasserMicali
-from src.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
-from src.commons.logger import Logger
+from lightphe.models.Ciphertext import Ciphertext
+from lightphe.models.Algorithm import Algorithm
+from lightphe.cryptosystems.RSA import RSA
+from lightphe.cryptosystems.ElGamal import ElGamal
+from lightphe.cryptosystems.Paillier import Paillier
+from lightphe.cryptosystems.DamgardJurik import DamgardJurik
+from lightphe.cryptosystems.OkamotoUchiyama import OkamotoUchiyama
+from lightphe.cryptosystems.Benaloh import Benaloh
+from lightphe.cryptosystems.NaccacheStern import NaccacheStern
+from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
+from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
+from lightphe.commons.logger import Logger
 
 # pylint: disable=eval-used
 
@@ -108,7 +108,7 @@ class LightPHE:
         Args:
             plaintext (int): message
         Returns
-            ciphertext (from src.models.Ciphertext import Ciphertext): encrypted message
+            ciphertext (from lightphe.models.Ciphertext import Ciphertext): encrypted message
         """
         ciphertext = self.cs.encrypt(plaintext=plaintext)
         return Ciphertext(algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext)
@@ -117,7 +117,7 @@ class LightPHE:
         """
         Decrypt a ciphertext with a buit cryptosystem
         Args:
-            ciphertext (from src.models.Ciphertext import Ciphertext): encrypted message
+            ciphertext (from lightphe.models.Ciphertext import Ciphertext): encrypted message
         Returns:
             plaintext (int): restored message
         """
@@ -127,9 +127,9 @@ class LightPHE:
         """
         Generate a different ciphertext belonging to same plaintext
         Args:
-            ciphertext (from src.models.Ciphertext import Ciphertext): encrypted message
+            ciphertext (from lightphe.models.Ciphertext import Ciphertext): encrypted message
         Returns:
-            ciphertext (from src.models.Ciphertext import Ciphertext): encrypted message
+            ciphertext (from lightphe.models.Ciphertext import Ciphertext): encrypted message
         """
         ciphertext_new = self.cs.reencrypt(ciphertext=ciphertext.value)
         return Ciphertext(

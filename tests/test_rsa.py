@@ -1,8 +1,7 @@
 import pytest
 
-from src.cryptosystems.RSA import RSA
-
-from src.commons.logger import Logger
+from lightphe.cryptosystems.RSA import RSA
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

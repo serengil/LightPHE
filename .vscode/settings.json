@@ -12,6 +12,6 @@
     ],
     "editor.fontWeight": "normal",
     "python.analysis.extraPaths": [
-        "./src"
+        "./lightphe"
     ]
 }

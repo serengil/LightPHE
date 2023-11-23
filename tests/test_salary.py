@@ -1,5 +1,5 @@
-from src.cryptosystems.Paillier import Paillier
-from src.commons.logger import Logger
+from lightphe.cryptosystems.Paillier import Paillier
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 
@@ -45,12 +45,9 @@ def test_api():
     wage_increase = 1000
     increase_encrypted = cs.encrypt(wage_increase)
 
-    # calculate new salary on encrypted data
-    new_salary_encrypted = salary_encrypted + increase_encrypted
+    # perform homomorphic addition
+    assert cs.decrypt(salary_encrypted + increase_encrypted) == salary + wage_increase
 
-    # new salary should be 11000 usd
-    assert cs.decrypt(new_salary_encrypted) == 11000
-
-    # increase new salary 5%
+    # increase base salary 5%
     ratio = 1.05
-    assert cs.decrypt(new_salary_encrypted * ratio) == 11550
+    assert cs.decrypt(salary_encrypted * ratio) == salary * ratio

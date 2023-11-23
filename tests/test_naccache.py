@@ -1,6 +1,6 @@
 import pytest
-from src.cryptosystems.NaccacheStern import NaccacheStern
-from src.commons.logger import Logger
+from lightphe.cryptosystems.NaccacheStern import NaccacheStern
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

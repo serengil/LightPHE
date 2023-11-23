@@ -1,8 +1,8 @@
 import random
 from typing import Optional
-from src.models.Homomorphic import Homomorphic
-from src.elliptic.Weierstrass import Weierstrass
-from src.commons.logger import Logger
+from lightphe.models.Homomorphic import Homomorphic
+from lightphe.elliptic.Weierstrass import Weierstrass
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

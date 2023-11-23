@@ -1,6 +1,6 @@
 import pytest
-from src.cryptosystems.ElGamal import ElGamal
-from src.commons.logger import Logger
+from lightphe.cryptosystems.ElGamal import ElGamal
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

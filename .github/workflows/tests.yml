@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/tests.yml'
-      - 'src/**'  
+      - 'lightphe/**'  
       - 'tests/**'
       - 'requirements.txt'
       - '.gitignore'
@@ -12,7 +12,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/tests.yml'
-      - 'src/**'  
+      - 'lightphe/**'  
       - 'tests/**'
       - 'requirements.txt'
       - '.gitignore'
@@ -63,4 +63,4 @@ jobs:
         
     - name: Lint with pylint
       run: |
-        pylint --fail-under=10 lightphe.py src/
+        pylint --fail-under=10 lightphe.py lightphe/

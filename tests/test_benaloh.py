@@ -1,7 +1,6 @@
 import pytest
-from src.cryptosystems.Benaloh import Benaloh
-
-from src.commons.logger import Logger
+from lightphe.cryptosystems.Benaloh import Benaloh
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

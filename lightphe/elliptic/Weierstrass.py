@@ -1,5 +1,5 @@
 from typing import Tuple
-from src.models.EllipticCurve import EllipticCurve
+from lightphe.models.EllipticCurve import EllipticCurve
 
 
 class Weierstrass(EllipticCurve):

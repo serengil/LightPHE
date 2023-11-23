@@ -1,6 +1,6 @@
 import pytest
-from src.cryptosystems.Paillier import Paillier
-from src.commons.logger import Logger
+from lightphe.cryptosystems.Paillier import Paillier
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

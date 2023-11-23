@@ -1,16 +1,16 @@
 from typing import Union
-from src.models.Homomorphic import Homomorphic
-from src.models.Algorithm import Algorithm
-from src.cryptosystems.RSA import RSA
-from src.cryptosystems.ElGamal import ElGamal
-from src.cryptosystems.Paillier import Paillier
-from src.cryptosystems.DamgardJurik import DamgardJurik
-from src.cryptosystems.OkamotoUchiyama import OkamotoUchiyama
-from src.cryptosystems.Benaloh import Benaloh
-from src.cryptosystems.NaccacheStern import NaccacheStern
-from src.cryptosystems.GoldwasserMicali import GoldwasserMicali
-from src.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
-from src.commons.logger import Logger
+from lightphe.models.Homomorphic import Homomorphic
+from lightphe.models.Algorithm import Algorithm
+from lightphe.cryptosystems.RSA import RSA
+from lightphe.cryptosystems.ElGamal import ElGamal
+from lightphe.cryptosystems.Paillier import Paillier
+from lightphe.cryptosystems.DamgardJurik import DamgardJurik
+from lightphe.cryptosystems.OkamotoUchiyama import OkamotoUchiyama
+from lightphe.cryptosystems.Benaloh import Benaloh
+from lightphe.cryptosystems.NaccacheStern import NaccacheStern
+from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
+from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

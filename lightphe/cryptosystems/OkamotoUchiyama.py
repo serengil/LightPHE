@@ -2,17 +2,16 @@ import random
 import math
 from typing import Optional
 import sympy
-from src.models.Homomorphic import Homomorphic
-from src.commons.logger import Logger
+from lightphe.models.Homomorphic import Homomorphic
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 
 
-class Paillier(Homomorphic):
+class OkamotoUchiyama(Homomorphic):
     """
-    Paillier algorithm is homomorphic with respect to the addition.
-    Also, it supports power operation for ciphertext base and plaintext exponent
-    Ref: https://sefiks.com/2023/04/03/a-step-by-step-partially-homomorphic-encryption-example-with-paillier-in-python/
+    Okamoto-Uchiyama algorithm is homomorphic with respect to the addition.
+    Ref: https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-okamoto-uchiyama-in-python/
     """
 
     def __init__(self, keys: Optional[dict] = None, key_size=1024):
@@ -23,13 +22,12 @@ class Paillier(Homomorphic):
             key_size (int): key size in bits
         """
         self.keys = keys or self.generate_keys(key_size)
-        n = self.keys["public_key"]["n"]
-        self.plaintext_modulo = n
-        self.ciphertext_modulo = n * n
+        self.plaintext_modulo = self.keys["private_key"]["p"]
+        self.ciphertext_modulo = self.keys["public_key"]["n"]
 
-    def generate_keys(self, key_size: int):
+    def generate_keys(self, key_size: int) -> dict:
         """
-        Generate public and private keys of Paillier cryptosystem
+        Generate public and private keys of OkamotoUchiyama cryptosystem
         Args:
             key_size (int): key size in bits
         Returns:
@@ -45,100 +43,112 @@ class Paillier(Homomorphic):
         # picking a prime modulus q
         q = sympy.randprime(200, 2 ** int(key_size / 2) - 1)
 
-        n = p * q
-        phi = (p - 1) * (q - 1)
-        g = 1 + n
+        # modulo
+        n = p * p * q
 
-        keys["private_key"]["phi"] = phi
-        keys["public_key"]["g"] = g
+        # generator
+        g = random.randint(2, n)
+
+        if pow(g, p - 1, p * p) == 1:
+            raise ValueError("Fermat's Little Theorem must be satisfied")
+
+        h = pow(g, n, n)
+
         keys["public_key"]["n"] = n
+        keys["public_key"]["g"] = g
+        keys["public_key"]["h"] = h
+        keys["private_key"]["p"] = p
+        keys["private_key"]["q"] = q
 
         return keys
 
     def generate_random_key(self) -> int:
         """
-        Paillier requires to generate one-time random key per encryption
+        Okamoto-Uchiyama requires to generate one-time random key per encryption
         Returns:
             random key (int): one time random key for encryption
         """
         n = self.keys["public_key"]["n"]
-        while True:
-            r = random.randint(0, n)
-            if math.gcd(r, n) == 1:
-                break
-        return r
+        return random.randint(1, n - 1)
 
     def encrypt(self, plaintext: int, random_key: Optional[int] = None) -> int:
         """
-        Encrypt a given plaintext for optionally given random key with Paillier
+        Encrypt a given plaintext for optionally given random key with OkamotoUchiyama
         Args:
             plaintext (int): message to encrypt
-            random_key (int): Paillier requires a random key that co-prime to n.
+            random_key (int): OkamotoUchiyama requires a random key
                 Random key will be generated automatically if you do not set this.
         Returns:
             ciphertext (int): encrypted message
         """
+        p = self.keys["private_key"]["p"]
         g = self.keys["public_key"]["g"]
         n = self.keys["public_key"]["n"]
+        h = self.keys["public_key"]["h"]
         r = random_key or self.generate_random_key()
-        assert math.gcd(r, n) == 1
-        return (pow(g, plaintext, n * n) * pow(r, n, n * n)) % (n * n)
+
+        if plaintext > p:
+            plaintext = plaintext % p
+            logger.debug(
+                f"plaintext must be in scale [0, {p=}] but this is exceeded."
+                "New plaintext is {plaintext}"
+            )
+        return (pow(g, plaintext, n) * pow(h, r, n)) % n
 
     def decrypt(self, ciphertext: int):
         """
-        Decrypt a given ciphertext with Paillier
+        Decrypt a given ciphertext with Okamoto-Uchiyama
         Args:
             ciphertext (int): encrypted message
         Returns:
             plaintext (int): restored message
         """
-        phi = self.keys["private_key"]["phi"]
-        n = self.keys["public_key"]["n"]
-        mu = pow(phi, -1, n)
+        p = self.keys["private_key"]["p"]
+        g = self.keys["public_key"]["g"]
 
-        return (self.lx(pow(ciphertext, phi, n * n)) * mu) % (n)
+        a = self.lx(pow(ciphertext, p - 1, p * p))
+        b = self.lx(pow(g, p - 1, p * p))
+        return (a * pow(b, -1, p)) % p
 
     def add(self, ciphertext1: int, ciphertext2: int) -> int:
         """
         Perform homomorphic addition on encrypted data.
         Result of this must be equal to E(m1 + m2)
-        Encryption calculations are done in module n squared.
+        Encryption calculations are done in module n
         Args:
-            ciphertext1 (int): 1st ciphertext created with Paillier
-            ciphertext2 (int): 2nd ciphertext created with Paillier
+            ciphertext1 (int): 1st ciphertext created with OkamotoUchiyama
+            ciphertext2 (int): 2nd ciphertext created with OkamotoUchiyama
         Returns:
-            ciphertext3 (int): 3rd ciphertext created with Paillier
+            ciphertext3 (int): 3rd ciphertext created with OkamotoUchiyama
         """
         n = self.keys["public_key"]["n"]
-        return (ciphertext1 * ciphertext2) % (n * n)
+        return (ciphertext1 * ciphertext2) % n
 
     def multiply(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError("Paillier is not homomorphic with respect to the multiplication")
+        raise ValueError("Okamoto-Uchiyama is not homomorphic with respect to the multiplication")
 
     def xor(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError("Paillier is not homomorphic with respect to the exclusive or")
+        raise ValueError("Okamoto-Uchiyama is not homomorphic with respect to the exclusive or")
 
     def multiply_by_contant(self, ciphertext: int, constant: int) -> int:
         """
         Multiply a ciphertext with a plain constant.
-        Result of this must be equal to E(m1 * m2) where E(m1) = ciphertext
+        Result of this must be equal to E(m1 * constant) where E(m1) = ciphertext
         Encryption calculations are done in module n squared.
         Args:
-            ciphertext (int): ciphertext created with Paillier
+            ciphertext (int): ciphertext created with Okamoto-Uchiyama
             constant (int): known plain constant
         Returns:
-            ciphertext (int): new ciphertext created with Paillier
+            ciphertext (int): new ciphertext created with Okamoto-Uchiyama
         """
         n = self.keys["public_key"]["n"]
-
         if constant > self.plaintext_modulo:
             constant = constant % self.plaintext_modulo
             logger.debug(
-                f"Paillier can encrypt messages [1, {n}]. "
+                f"Okamoto-Uchiyama can encrypt messages [1, {n}]. "
                 f"Seems constant exceeded this limit. New constant is {constant}"
             )
-
-        return pow(ciphertext, constant, n * n)
+        return pow(ciphertext, constant, n)
 
     def reencrypt(self, ciphertext: int) -> int:
         """
@@ -158,9 +168,13 @@ class Paillier(Homomorphic):
         Args:
             x (int): some integer
         Returns:
-            lx (int): (x-1) / n
+            lx (int): (x-1) / p
         """
-        n = self.keys["public_key"]["n"]
-        y = (x - 1) // n
+        p = self.keys["private_key"]["p"]
+        if x % p != 1:
+            raise ValueError(f"Input passed to lx ({x}) must be identical to 1 in modulo {p}")
+        if math.gcd(x, p * p) != 1:
+            raise ValueError(f"gcd({x}, {p}^2) must be equal to 1")
+        y = (x - 1) // p
         assert y - int(y) == 0
         return int(y)

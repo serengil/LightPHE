@@ -1,6 +1,6 @@
 import pytest
-from src.cryptosystems.DamgardJurik import DamgardJurik
-from src.commons.logger import Logger
+from lightphe.cryptosystems.DamgardJurik import DamgardJurik
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 

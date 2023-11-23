@@ -3,8 +3,8 @@ from typing import Optional
 import math
 import sympy
 from sympy import jacobi_symbol
-from src.models.Homomorphic import Homomorphic
-from src.commons.logger import Logger
+from lightphe.models.Homomorphic import Homomorphic
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 
@@ -50,11 +50,7 @@ class GoldwasserMicali(Homomorphic):
         # find non-residue x
         while True:
             x = random.randint(1, n - 1)
-            if (
-                math.gcd(x, n) == 1
-                and jacobi_symbol(x, p) == -1
-                and jacobi_symbol(x, q) == -1
-            ):
+            if math.gcd(x, n) == 1 and jacobi_symbol(x, p) == -1 and jacobi_symbol(x, q) == -1:
                 break
 
         keys["public_key"]["n"] = n
@@ -139,14 +135,10 @@ class GoldwasserMicali(Homomorphic):
         return int(m_binary, 2)
 
     def add(self, ciphertext1: list, ciphertext2: list) -> list:
-        raise ValueError(
-            "Goldwasser-Micali is not homomorphic with respect to the addition"
-        )
+        raise ValueError("Goldwasser-Micali is not homomorphic with respect to the addition")
 
     def multiply(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError(
-            "Goldwasser-Micali is not homomorphic with respect to the multiplication"
-        )
+        raise ValueError("Goldwasser-Micali is not homomorphic with respect to the multiplication")
 
     def xor(self, ciphertext1: int, ciphertext2: int) -> list:
         """

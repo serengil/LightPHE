@@ -1,6 +1,6 @@
 import pytest
-from src.cryptosystems.GoldwasserMicali import GoldwasserMicali
-from src.commons.logger import Logger
+from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
+from lightphe.commons.logger import Logger
 
 logger = Logger()
 
