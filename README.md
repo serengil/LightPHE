@@ -22,9 +22,13 @@ LightPHE is a lightweight partially homomorphic encryption library for python. I
 Even though fully homomorphic encryption (FHE) has become available in recent times, but when considering the trade-offs, LightPHE emerges as a more efficient and practical choice. If your specific task doesn't demand the full homomorphic capabilities, opting for partial homomorphism with LightPHE is the logical decision. 
 
 🏎️ Notably faster
+
 💻 Demands fewer computational resources
+
 📏 Generating smaller ciphertexts
+
 🧠 Well-suited for memory-constrained environments
+
 ⚖️ Strikes a favorable balance for practical use cases
 
 # Installation [![PyPI](https://img.shields.io/pypi/v/lightphe.svg)](https://pypi.org/project/lightphe/)
