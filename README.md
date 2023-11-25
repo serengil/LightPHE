@@ -19,7 +19,13 @@
 
 LightPHE is a lightweight partially homomorphic encryption library for python. It is a hybrid homomoprhic encryption library wrapping many schemes such as [`RSA`](https://sefiks.com/2023/03/06/a-step-by-step-partially-homomorphic-encryption-example-with-rsa-in-python/), [`ElGamal`](https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/), [`Exponential ElGamal`](https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/), [`Elliptic Curve ElGamal`](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/), [`Paillier`](https://sefiks.com/2023/04/03/a-step-by-step-partially-homomorphic-encryption-example-with-paillier-in-python/), [`Damgard-Jurik`](https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-damgard-jurik-in-python/), [`Okamoto–Uchiyama`](https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-okamoto-uchiyama-in-python/), [`Benaloh`](https://sefiks.com/2023/10/06/a-step-by-step-partially-homomorphic-encryption-example-with-benaloh-in-python-from-scratch/), [`Naccache–Stern`](https://sefiks.com/2023/10/26/a-step-by-step-partially-homomorphic-encryption-example-with-naccache-stern-in-python/), [`Goldwasser–Micali`](https://sefiks.com/2023/10/27/a-step-by-step-partially-homomorphic-encryption-example-with-goldwasser-micali-in-python/).
 
-Even though fully homomorphic encryption (FHE) has become available in recent times, but when considering the trade-offs, LightPHE emerges as a more efficient and practical choice. If your specific task doesn't demand the full homomorphic capabilities, opting for partial homomorphism with LightPHE is the logical decision. LightPHE is notably faster and demands fewer computational resources compared to FHE. Besides, it generates smaller ciphertexts, making it well-suited for memory-constrained environments. Finally, LightPHE strikes a favorable balance between security and efficiency for practical use cases.
+Even though fully homomorphic encryption (FHE) has become available in recent times, but when considering the trade-offs, LightPHE emerges as a more efficient and practical choice. If your specific task doesn't demand the full homomorphic capabilities, opting for partial homomorphism with LightPHE is the logical decision. 
+
+🏎️ Notably faster
+💻 Demands fewer computational resources
+📏 Generating smaller ciphertexts
+🧠 Well-suited for memory-constrained environments
+⚖️ Strikes a favorable balance for practical use cases
 
 # Installation [![PyPI](https://img.shields.io/pypi/v/lightphe.svg)](https://pypi.org/project/lightphe/)
 
@@ -109,9 +115,9 @@ c3 = c1 + c2
 assert cs.decrypt(c3) == m1 + m2
 ```
 
-⚠️ Notice that once can perform `c1 + c2` here without holding private key. However, just the data owner with private key can perform encryption and decryption. This is the basic definition of homomorphic encryption.
+Notice that once can perform `c1 + c2` here without holding private key. However, just the data owner with private key can perform encryption and decryption. This is the basic definition of homomorphic encryption.
 
-Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. Simply put, decryption of scalar multiplication of ciphertext is equivalent to that constant times plaintext as well.
+Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. Simply put, decryption of scalar multiplication of ciphertext is equivalent to that constant times plaintext as well. Herein, `k * c1` operation can be performed by anyone without holding private key.
 
 ```python
 # scalar multiplication (increase its value 5%)
