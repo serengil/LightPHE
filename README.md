@@ -113,7 +113,7 @@ c2 = cs.encrypt(m2)
 # homomorphic addition
 c3 = c1 + c2
 
-# performing homomorphic addition on ciphertexts
+# proof of work
 assert cs.decrypt(c3) == m1 + m2
 ```
 
@@ -122,9 +122,13 @@ Notice that once can perform `c1 + c2` here without holding private key. However
 Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. Simply put, decryption of scalar multiplication of ciphertext is equivalent to that constant times plaintext as well. Herein, `k * c1` operation can be performed by anyone without holding private key.
 
 ```python
-# scalar multiplication (increase its value 5%)
 k = 1.05
-assert cs.decrypt(k * c1) == k * m1
+
+# scalar multiplication (increase its value 5%)
+c4 = k * c1
+
+# proof of work
+assert cs.decrypt(c4) == k * m1
 ```
 
 Similar to the most of additively homomorphic algorithms, Paillier lets you to regenerate ciphertext while you are not breaking its plaintext restoration. You may consider to do this re-generation many times to have stronger ciphertexts.
@@ -139,11 +143,11 @@ assert cs.decrypt(c1) == m1
 Finally, if you try to perform an operation that algorithm does not support, then an exception will be thrown. For instance, Paillier is not homomorphic with respect to the multiplication or xor. To put it simply, you cannot multiply two ciphertexts. If you enforce this calculation, you will have an exception.
 
 ```python
-# pailier is not homomorphic with respect to the multiplication
+# pailier is not multiplicatively homomorphic
 with pytest.raises(ValueError, match="Paillier is not homomorphic with respect to the multiplication"):
   c1 * c2
 
-# pailier is not homomorphic with respect to the xor
+# pailier is not exclusively homomorphic
 with pytest.raises(ValueError, match="Paillier is not homomorphic with respect to the exclusive or"):
   c1 ^ c2
 ```
