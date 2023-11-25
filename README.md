@@ -109,7 +109,7 @@ c3 = c1 + c2
 assert cs.decrypt(c3) == m1 + m2
 ```
 
-Notice that once can perform `c1 + c2` here without holding private key. However, just the data owner with private key can perform encryption and decryption. This is the basic definition of homomorphic encryption.
+⚠️ Notice that once can perform `c1 + c2` here without holding private key. However, just the data owner with private key can perform encryption and decryption. This is the basic definition of homomorphic encryption.
 
 Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. Simply put, decryption of scalar multiplication of ciphertext is equivalent to that constant times plaintext as well.
 
