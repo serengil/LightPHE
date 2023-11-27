@@ -110,26 +110,29 @@ m2 = 23
 c1 = cs.encrypt(m1)
 c2 = cs.encrypt(m2)
 
-# homomorphic addition
+# homomorphic addition - private key is not required!
 c3 = c1 + c2
 
 # proof of work
 assert cs.decrypt(c3) == m1 + m2
 ```
 
-Notice that once can perform `c1 + c2` here without holding private key. However, just the data owner with private key can perform encryption and decryption. This is the basic definition of homomorphic encryption.
+⚡ Notice that once can perform `c1 + c2` here without holding private key. However, just the data owner with private key can perform encryption and decryption. This is the basic definition of homomorphic encryption.
 
-Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. Simply put, decryption of scalar multiplication of ciphertext is equivalent to that constant times plaintext as well. Herein, `k * c1` operation can be performed by anyone without holding private key.
+Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. Simply put, decryption of scalar multiplication of ciphertext is equivalent to that constant times plaintext as well. 
 
 ```python
+# increasing something 5%
 k = 1.05
 
-# scalar multiplication (increase its value 5%)
+# scalar multiplication - private key is not required!
 c4 = k * c1
 
 # proof of work
 assert cs.decrypt(c4) == k * m1
 ```
+
+⚡ Herein, `k * c1` operation can be performed by anyone without holding private key.
 
 Similar to the most of additively homomorphic algorithms, Paillier lets you to regenerate ciphertext while you are not breaking its plaintext restoration. You may consider to do this re-generation many times to have stronger ciphertexts.
 
