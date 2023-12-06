@@ -217,3 +217,14 @@ class LightPHE:
         else:
             raise ValueError(f"unimplemented algorithm - {algorithm_name}")
         return key_size
+
+    def create_ciphertext_obj(self, ciphertext: Union[int, tuple, list]) -> Ciphertext:
+        """
+        Ciphertext objects have keys in addition ciphertext itself to perform
+        homomorphic operations.
+        Args:
+            ciphertext (int or tuple or list): ciphertext content
+        Returns:
+            Ciphertext
+        """
+        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext)

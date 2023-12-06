@@ -49,7 +49,10 @@ class Ciphertext:
         self.cs: Homomorphic = cs
 
     def __str__(self) -> str:
-        return str(self.value)
+        return f"Ciphertext({self.value})"
+
+    def __repr__(self) -> str:
+        return f"Ciphertext({self.value})"
 
     def __add__(self, other: "Ciphertext") -> "Ciphertext":
         """
