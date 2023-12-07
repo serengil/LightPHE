@@ -12,6 +12,7 @@ from lightphe.cryptosystems.Benaloh import Benaloh
 from lightphe.cryptosystems.NaccacheStern import NaccacheStern
 from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
 from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
+from lightphe.commons import calculations
 from lightphe.commons.logger import Logger
 
 # pylint: disable=eval-used
@@ -102,15 +103,19 @@ class LightPHE:
             raise ValueError(f"unimplemented algorithm - {algorithm_name}")
         return cs
 
-    def encrypt(self, plaintext: int) -> Ciphertext:
+    def encrypt(self, plaintext: Union[int, float]) -> Ciphertext:
         """
         Encrypt a plaintext with a built cryptosystem
         Args:
-            plaintext (int): message
+            plaintext (int or float): message
         Returns
             ciphertext (from lightphe.models.Ciphertext import Ciphertext): encrypted message
         """
-        ciphertext = self.cs.encrypt(plaintext=plaintext)
+        ciphertext = self.cs.encrypt(
+            plaintext=calculations.parse_int(
+                value=plaintext, modulo=self.cs.modulo or self.cs.plaintext_modulo
+            )
+        )
         return Ciphertext(algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext)
 
     def decrypt(self, ciphertext: Ciphertext) -> int:

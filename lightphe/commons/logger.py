@@ -2,6 +2,8 @@ import os
 import logging
 from datetime import datetime
 
+# pylint: disable=broad-except
+
 
 class Logger:
     def __init__(self):
@@ -15,25 +17,25 @@ class Logger:
             )
             self.log_level = logging.INFO
 
-    def debug(self, message):
-        if self.log_level <= logging.DEBUG:
-            self.dump_log(message)
-
     def info(self, message):
         if self.log_level <= logging.INFO:
             self.dump_log(message)
 
+    def debug(self, message):
+        if self.log_level <= logging.DEBUG:
+            self.dump_log(f"🕷️ {message}")
+
     def warn(self, message):
         if self.log_level <= logging.WARNING:
-            self.dump_log(message)
+            self.dump_log(f"⚠️ {message}")
 
     def error(self, message):
         if self.log_level <= logging.ERROR:
-            self.dump_log(message)
+            self.dump_log(f"🔴 {message}")
 
     def critical(self, message):
         if self.log_level <= logging.CRITICAL:
-            self.dump_log(message)
+            self.dump_log(f"💥 {message}")
 
     def dump_log(self, message):
         print(f"{str(datetime.now())[2:-7]} - {message}")
