@@ -22,11 +22,30 @@ def parse_int(value: Union[int, float], modulo: int) -> int:
     return result
 
 
-def fractionize(value: float, modulo: int) -> Tuple[int, int]:
+def fractionize(value: float, modulo: int, precision=3) -> Tuple[int, int]:
     decimal_places = len(str(value).split(".")[1])
     scaling_factor = 10**decimal_places
     integer_value = int(value * scaling_factor) % modulo
+
     logger.debug(f"{integer_value}*{scaling_factor}^-1 mod {modulo}")
+
+    # working on same divisor is required to be able to perform homomorphic operations
+    if scaling_factor >= pow(10, precision):
+        dropped_digits = 0
+        while scaling_factor > pow(10, precision):
+            scaling_factor = scaling_factor / 10
+            dropped_digits += 1
+        value_str = str(integer_value)
+        value_str = value_str[0 : len(value_str) - dropped_digits]
+        integer_value = int(value_str)
+        scaling_factor = int(scaling_factor)
+
+    while scaling_factor < pow(10, precision):
+        scaling_factor = scaling_factor * 10
+        integer_value = integer_value * 10
+
+    logger.debug(f"{integer_value}*{scaling_factor}^-1 mod {modulo}")
+
     return integer_value, scaling_factor
 
 

@@ -41,6 +41,7 @@ class LightPHE:
             key_size (int): key size in bits
         """
         self.algorithm_name = algorithm_name
+        self.precision = 3  # for homomorphic operations on tensors
 
         if key_file is not None:
             keys = self.restore_keys(target_file=key_file)
@@ -155,19 +156,21 @@ class LightPHE:
         encrypted_tensor: List[EncryptedTensor] = []
         for m in tensor:
             sign = 1 if m >= 0 else -1
-            # get rid of sign anyway
-            m = m * sign
             sign_encrypted = self.cs.encrypt(plaintext=sign)
+            # get rid of the sign anyway
+            m = m % self.cs.plaintext_modulo
             if isinstance(m, int):
-                dividend_encrypted = self.cs.encrypt(plaintext=m)
-                divisor_encrypted = self.cs.encrypt(plaintext=1)
+                dividend_encrypted = self.cs.encrypt(plaintext=m * pow(10, self.precision))
+                divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
                 c = EncryptedTensor(
                     dividend=dividend_encrypted,
                     divisor=divisor_encrypted,
                     sign=sign_encrypted,
                 )
             elif isinstance(m, float):
-                dividend, divisor = phe_utils.fractionize(value=m, modulo=self.cs.plaintext_modulo)
+                dividend, divisor = phe_utils.fractionize(
+                    value=m, modulo=self.cs.plaintext_modulo, precision=self.precision
+                )
                 dividend_encrypted = self.cs.encrypt(plaintext=dividend)
                 divisor_encrypted = self.cs.encrypt(plaintext=divisor)
                 c = EncryptedTensor(
@@ -178,7 +181,7 @@ class LightPHE:
             else:
                 raise ValueError(f"unimplemented type - {type(m)}")
             encrypted_tensor.append(c)
-        return EncryptedTensors(encrypted_tensor=encrypted_tensor)
+        return EncryptedTensors(encrypted_tensor=encrypted_tensor, cs=self.cs)
 
     def __decrypt_tensors(
         self, encrypted_tensor: EncryptedTensors
