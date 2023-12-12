@@ -4,7 +4,7 @@ from lightphe.models.Homomorphic import Homomorphic
 from lightphe.elliptic.Weierstrass import Weierstrass
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="lightphe/cryptosystems/EllipticCurveElGamal.py")
 
 
 class EllipticCurveElGamal(Homomorphic):
@@ -27,7 +27,8 @@ class EllipticCurveElGamal(Homomorphic):
         # TODO: add different forms and curves. e.g. Koblitz, Edwards (Ed25519)
         self.curve = Weierstrass()
         self.keys = keys or self.generate_keys(key_size)
-        self.modulo = self.curve.p
+        self.plaintext_modulo = self.curve.p
+        self.ciphertext_modulo = self.curve.p
 
     def generate_keys(self, key_size: int):
         """

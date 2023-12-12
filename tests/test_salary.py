@@ -1,7 +1,7 @@
 from lightphe.cryptosystems.Paillier import Paillier
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="tests/test_salary.py")
 
 
 def test_salary():

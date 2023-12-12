@@ -16,7 +16,7 @@ from lightphe.commons.logger import Logger
 
 # pylint: disable=eval-used
 
-logger = Logger()
+logger = Logger(module="tests/__init__.py")
 
 
 class LightPHE:

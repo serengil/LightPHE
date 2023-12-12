@@ -10,6 +10,7 @@ class Weierstrass(EllipticCurve):
         if curve == "secp256k1":
             self.a = 0
             self.b = 7
+            # modulo
             self.p = (
                 pow(2, 256)
                 - pow(2, 32)

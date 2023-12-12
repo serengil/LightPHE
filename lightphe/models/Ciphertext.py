@@ -10,10 +10,10 @@ from lightphe.cryptosystems.Benaloh import Benaloh
 from lightphe.cryptosystems.NaccacheStern import NaccacheStern
 from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
 from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
-from lightphe.commons import calculations
+from lightphe.commons import phe_utils
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="lightphe/models/Ciphertext.py")
 
 # pylint: disable=too-few-public-methods, no-else-return
 
@@ -63,6 +63,9 @@ class Ciphertext:
         Returns:
             ciphertext (Ciphertext): homomorphic addition of ciphertext
         """
+        if self.cs.keys.get("public_key") is None:
+            raise ValueError("You must have public key to perform homomorphic addition")
+
         result = self.cs.add(ciphertext1=self.value, ciphertext2=other.value)
         return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
 
@@ -74,15 +77,16 @@ class Ciphertext:
         Returns
             homomorphic multiplication of ciphertexts | scalar multiplication of ciphertext
         """
+        if self.cs.keys.get("public_key") is None:
+            raise ValueError("You must have public key to perform homomorphic multiplication")
+
         if isinstance(other, Ciphertext):
             # Handle multiplication with another EncryptedObject
             result = self.cs.multiply(ciphertext1=self.value, ciphertext2=other.value)
         elif isinstance(other, int):
             result = self.cs.multiply_by_contant(ciphertext=self.value, constant=other)
         elif isinstance(other, float):
-            constant = calculations.parse_int(
-                value=other, modulo=self.cs.modulo or self.cs.plaintext_modulo
-            )
+            constant = phe_utils.parse_int(value=other, modulo=self.cs.plaintext_modulo)
             result = self.cs.multiply_by_contant(ciphertext=self.value, constant=constant)
         else:
             raise ValueError(
@@ -98,10 +102,11 @@ class Ciphertext:
         Returns
             scalar multiplication of ciphertext
         """
+        if self.cs.keys.get("public_key") is None:
+            raise ValueError("You must have public key to perform scalar multiplication")
+
         if isinstance(constant, float):
-            constant = calculations.parse_int(
-                value=constant, modulo=self.cs.modulo or self.cs.plaintext_modulo
-            )
+            constant = phe_utils.parse_int(value=constant, modulo=self.cs.plaintext_modulo)
 
         # Handle multiplication with a constant on the right
         result = self.cs.multiply_by_contant(ciphertext=self.value, constant=constant)
@@ -115,5 +120,8 @@ class Ciphertext:
         Returns
             homomorphic xor of ciphertexts
         """
+        if self.cs.keys.get("public_key") is None:
+            raise ValueError("You must have public key to perform homomorphic xor")
+
         result = self.cs.xor(ciphertext1=self.value, ciphertext2=other.value)
         return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)

@@ -5,7 +5,7 @@ import sympy
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="lightphe/cryptosystems/DamgardJurik.py")
 
 
 class DamgardJurik(Homomorphic):

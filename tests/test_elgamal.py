@@ -2,21 +2,21 @@ import pytest
 from lightphe.cryptosystems.ElGamal import ElGamal
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="tests/test_elgamal.py")
 
 
 def test_elgamal():
     eg = ElGamal()
 
-    m1 = eg.modulo + 100
-    m2 = eg.modulo + 150
+    m1 = eg.plaintext_modulo + 100
+    m2 = eg.plaintext_modulo + 150
 
     c1 = eg.encrypt(plaintext=m1)
     c2 = eg.encrypt(plaintext=m2)
     c3 = eg.multiply(c1, c2)
 
     # homomorphic operations
-    assert eg.decrypt(c3) == (m1 * m2) % eg.modulo
+    assert eg.decrypt(c3) == (m1 * m2) % eg.plaintext_modulo
 
     # unsupported homomorphic operations
     with pytest.raises(ValueError):
@@ -44,18 +44,18 @@ def test_exponential_elgamal():
 
     logger.debug(additive_eg.keys)
 
-    m1 = additive_eg.modulo + 222
-    m2 = additive_eg.modulo + 111
+    m1 = additive_eg.plaintext_modulo + 222
+    m2 = additive_eg.plaintext_modulo + 111
 
     c1 = additive_eg.encrypt(plaintext=m1)
     c2 = additive_eg.encrypt(plaintext=m2)
     c3 = additive_eg.add(c1, c2)
 
     # homomorphic operations
-    assert additive_eg.decrypt(c3) == (m1 + m2) % additive_eg.modulo
+    assert additive_eg.decrypt(c3) == (m1 + m2) % additive_eg.plaintext_modulo
     assert (
         additive_eg.decrypt(additive_eg.multiply_by_contant(c1, m2))
-        == (m1 * m2) % additive_eg.modulo
+        == (m1 * m2) % additive_eg.plaintext_modulo
     )
 
     # unsupported homomorphic operations

@@ -6,7 +6,8 @@ from datetime import datetime
 
 
 class Logger:
-    def __init__(self):
+    def __init__(self, module):
+        self.module = module
         log_level = os.environ.get("LIGHTPHE_LOG_LEVEL", str(logging.INFO))
         try:
             self.log_level = int(log_level)

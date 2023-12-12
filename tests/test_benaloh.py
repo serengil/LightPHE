@@ -2,7 +2,7 @@ import pytest
 from lightphe.cryptosystems.Benaloh import Benaloh
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="tests/test_benaloh.py")
 
 
 def test_benaloh():

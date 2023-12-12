@@ -6,7 +6,7 @@ from sympy import jacobi_symbol
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="lightphe/cryptosystems/GoldwasserMicali.py")
 
 # pylint:disable=consider-using-enumerate
 
@@ -26,6 +26,8 @@ class GoldwasserMicali(Homomorphic):
         """
         self.keys = keys or self.generate_keys(key_size)
         self.ciphertext_modulo = self.keys["public_key"]["n"]
+        # TODO: not sure about the plaintext modulo
+        self.plaintext_modulo = self.keys["public_key"]["n"]
 
     def generate_keys(self, key_size: int) -> dict:
         """

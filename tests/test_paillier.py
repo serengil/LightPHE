@@ -2,7 +2,7 @@ import pytest
 from lightphe.cryptosystems.Paillier import Paillier
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="tests/test_paillier.py")
 
 
 def test_paillier():
@@ -92,6 +92,3 @@ def test_float_operations():
     k3 = -20
     assert cs.decrypt(c1 * k3) == (m1 * k3) % cs.cs.plaintext_modulo
     assert cs.decrypt(k3 * c1) == (m1 * k3) % cs.cs.plaintext_modulo
-
-    # TODO: think and implement this later
-    _ = -1.05

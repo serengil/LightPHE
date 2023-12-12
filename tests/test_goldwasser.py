@@ -2,7 +2,7 @@ import pytest
 from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="tests/test_goldwasser.py")
 
 
 def test_goldwasser():

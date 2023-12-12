@@ -5,10 +5,9 @@ from abc import ABC, abstractmethod
 
 
 class Homomorphic(ABC):
-    keys: Optional[dict] = None
-    modulo: Optional[int] = None
-    plaintext_modulo: Optional[int] = None
-    ciphertext_modulo: Optional[int] = None
+    keys: dict
+    plaintext_modulo: int
+    ciphertext_modulo: int
 
     @abstractmethod
     def generate_keys(self, key_size: int, s: Optional[int] = None) -> dict:
@@ -36,7 +35,7 @@ class Homomorphic(ABC):
 
     @abstractmethod
     def multiply(
-        self, ciphertext1: Union[int, tuple], ciphertext2: Union[int, tuple]
+        self, ciphertext1: Union[int, tuple, list], ciphertext2: Union[int, tuple, list]
     ) -> Union[int, tuple]:
         pass
 
@@ -45,7 +44,7 @@ class Homomorphic(ABC):
         pass
 
     @abstractmethod
-    def multiply_by_contant(self, ciphertext: int, constant: int) -> int:
+    def multiply_by_contant(self, ciphertext: Union[int, tuple, list], constant: int) -> int:
         pass
 
     @abstractmethod

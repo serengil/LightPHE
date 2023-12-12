@@ -2,7 +2,7 @@ import pytest
 from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="tests/test_ellipticcurveelgamal.py")
 
 
 def test_elliptic_curve_elgamal():

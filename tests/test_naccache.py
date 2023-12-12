@@ -2,7 +2,7 @@ import pytest
 from lightphe.cryptosystems.NaccacheStern import NaccacheStern
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="tests/test_naccache.py")
 
 
 def test_naccache_on_plaintexts():
