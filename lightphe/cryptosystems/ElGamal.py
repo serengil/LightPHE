@@ -5,7 +5,7 @@ import sympy
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="lightphe/cryptosystems/ElGamal.py")
 
 
 class ElGamal(Homomorphic):
@@ -26,7 +26,8 @@ class ElGamal(Homomorphic):
         """
         self.exponential = exponential
         self.keys = keys or self.generate_keys(key_size)
-        self.modulo = self.keys["public_key"]["p"]
+        self.plaintext_modulo = self.keys["public_key"]["p"]
+        self.ciphertext_modulo = self.keys["public_key"]["p"]
 
     def generate_keys(self, key_size: int):
         """

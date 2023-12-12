@@ -2,7 +2,7 @@ import pytest
 from lightphe.cryptosystems.DamgardJurik import DamgardJurik
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="tests/test_damgard.py")
 
 
 def test_damgardjurik():

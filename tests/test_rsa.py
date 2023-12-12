@@ -4,21 +4,21 @@ from lightphe.cryptosystems.RSA import RSA
 from lightphe.commons.logger import Logger
 from lightphe import LightPHE
 
-logger = Logger()
+logger = Logger(module="tests/test_rsa.py")
 
 
 def test_rsa():
     rsa = RSA()
 
-    m1 = rsa.modulo + 9
-    m2 = rsa.modulo + 11
+    m1 = rsa.plaintext_modulo + 9
+    m2 = rsa.plaintext_modulo + 11
 
     c1 = rsa.encrypt(m1)
     c2 = rsa.encrypt(m2)
     c3 = rsa.multiply(c1, c2)
 
     # homomorphic operations
-    assert rsa.decrypt(c3) == (m1 * m2) % rsa.modulo
+    assert rsa.decrypt(c3) == (m1 * m2) % rsa.plaintext_modulo
 
     # unsupported homomorphic operations
     with pytest.raises(ValueError):

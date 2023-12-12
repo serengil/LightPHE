@@ -6,7 +6,7 @@ from sympy.ntheory.modular import solve_congruence
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="lightphe/cryptosystems/NaccacheStern.py")
 
 # pylint: disable=simplifiable-if-expression, consider-using-enumerate
 

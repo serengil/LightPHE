@@ -2,7 +2,7 @@ import pytest
 from lightphe.cryptosystems.OkamotoUchiyama import OkamotoUchiyama
 from lightphe.commons.logger import Logger
 
-logger = Logger()
+logger = Logger(module="tests/test_okamoto.py")
 
 
 def test_okamoto():
