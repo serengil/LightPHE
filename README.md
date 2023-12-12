@@ -157,6 +157,26 @@ with pytest.raises(ValueError, match="Paillier is not homomorphic with respect t
 
 However, if you tried to multiply ciphertexts with RSA, or xor ciphertexts with Goldwasser-Micali, these will be succeeded because those cryptosystems support those homomorphic operations.
 
+# Encrypt & Decrypt Tensors
+
+You can encrypt the output tensors of machine learning models with LightPHE.
+
+```python
+cs = LightPHE(algorithm_name="Paillier")
+
+# define plain tensor
+tensor = [1.005, 2.005, 3.005, -4.005, 5.005]
+
+# encrypt tensor
+encrypted_tensors = cs.encrypt(tensor)
+
+# decrypt tensor
+decrypted_tensors = cs.decrypt(encrypted_tensors)
+
+for i, decrypted_tensor in enumerate(decrypted_tensors):
+    assert tensor[i] == decrypted_tensor
+```
+
 # Contributing
 
 All PRs are more than welcome! If you are planning to contribute a large patch, please create an issue first to get any upfront questions or design decisions out of the way first.
