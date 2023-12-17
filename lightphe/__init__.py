@@ -4,7 +4,7 @@ from typing import Optional, Union, List
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.models.Ciphertext import Ciphertext
 from lightphe.models.Algorithm import Algorithm
-from lightphe.models.Tensor import EncryptedTensor, EncryptedTensors
+from lightphe.models.Tensor import Fraction, EncryptedTensor
 from lightphe.cryptosystems.RSA import RSA
 from lightphe.cryptosystems.ElGamal import ElGamal
 from lightphe.cryptosystems.Paillier import Paillier
@@ -29,6 +29,7 @@ class LightPHE:
         keys: Optional[dict] = None,
         key_file: Optional[str] = None,
         key_size: Optional[int] = None,
+        precision: int = 5,
     ):
         """
         Build LightPHE class
@@ -39,9 +40,10 @@ class LightPHE:
             keys (dict): optional private-public key pair
             key_file (str): if keys are exported, you can load them into cryptosystem
             key_size (int): key size in bits
+            precision (int): precision for homomorphic operations on tensors
         """
         self.algorithm_name = algorithm_name
-        self.precision = 3  # for homomorphic operations on tensors
+        self.precision = precision
 
         if key_file is not None:
             keys = self.restore_keys(target_file=key_file)
@@ -106,7 +108,7 @@ class LightPHE:
             raise ValueError(f"unimplemented algorithm - {algorithm_name}")
         return cs
 
-    def encrypt(self, plaintext: Union[int, float, list]) -> Union[Ciphertext, EncryptedTensors]:
+    def encrypt(self, plaintext: Union[int, float, list]) -> Union[Ciphertext, EncryptedTensor]:
         """
         Encrypt a plaintext with a built cryptosystem
         Args:
@@ -127,7 +129,7 @@ class LightPHE:
         return Ciphertext(algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext)
 
     def decrypt(
-        self, ciphertext: Union[Ciphertext, EncryptedTensors]
+        self, ciphertext: Union[Ciphertext, EncryptedTensor]
     ) -> Union[int, List[int], List[float]]:
         """
         Decrypt a ciphertext with a buit cryptosystem
@@ -139,13 +141,13 @@ class LightPHE:
         if self.cs.keys.get("private_key") is None:
             raise ValueError("You must have private key to perform decryption")
 
-        if isinstance(ciphertext, EncryptedTensors):
+        if isinstance(ciphertext, EncryptedTensor):
             # then this is encrypted tensor
             return self.__decrypt_tensors(encrypted_tensor=ciphertext)
 
         return self.cs.decrypt(ciphertext=ciphertext.value)
 
-    def __encrypt_tensors(self, tensor: list) -> EncryptedTensors:
+    def __encrypt_tensors(self, tensor: list) -> EncryptedTensor:
         """
         Encrypt a given tensor
         Args:
@@ -153,39 +155,49 @@ class LightPHE:
         Returns
             encrypted tensor (list of encrypted tensor object)
         """
-        encrypted_tensor: List[EncryptedTensor] = []
+        encrypted_tensor: List[Fraction] = []
         for m in tensor:
             sign = 1 if m >= 0 else -1
-            sign_encrypted = self.cs.encrypt(plaintext=sign)
-            # get rid of the sign anyway
-            m = m % self.cs.plaintext_modulo
             if isinstance(m, int):
-                dividend_encrypted = self.cs.encrypt(plaintext=m * pow(10, self.precision))
+                dividend_encrypted = self.cs.encrypt(
+                    plaintext=(m % self.cs.plaintext_modulo) * pow(10, self.precision)
+                )
+                abs_dividend_encrypted = self.cs.encrypt(
+                    plaintext=(abs(m) % self.cs.plaintext_modulo) * pow(10, self.precision)
+                )
                 divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
-                c = EncryptedTensor(
+                c = Fraction(
                     dividend=dividend_encrypted,
+                    abs_dividend=abs_dividend_encrypted,
                     divisor=divisor_encrypted,
-                    sign=sign_encrypted,
+                    sign=sign,
                 )
             elif isinstance(m, float):
                 dividend, divisor = phe_utils.fractionize(
-                    value=m, modulo=self.cs.plaintext_modulo, precision=self.precision
+                    value=(m % self.cs.plaintext_modulo),
+                    modulo=self.cs.plaintext_modulo,
+                    precision=self.precision,
+                )
+                abs_dividend, abs_divisor = phe_utils.fractionize(
+                    value=(abs(m) % self.cs.plaintext_modulo),
+                    modulo=self.cs.plaintext_modulo,
+                    precision=self.precision,
                 )
                 dividend_encrypted = self.cs.encrypt(plaintext=dividend)
+                abs_dividend_encrypted = self.cs.encrypt(plaintext=abs_dividend)
                 divisor_encrypted = self.cs.encrypt(plaintext=divisor)
-                c = EncryptedTensor(
+                c = Fraction(
                     dividend=dividend_encrypted,
+                    abs_dividend=abs_dividend_encrypted,
                     divisor=divisor_encrypted,
-                    sign=sign_encrypted,
+                    sign=sign,
                 )
             else:
                 raise ValueError(f"unimplemented type - {type(m)}")
             encrypted_tensor.append(c)
-        return EncryptedTensors(encrypted_tensor=encrypted_tensor, cs=self.cs)
+        return EncryptedTensor(fractions=encrypted_tensor, cs=self.cs)
 
-    def __decrypt_tensors(
-        self, encrypted_tensor: EncryptedTensors
-    ) -> Union[List[int], List[float]]:
+    def __decrypt_tensors(self, encrypted_tensor: EncryptedTensor) -> Union[List[int], List[float]]:
         """
         Decrypt a given encrypted tensor
         Args:
@@ -194,26 +206,19 @@ class LightPHE:
             List of plain tensors
         """
         plain_tensor = []
-        for c in encrypted_tensor.encrypted_tensor:
-            if isinstance(c, EncryptedTensor) is False:
-                raise ValueError("Ciphertext items must be EncryptedTensor")
+        for c in encrypted_tensor.fractions:
+            if isinstance(c, Fraction) is False:
+                raise ValueError("Ciphertext items must be type of Fraction")
 
-            encrypted_dividend = c.dividend
-            encrypted_divisor = c.divisor
-            encrypted_sign = c.sign
+            dividend = self.cs.decrypt(ciphertext=c.dividend)
+            abs_dividend = self.cs.decrypt(ciphertext=c.abs_dividend)
+            divisor = self.cs.decrypt(ciphertext=c.divisor)
+            sign = c.sign
 
-            dividend = self.cs.decrypt(ciphertext=encrypted_dividend)
-            divisor = self.cs.decrypt(ciphertext=encrypted_divisor)
-            sign = self.cs.decrypt(ciphertext=encrypted_sign)
-
-            if sign == self.cs.plaintext_modulo - 1:
-                sign = -1
-            elif sign == 1:
-                sign = 1
+            if sign == 1:
+                m = dividend / divisor
             else:
-                raise ValueError("this cannot be true!")
-
-            m = sign * (dividend / divisor)
+                m = -1 * (abs_dividend / divisor)
 
             plain_tensor.append(m)
         return plain_tensor
