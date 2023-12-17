@@ -178,7 +178,7 @@ class LightPHE:
                     modulo=self.cs.plaintext_modulo,
                     precision=self.precision,
                 )
-                abs_dividend, abs_divisor = phe_utils.fractionize(
+                abs_dividend, _ = phe_utils.fractionize(
                     value=(abs(m) % self.cs.plaintext_modulo),
                     modulo=self.cs.plaintext_modulo,
                     precision=self.precision,

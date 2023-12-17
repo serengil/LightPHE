@@ -45,7 +45,61 @@ def test_homomorphic_multiplication():
     with pytest.raises(ValueError):
         _ = c1 + c2
 
+    with pytest.raises(ValueError):
+        _ = c2 * 2
+
     logger.info("✅ Homomorphic multiplication tests succeeded")
+
+
+def test_homomorphic_multiply_by_a_constant():
+    cs = LightPHE(algorithm_name="Paillier")
+
+    t1 = [5, 6.2, -7.002, 7.002, 8.02]
+    constant = 2
+    c1: EncryptedTensor = cs.encrypt(t1)
+
+    c2 = c1 * constant
+
+    t2 = cs.decrypt(c2)
+
+    for i, restored_tensor in enumerate(t2):
+        assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
+
+    logger.info("✅ Homomorphic multiplication by a constant tests succeeded")
+
+
+def test_homomorphic_multiply_with_int_constant():
+    cs = LightPHE(algorithm_name="Paillier")
+
+    t1 = [5, 6.2, 7.002, -7.002, 8.02]
+    constant = 2
+    c1: EncryptedTensor = cs.encrypt(t1)
+
+    c2 = constant * c1
+
+    t2 = cs.decrypt(c2)
+
+    for i, restored_tensor in enumerate(t2):
+        assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
+
+    logger.info("✅ Homomorphic multiplication with an integer constant tests succeeded")
+
+
+def test_homomorphic_multiply_with_float_constant():
+    cs = LightPHE(algorithm_name="Paillier")
+
+    t1 = [10000.0, 15000, 20000]
+    constant = 1.05
+    c1: EncryptedTensor = cs.encrypt(t1)
+
+    c2 = constant * c1
+
+    t2 = cs.decrypt(c2)
+
+    for i, restored_tensor in enumerate(t2):
+        assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
+
+    logger.info("✅ Homomorphic multiplication with a float constant tests succeeded")
 
 
 def test_homomorphic_addition():
