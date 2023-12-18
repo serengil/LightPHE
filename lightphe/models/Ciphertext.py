@@ -102,15 +102,7 @@ class Ciphertext:
         Returns
             scalar multiplication of ciphertext
         """
-        if self.cs.keys.get("public_key") is None:
-            raise ValueError("You must have public key to perform scalar multiplication")
-
-        if isinstance(constant, float):
-            constant = phe_utils.parse_int(value=constant, modulo=self.cs.plaintext_modulo)
-
-        # Handle multiplication with a constant on the right
-        result = self.cs.multiply_by_contant(ciphertext=self.value, constant=constant)
-        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
+        return self.__mul__(other=constant)
 
     def __xor__(self, other: "Ciphertext") -> "Ciphertext":
         """

@@ -29,7 +29,7 @@ Even though fully homomorphic encryption (FHE) has become available in recent ti
 - 🧠 Well-suited for memory-constrained environments
 - ⚖️ Strikes a favorable balance for practical use cases
 - 🔑 Supporting encryption and decryption of vectors
-- 🗝️ Performing homomorphic addition and multiplication on encrypted vectors
+- 🗝️ Performing homomorphic addition, homomorphic element-wise multiplication and scalar multiplication on encrypted vectors
 
 # Installation [![PyPI](https://img.shields.io/pypi/v/lightphe.svg)](https://pypi.org/project/lightphe/)
 
@@ -161,7 +161,7 @@ However, if you tried to multiply ciphertexts with RSA, or xor ciphertexts with 
 
 # Working with vectors
 
-You can encrypt the output tensors of machine learning models with LightPHE. These encrypted tensors come with homomorphic operation support.
+You can encrypt the output vectors of machine learning models with LightPHE. These encrypted tensors come with homomorphic operation support.
 
 ```python
 # build an additively homomorphic cryptosystem

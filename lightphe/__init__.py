@@ -157,20 +157,14 @@ class LightPHE:
         """
         encrypted_tensor: List[Fraction] = []
         for m in tensor:
-            sign = 1 if m >= 0 else -1
             if isinstance(m, int):
                 dividend_encrypted = self.cs.encrypt(
                     plaintext=(m % self.cs.plaintext_modulo) * pow(10, self.precision)
                 )
-                abs_dividend_encrypted = self.cs.encrypt(
-                    plaintext=(abs(m) % self.cs.plaintext_modulo) * pow(10, self.precision)
-                )
                 divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
                 c = Fraction(
                     dividend=dividend_encrypted,
-                    abs_dividend=abs_dividend_encrypted,
                     divisor=divisor_encrypted,
-                    sign=sign,
                 )
             elif isinstance(m, float):
                 dividend, divisor = phe_utils.fractionize(
@@ -178,19 +172,13 @@ class LightPHE:
                     modulo=self.cs.plaintext_modulo,
                     precision=self.precision,
                 )
-                abs_dividend, _ = phe_utils.fractionize(
-                    value=(abs(m) % self.cs.plaintext_modulo),
-                    modulo=self.cs.plaintext_modulo,
-                    precision=self.precision,
-                )
+                # print(f"{m} mod n = {(m % self.cs.plaintext_modulo)} = {dividend} / {divisor}")
+                # print(f" = {dividend / divisor}")
                 dividend_encrypted = self.cs.encrypt(plaintext=dividend)
-                abs_dividend_encrypted = self.cs.encrypt(plaintext=abs_dividend)
                 divisor_encrypted = self.cs.encrypt(plaintext=divisor)
                 c = Fraction(
                     dividend=dividend_encrypted,
-                    abs_dividend=abs_dividend_encrypted,
                     divisor=divisor_encrypted,
-                    sign=sign,
                 )
             else:
                 raise ValueError(f"unimplemented type - {type(m)}")
@@ -211,14 +199,8 @@ class LightPHE:
                 raise ValueError("Ciphertext items must be type of Fraction")
 
             dividend = self.cs.decrypt(ciphertext=c.dividend)
-            abs_dividend = self.cs.decrypt(ciphertext=c.abs_dividend)
             divisor = self.cs.decrypt(ciphertext=c.divisor)
-            sign = c.sign
-
-            if sign == 1:
-                m = dividend / divisor
-            else:
-                m = -1 * (abs_dividend / divisor)
+            m = dividend / divisor
 
             plain_tensor.append(m)
         return plain_tensor

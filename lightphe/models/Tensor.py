@@ -12,21 +12,16 @@ class Fraction:
     def __init__(
         self,
         dividend: Union[int, tuple, list],
-        abs_dividend: Union[int, tuple, list],
         divisor: Union[int, tuple, list],
-        sign: int,
     ):
         self.dividend = dividend
-        self.abs_dividend = abs_dividend
         self.divisor = divisor
-        self.sign = sign
 
     def __str__(self):
         """
         Print Fraction Class Object
         """
-        sign_char = "-" if self.sign == -1 else ""
-        return f"Fraction({sign_char} * {self.abs_dividend} / {self.divisor})"
+        return f"Fraction({self.dividend} / {self.divisor})"
 
     def __repr__(self):
         """
@@ -82,7 +77,7 @@ class EncryptedTensor:
                 beta_tensor = other.fractions[i]
 
                 current_dividend = self.cs.multiply(
-                    ciphertext1=alpha_tensor.abs_dividend, ciphertext2=beta_tensor.dividend
+                    ciphertext1=alpha_tensor.dividend, ciphertext2=beta_tensor.dividend
                 )
 
                 current_divisor = self.cs.multiply(
@@ -91,9 +86,7 @@ class EncryptedTensor:
 
                 fraction = Fraction(
                     dividend=current_dividend,
-                    abs_dividend=current_dividend,
                     divisor=current_divisor,
-                    sign=alpha_tensor.sign * beta_tensor.sign,
                 )
 
                 fractions.append(fraction)
@@ -108,14 +101,10 @@ class EncryptedTensor:
                 dividend = self.cs.multiply_by_contant(
                     ciphertext=alpha_tensor.dividend, constant=other
                 )
-                abs_dividend = self.cs.multiply_by_contant(
-                    ciphertext=alpha_tensor.abs_dividend, constant=other
-                )
+                # notice that divisor is alpha tensor's divisor instead of addition
                 fraction = Fraction(
                     dividend=dividend,
-                    abs_dividend=abs_dividend,
                     divisor=alpha_tensor.divisor,
-                    sign=alpha_tensor.sign,
                 )
                 fractions.append(fraction)
             return EncryptedTensor(fractions=fractions, cs=self.cs)
@@ -152,12 +141,10 @@ class EncryptedTensor:
             current_dividend = self.cs.add(
                 ciphertext1=alpha_tensor.dividend, ciphertext2=beta_tensor.dividend
             )
-
+            # notice that divisor is alpha tensor's divisor instead of addition
             current_tensor = Fraction(
                 dividend=current_dividend,
-                abs_dividend=current_dividend,
                 divisor=alpha_tensor.divisor,
-                sign=1,
             )
 
             current_tensors.append(current_tensor)

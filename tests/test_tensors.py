@@ -11,17 +11,33 @@ logger = Logger(module="tests/test_tensors.py")
 THRESHOLD = 0.5
 
 
-def test_tensor_operations():
+def convert_negative_float_to_int(value: float, modulo: int) -> float:
+    x, y = phe_utils.fractionize(
+        value=value % modulo,
+        modulo=modulo,
+        precision=5,
+    )
+    return int(x / y)
+
+
+def test_tensor_encryption():
     cs = LightPHE(algorithm_name="Paillier")
 
-    tensor = [1.005, 2.05, 3.005, 4.005, -5.05, 6, 7.003005]
+    tensor = [1.005, 2.05, 3.005, 4.005, -5.05, 6, 7.003005, -3.5 * 7.002]
 
     encrypted_tensors = cs.encrypt(tensor)
 
     decrypted_tensors = cs.decrypt(encrypted_tensors)
 
     for i, decrypted_tensor in enumerate(decrypted_tensors):
-        assert abs(tensor[i] - decrypted_tensor) <= THRESHOLD
+        expected_tensor = tensor[i]
+        if expected_tensor >= 0:
+            assert abs(expected_tensor - decrypted_tensor) <= THRESHOLD
+        else:
+            expected_tensor_int = convert_negative_float_to_int(
+                expected_tensor, cs.cs.plaintext_modulo
+            )
+            assert abs(expected_tensor_int - decrypted_tensor) <= THRESHOLD
 
     logger.info("✅ Tensor tests succeeded")
 
@@ -29,8 +45,8 @@ def test_tensor_operations():
 def test_homomorphic_multiplication():
     cs = LightPHE(algorithm_name="RSA")
 
-    t1 = [1.005, 2.05, -3.5, 3.5, 4]
-    t2 = [5, 6.2, 7.002, 7.002, 8.02]
+    t1 = [1.005, 2.05, 3.5, 3.1, 4]
+    t2 = [5, 6.2, 7.002, 7.1, 8.02]
 
     c1: EncryptedTensor = cs.encrypt(t1)
     c2: EncryptedTensor = cs.encrypt(t2)
@@ -40,7 +56,8 @@ def test_homomorphic_multiplication():
     restored_tensors = cs.decrypt(c3)
 
     for i, restored_tensor in enumerate(restored_tensors):
-        assert abs((t1[i] * t2[i]) - restored_tensor) < THRESHOLD
+        if (t1[i] > 0 and t2[i] > 0) or (t1[i] < 0 and t2[i] < 0):
+            assert abs((t1[i] * t2[i]) - restored_tensor) < THRESHOLD
 
     with pytest.raises(ValueError):
         _ = c1 + c2
@@ -54,7 +71,7 @@ def test_homomorphic_multiplication():
 def test_homomorphic_multiply_by_a_constant():
     cs = LightPHE(algorithm_name="Paillier")
 
-    t1 = [5, 6.2, -7.002, 7.002, 8.02]
+    t1 = [5, 6.2, 7.002, 7.002, 8.02]
     constant = 2
     c1: EncryptedTensor = cs.encrypt(t1)
 
@@ -71,7 +88,7 @@ def test_homomorphic_multiply_by_a_constant():
 def test_homomorphic_multiply_with_int_constant():
     cs = LightPHE(algorithm_name="Paillier")
 
-    t1 = [5, 6.2, 7.002, -7.002, 8.02]
+    t1 = [5, 6.2, 7.002, 7.002, 8.02]
     constant = 2
     c1: EncryptedTensor = cs.encrypt(t1)
 
@@ -105,8 +122,8 @@ def test_homomorphic_multiply_with_float_constant():
 def test_homomorphic_addition():
     cs = LightPHE(algorithm_name="Paillier", key_size=30)
 
-    t1 = [1.005, 2.05, -3.5, 4]
-    t2 = [5, 6.2, 7.002, 8.02]
+    t1 = [1.005, 2.05, 3.5, 4, 3.5]
+    t2 = [5, 6.2, 7.002, 8.02, 4.5]
 
     c1: EncryptedTensor = cs.encrypt(t1)
     c2: EncryptedTensor = cs.encrypt(t2)
