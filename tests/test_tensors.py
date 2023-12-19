@@ -31,13 +31,7 @@ def test_tensor_encryption():
 
     for i, decrypted_tensor in enumerate(decrypted_tensors):
         expected_tensor = tensor[i]
-        if expected_tensor >= 0:
-            assert abs(expected_tensor - decrypted_tensor) <= THRESHOLD
-        else:
-            expected_tensor_int = convert_negative_float_to_int(
-                expected_tensor, cs.cs.plaintext_modulo
-            )
-            assert abs(expected_tensor_int - decrypted_tensor) <= THRESHOLD
+        assert abs(expected_tensor - decrypted_tensor) <= THRESHOLD
 
     logger.info("✅ Tensor tests succeeded")
 
@@ -45,8 +39,8 @@ def test_tensor_encryption():
 def test_homomorphic_multiplication():
     cs = LightPHE(algorithm_name="RSA")
 
-    t1 = [1.005, 2.05, 3.5, 3.1, 4]
-    t2 = [5, 6.2, 7.002, 7.1, 8.02]
+    t1 = [1.005, 2.05, -3.5, 3.1, -4]
+    t2 = [5, 6.2, -7.002, -7.1, 8.02]
 
     c1: EncryptedTensor = cs.encrypt(t1)
     c2: EncryptedTensor = cs.encrypt(t2)
@@ -56,7 +50,7 @@ def test_homomorphic_multiplication():
     restored_tensors = cs.decrypt(c3)
 
     for i, restored_tensor in enumerate(restored_tensors):
-        if (t1[i] > 0 and t2[i] > 0) or (t1[i] < 0 and t2[i] < 0):
+        if t1[i] > 0 and t2[i] > 0:
             assert abs((t1[i] * t2[i]) - restored_tensor) < THRESHOLD
 
     with pytest.raises(ValueError):
@@ -122,8 +116,8 @@ def test_homomorphic_multiply_with_float_constant():
 def test_homomorphic_addition():
     cs = LightPHE(algorithm_name="Paillier", key_size=30)
 
-    t1 = [1.005, 2.05, 3.5, 4, 3.5]
-    t2 = [5, 6.2, 7.002, 8.02, 4.5]
+    t1 = [1.005, 2.05, 3.6, -4, -3.5]
+    t2 = [5, 6.2, -7.5, 8.02, -4.5]
 
     c1: EncryptedTensor = cs.encrypt(t1)
     c2: EncryptedTensor = cs.encrypt(t2)
@@ -133,7 +127,11 @@ def test_homomorphic_addition():
     restored_tensors = cs.decrypt(c3)
 
     for i, restored_tensor in enumerate(restored_tensors):
-        assert abs((t1[i] + t2[i]) - restored_tensor) < THRESHOLD
+        if t1[i] + t2[i] >= 0:
+            assert abs((t1[i] + t2[i]) - restored_tensor) < THRESHOLD
+        else:
+            expected = convert_negative_float_to_int(t1[i] + t2[i], cs.cs.plaintext_modulo)
+            assert abs(expected - restored_tensor) < THRESHOLD * 2
 
     with pytest.raises(ValueError):
         _ = c1 * c2

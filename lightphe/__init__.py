@@ -161,10 +161,15 @@ class LightPHE:
                 dividend_encrypted = self.cs.encrypt(
                     plaintext=(m % self.cs.plaintext_modulo) * pow(10, self.precision)
                 )
+                abs_dividend_encrypted = self.cs.encrypt(
+                    plaintext=(abs(m) % self.cs.plaintext_modulo) * pow(10, self.precision)
+                )
                 divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
                 c = Fraction(
                     dividend=dividend_encrypted,
                     divisor=divisor_encrypted,
+                    abs_dividend=abs_dividend_encrypted,
+                    sign=1 if m >= 0 else -1,
                 )
             elif isinstance(m, float):
                 dividend, divisor = phe_utils.fractionize(
@@ -172,13 +177,19 @@ class LightPHE:
                     modulo=self.cs.plaintext_modulo,
                     precision=self.precision,
                 )
-                # print(f"{m} mod n = {(m % self.cs.plaintext_modulo)} = {dividend} / {divisor}")
-                # print(f" = {dividend / divisor}")
+                abs_dividend, _ = phe_utils.fractionize(
+                    value=(abs(m) % self.cs.plaintext_modulo),
+                    modulo=self.cs.plaintext_modulo,
+                    precision=self.precision,
+                )
                 dividend_encrypted = self.cs.encrypt(plaintext=dividend)
+                abs_dividend_encrypted = self.cs.encrypt(plaintext=abs_dividend)
                 divisor_encrypted = self.cs.encrypt(plaintext=divisor)
                 c = Fraction(
                     dividend=dividend_encrypted,
                     divisor=divisor_encrypted,
+                    abs_dividend=abs_dividend_encrypted,
+                    sign=1 if m >= 0 else -1,
                 )
             else:
                 raise ValueError(f"unimplemented type - {type(m)}")
@@ -198,9 +209,14 @@ class LightPHE:
             if isinstance(c, Fraction) is False:
                 raise ValueError("Ciphertext items must be type of Fraction")
 
+            sign = c.sign
             dividend = self.cs.decrypt(ciphertext=c.dividend)
             divisor = self.cs.decrypt(ciphertext=c.divisor)
-            m = dividend / divisor
+            if c.abs_dividend is not None and sign == -1:
+                abs_dividend = self.cs.decrypt(ciphertext=c.abs_dividend)
+                m = -1 * abs_dividend / divisor
+            else:
+                m = dividend / divisor
 
             plain_tensor.append(m)
         return plain_tensor

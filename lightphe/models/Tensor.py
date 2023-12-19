@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Optional
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons import phe_utils
 
@@ -13,9 +13,13 @@ class Fraction:
         self,
         dividend: Union[int, tuple, list],
         divisor: Union[int, tuple, list],
+        sign: int = 1,
+        abs_dividend: Optional[Union[int, tuple, list]] = None,
     ):
         self.dividend = dividend
         self.divisor = divisor
+        self.sign = sign
+        self.abs_dividend = abs_dividend
 
     def __str__(self):
         """
