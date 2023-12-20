@@ -28,6 +28,8 @@ Even though fully homomorphic encryption (FHE) has become available in recent ti
 - 📏 Generating smaller ciphertexts
 - 🧠 Well-suited for memory-constrained environments
 - ⚖️ Strikes a favorable balance for practical use cases
+- 🔑 Supporting encryption and decryption of vectors
+- 🗝️ Performing homomorphic addition, homomorphic element-wise multiplication and scalar multiplication on encrypted vectors
 
 # Installation [![PyPI](https://img.shields.io/pypi/v/lightphe.svg)](https://pypi.org/project/lightphe/)
 
@@ -157,24 +159,30 @@ with pytest.raises(ValueError, match="Paillier is not homomorphic with respect t
 
 However, if you tried to multiply ciphertexts with RSA, or xor ciphertexts with Goldwasser-Micali, these will be succeeded because those cryptosystems support those homomorphic operations.
 
-# Encrypt & Decrypt Tensors
+# Working with vectors
 
-You can encrypt the output tensors of machine learning models with LightPHE.
+You can encrypt the output vectors of machine learning models with LightPHE. These encrypted tensors come with homomorphic operation support.
 
 ```python
+# build an additively homomorphic cryptosystem
 cs = LightPHE(algorithm_name="Paillier")
 
-# define plain tensor
-tensor = [1.005, 2.005, 3.005, -4.005, 5.005]
+# define plain tensors
+t1 = [1.005, 2.05, -3.5, 4]
+t2 = [5, 6.2, 7.002, 8.02]
 
-# encrypt tensor
-encrypted_tensors = cs.encrypt(tensor)
+# encrypt tensors
+c1 = cs.encrypt(t1)
+c2 = cs.encrypt(t2)
 
-# decrypt tensor
-decrypted_tensors = cs.decrypt(encrypted_tensors)
+# perform homomorphic addition
+c3 = c1 + c2
 
-for i, decrypted_tensor in enumerate(decrypted_tensors):
-    assert tensor[i] == decrypted_tensor
+# decrypt the addition tensor
+t3 = cs.decrypt(c3)
+
+for i, tensor in enumerate(t3):
+   assert abs((t1[i] + t2[i]) - restored_tensor) < 0.5
 ```
 
 # Contributing
