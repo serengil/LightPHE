@@ -210,13 +210,10 @@ class LightPHE:
                 raise ValueError("Ciphertext items must be type of Fraction")
 
             sign = c.sign
-            dividend = self.cs.decrypt(ciphertext=c.dividend)
+            abs_dividend = self.cs.decrypt(ciphertext=c.abs_dividend)
+            # dividend = self.cs.decrypt(ciphertext=c.dividend)
             divisor = self.cs.decrypt(ciphertext=c.divisor)
-            if c.abs_dividend is not None and sign == -1:
-                abs_dividend = self.cs.decrypt(ciphertext=c.abs_dividend)
-                m = -1 * abs_dividend / divisor
-            else:
-                m = dividend / divisor
+            m = sign * abs_dividend / divisor
 
             plain_tensor.append(m)
         return plain_tensor
