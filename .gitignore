@@ -4,3 +4,4 @@ lightphe.egg-info
 build/
 dist/
 *.pyc
+tests/*.lphe

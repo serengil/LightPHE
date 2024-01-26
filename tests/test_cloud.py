@@ -10,7 +10,10 @@ PUBLIC = {"public_key": {"n": 175501, "e": 101753}}
 
 
 def test_encryption():
-    cs = LightPHE(algorithm_name="RSA", keys=PRIVATE)
+    # i actually have both private and public key
+    # but one can encrypt messages with public key only
+    cs = LightPHE(algorithm_name="RSA", keys=PUBLIC)
+    secret_cs = LightPHE(algorithm_name="RSA", keys=PRIVATE)
 
     # plaintexts
     m1 = 10000
@@ -19,15 +22,13 @@ def test_encryption():
     m2 = 1.05
     c2 = cs.encrypt(m2)
 
-    assert cs.decrypt(c1) == m1
-
+    assert secret_cs.decrypt(c1) == m1
     logger.info("✅ Cloud encryption tests done")
 
     c3_val = homomorphic_operations(c1=c1.value, c2=c2.value)
     c3 = cs.create_ciphertext_obj(c3_val)
 
-    assert cs.decrypt(c3) == m1 * m2
-
+    assert secret_cs.decrypt(c3) == m1 * m2
     logger.info("✅ Cloud decryption tests done")
 
 
