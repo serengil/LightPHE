@@ -81,18 +81,21 @@ class OkamotoUchiyama(Homomorphic):
         Returns:
             ciphertext (int): encrypted message
         """
-        p = self.keys["private_key"]["p"]
+
         g = self.keys["public_key"]["g"]
         n = self.keys["public_key"]["n"]
         h = self.keys["public_key"]["h"]
         r = random_key or self.generate_random_key()
 
-        if plaintext > p:
-            plaintext = plaintext % p
-            logger.debug(
-                f"plaintext must be in scale [0, {p=}] but this is exceeded."
-                "New plaintext is {plaintext}"
-            )
+        # having private key is not a must to encrypt but still if you have
+        if self.keys.get("private_key") is not None:
+            p = self.keys["private_key"]["p"]
+            if plaintext > p:
+                plaintext = plaintext % p
+                logger.debug(
+                    f"plaintext must be in scale [0, {p=}] but this is exceeded."
+                    "New plaintext is {plaintext}"
+                )
         return (pow(g, plaintext, n) * pow(h, r, n)) % n
 
     def decrypt(self, ciphertext: int):

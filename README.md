@@ -3,7 +3,7 @@
 <div align="center">
 
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/lightphe?period=total&units=international_system&left_color=grey&right_color=blue&left_text=pypi%20downloads)](https://pepy.tech/project/lightphe)
-[![Stars](https://img.shields.io/github/stars/serengil/LightPHE?color=yellow&style=flat)](https://github.com/serengil/LightPHE/stargazers)
+[![Stars](https://img.shields.io/github/stars/serengil/LightPHE?color=yellow&style=flat&label=%E2%AD%90%20stars)](https://github.com/serengil/LightPHE/stargazers)
 [![Tests](https://github.com/serengil/LightPHE/actions/workflows/tests.yml/badge.svg)](https://github.com/serengil/LightPHE/actions/workflows/tests.yml)
 [![License](http://img.shields.io/:license-MIT-green.svg?style=flat)](https://github.com/serengil/LightPHE/blob/master/LICENSE)
 [![Support me on Patreon](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3Dserengil%26type%3Dpatrons&style=flat)](https://www.patreon.com/serengil?repo=lightphe)
@@ -25,11 +25,10 @@ Even though fully homomorphic encryption (FHE) has become available in recent ti
 
 - 🏎️ Notably faster
 - 💻 Demands fewer computational resources
-- 📏 Generating smaller ciphertexts
+- 📏 Generating much smaller ciphertexts
+- 🔑 Distributing much smaller keys
 - 🧠 Well-suited for memory-constrained environments
 - ⚖️ Strikes a favorable balance for practical use cases
-- 🔑 Supporting encryption and decryption of vectors
-- 🗝️ Performing homomorphic addition, homomorphic element-wise multiplication and scalar multiplication on encrypted vectors
 
 # Installation [![PyPI](https://img.shields.io/pypi/v/lightphe.svg)](https://pypi.org/project/lightphe/)
 
@@ -161,14 +160,14 @@ However, if you tried to multiply ciphertexts with RSA, or xor ciphertexts with 
 
 # Working with vectors
 
-You can encrypt the output vectors of machine learning models with LightPHE. These encrypted tensors come with homomorphic operation support.
+You can encrypt the output vectors of machine learning models with LightPHE. These encrypted tensors come with homomorphic operation support including homomorphic addition, element-wise multiplication and scalar multiplication.
 
 ```python
 # build an additively homomorphic cryptosystem
 cs = LightPHE(algorithm_name="Paillier")
 
 # define plain tensors
-t1 = [1.005, 2.05, -3.5, 4]
+t1 = [1.005, 2.05, 3.5, 4]
 t2 = [5, 6.2, 7.002, 8.02]
 
 # encrypt tensors
@@ -178,12 +177,31 @@ c2 = cs.encrypt(t2)
 # perform homomorphic addition
 c3 = c1 + c2
 
+# perform homomorphic element-wise multiplication
+c4 = c1 * c2
+
+# perform homomorphic scalar multiplication
+k = 5
+c5 = k * c1
+
 # decrypt the addition tensor
 t3 = cs.decrypt(c3)
 
-for i, tensor in enumerate(t3):
-   assert abs((t1[i] + t2[i]) - restored_tensor) < 0.5
+# decrypt the element-wise multiplied tensor
+t4 = cs.decrypt(c4)
+
+# decrypt the scalar multiplied tensor
+t5 = cs.decrypt(c5)
+
+# data validations
+threshold = 0.5
+for i in range(0, len(t1)):
+   assert abs((t1[i] + t2[i]) - t3[i]) < threshold
+   assert abs((t1[i] * t2[i]) - t4[i]) < threshold
+   assert abs((t1[i] * k) - t5[i]) < threshold
 ```
+
+Unfortunately, vector multiplication (dot product) requires both homomorphic addition and homomorphic multiplication and this cannot be done with partially homomorphic encryption algorithms.
 
 # Contributing
 

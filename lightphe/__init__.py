@@ -116,8 +116,8 @@ class LightPHE:
         Returns
             ciphertext (from lightphe.models.Ciphertext import Ciphertext): encrypted message
         """
-        if self.cs.keys.get("private_key") is None:
-            raise ValueError("You must have private key to perform encryption")
+        if self.cs.keys.get("public_key") is None:
+            raise ValueError("You must have public key to perform encryption")
 
         if isinstance(plaintext, list):
             # then encrypt tensors
@@ -140,6 +140,9 @@ class LightPHE:
         """
         if self.cs.keys.get("private_key") is None:
             raise ValueError("You must have private key to perform decryption")
+
+        if self.cs.keys.get("public_key") is None:
+            raise ValueError("You must have public key to perform decryption")
 
         if isinstance(ciphertext, EncryptedTensor):
             # then this is encrypted tensor
@@ -243,7 +246,9 @@ class LightPHE:
                 to publicly.
         """
         keys = self.cs.keys
+        private_key = None
         if public is True and keys.get("private_key") is not None:
+            private_key = keys["private_key"]
             del keys["private_key"]
 
         if public is False:
@@ -254,6 +259,10 @@ class LightPHE:
 
         with open(target_file, "w", encoding="UTF-8") as file:
             file.write(json.dumps(keys))
+
+        # restore private key if you dropped
+        if private_key is not None:
+            self.cs.keys["private_key"] = private_key
 
     def restore_keys(self, target_file: str) -> dict:
         """
