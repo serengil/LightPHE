@@ -128,7 +128,12 @@ class GoldwasserMicali(Homomorphic):
             xp = i % p
             xq = i % q
 
-            if pow(xp, int((p - 1) / 2), p) == 1 and pow(xq, int((q - 1) / 2), q) == 1:
+            # reaches int limit for 3072-bit key
+            # if pow(xp, int((p - 1) / 2), p) == 1 and pow(xq, int((q - 1) / 2), q) == 1:
+            if (
+                pow(xp, int((p - 1) // 2), p) == 1
+                and pow(xq, int((q - 1) // 2), q) == 1
+            ):
                 m_binaries.append("0")
             else:
                 m_binaries.append("1")

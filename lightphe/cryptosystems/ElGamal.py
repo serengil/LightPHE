@@ -1,7 +1,12 @@
+# built-in dependencies
 import random
-import math
+import decimal
 from typing import Optional
+
+# 3rd party dependencies
 import sympy
+
+# project dependencies
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
 
@@ -45,7 +50,8 @@ class ElGamal(Homomorphic):
         p = sympy.randprime(100, 2 ** int(key_size / 2) - 1)
 
         # picking a generator g
-        g = random.randint(2, int(math.sqrt(p)))
+        # g = random.randint(2, int(math.sqrt(p))) # reaches int limit for 3072-bit key
+        g = int(random.uniform(2, float(decimal.Decimal(p).sqrt())))
 
         # picking a private key x
         x = random.randint(1, p - 2)
