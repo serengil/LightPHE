@@ -51,7 +51,8 @@ class ElGamal(Homomorphic):
 
         # picking a generator g
         # g = random.randint(2, int(math.sqrt(p))) # reaches int limit for 3072-bit key
-        g = int(random.uniform(2, float(decimal.Decimal(p).sqrt())))
+        # g = int(random.uniform(2, float(decimal.Decimal(p).sqrt())))
+        g = random.randint(2, int(decimal.Decimal(p).sqrt()))
 
         # picking a private key x
         x = random.randint(1, p - 2)
