@@ -213,10 +213,14 @@ You should be able run `make test` and `make lint` commands successfully before 
 
 There are many ways to support a project - starring⭐️ the GitHub repo is just one 🙏
 
-You can also support this work on [Patreon](https://www.patreon.com/serengil?repo=lightphe) or [GitHub Sponsors](https://github.com/sponsors/serengil).
+You can also support this work on [Patreon](https://www.patreon.com/serengil?repo=lightphe), [GitHub Sponsors](https://github.com/sponsors/serengil) or [Buy Me a Coffee](https://buymeacoffee.com/serengil).
 
 <a href="https://www.patreon.com/serengil?repo=lightphe">
 <img src="https://raw.githubusercontent.com/serengil/LightPHE/master/icons/patreon.png" width="30%" height="30%">
+</a>
+
+<a href="https://buymeacoffee.com/serengil">
+<img src="https://raw.githubusercontent.com/serengil/LightPHE/master/icons/bmc-button.png" width="25%" height="25%">
 </a>
 
 # Citation
