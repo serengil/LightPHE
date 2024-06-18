@@ -231,7 +231,7 @@ Please cite LightPHE in your publications if it helps your research. Here is its
 
 ```BibTeX
 @misc{serengil2023lightphe,
-  abstract     = {A Lightweight Partially Homomorphic Encryption Library for Python},
+  abstract     = {LightPHE: A Lightweight Partially Homomorphic Encryption Library for Python},
   author       = {Serengil, Sefik Ilkin},
   title        = {LightPHE},
   howpublished = {https://github.com/serengil/LightPHE},
