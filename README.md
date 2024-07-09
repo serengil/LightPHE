@@ -130,7 +130,7 @@ c2 = cs.encrypt(m2)
 This Python code snippet illustrates how to handle encrypted data on the cloud side using the Paillier cryptosystem with the LightPHE library. Upon receiving the encrypted values c1 and c2, the cloud system initializes the cryptosystem using the exported public key stored in public.txt. To ensure the security of the data, a test is performed to confirm that the cloud system cannot decrypt c1 and c2 without the private key. This is done using the pytest library, which raises a ValueError if decryption is attempted, verifying that decryption is not possible without the private key. Finally, the code demonstrates homomorphic addition by adding the two ciphertexts, resulting in a new ciphertext c3 that represents the encrypted sum of the original plaintext values.
 
 ```python
-# cloud side recives encrypted c1 and c2
+# cloud side receives encrypted c1 and c2
 
 # build cryptosystem with the exported public key
 cs = LightPHE(algorithm_name = "Paillier", key_file = "public.txt")
