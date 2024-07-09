@@ -95,15 +95,24 @@ m = 17
 # calculate ciphertext
 c = cs.encrypt(m)
 
+# proof of work
 assert cs.decrypt(c) == m
 ```
 
 # Homomorphic Operations
 
-Once you have the ciphertext, you will be able to perform homomorphic operations on encrypted data. For instance, Paillier is homomorphic with respect to the addition. In other words, decryption of the addition of two ciphertexts is equivalent to addition of plaintexts. 
+Once you have the ciphertext, you will be able to perform homomorphic operations on encrypted data. For instance, Paillier is homomorphic with respect to the addition. In other words, decryption of the addition of two ciphertexts is equivalent to addition of plaintexts.
+
+### On-Prem Encryption
+
+This Python code snippet demonstrates how to generate a private-public key pair using the Paillier cryptosystem via the LightPHE library. First, an instance of the LightPHE class is created with the Paillier algorithm. Then, the public key is exported and saved to a file named "public.txt" to build the same cryptosystem with only public key in the cloud side later. The code defines two plaintext values, m1 and m2, respectively. These plaintext values are encrypted to generate ciphertexts c1 and c2 using the public key. Finally, the ciphertexts c1 and c2 are prepared to be sent to a cloud system for secure processing or storage.
 
 ```python
+# generate private-public key pair
 cs = LightPHE(algorithm_name = "Paillier")
+
+# export public key to build same cryptosystem with only public key in the cloud
+cs.export_keys(target_file = "public.txt", public = True)
 
 # define plaintexts
 m1 = 17
@@ -113,29 +122,59 @@ m2 = 23
 c1 = cs.encrypt(m1)
 c2 = cs.encrypt(m2)
 
-# homomorphic addition - private key is not required!
+# send c1 and c2 pair to a cloud system
+```
+
+### Homomorphic Operations on Cloud
+
+This Python code snippet illustrates how to handle encrypted data on the cloud side using the Paillier cryptosystem with the LightPHE library. Upon receiving the encrypted values c1 and c2, the cloud system initializes the cryptosystem using the exported public key stored in public.txt. To ensure the security of the data, a test is performed to confirm that the cloud system cannot decrypt c1 and c2 without the private key. This is done using the pytest library, which raises a ValueError if decryption is attempted, verifying that decryption is not possible without the private key. Finally, the code demonstrates homomorphic addition by adding the two ciphertexts, resulting in a new ciphertext c3 that represents the encrypted sum of the original plaintext values.
+
+```python
+# cloud side recives encrypted c1 and c2
+
+# build cryptosystem with the exported public key
+cs = LightPHE(algorithm_name = "Paillier", key_file = "public.txt")
+
+# confirm that cloud cannot decrypt c1 and c2
+with pytest.raises(ValueError, match="You must have private key to perform decryption"):
+  cs.decrypt(c1)
+  cs.decrypt(c2)
+
+# homomorphic addition
 c3 = c1 + c2
+
+# confirm that cloud cannot decrypt c3
+with pytest.raises(ValueError, match="You must have private key to perform decryption"):
+  cs.decrypt(c3)
+```
+
+### On-Prem Decryption
+
+This Python code snippet demonstrates the final step in a secure computation process using homomorphic encryption with the LightPHE library. After receiving the ciphertext c3 from the cloud, which is the result of homomorphic addition of two ciphertexts c1 and c2, the on-premises system (which has the private key) decrypts c3 to verify the result. The decrypted value is then asserted to be equal to the sum of the original plaintext values m1 and m2. This step ensures the correctness of the homomorphic computation performed by the cloud.
+
+```python
+# on-prem side receives c3 from cloud
 
 # proof of work
 assert cs.decrypt(c3) == m1 + m2
 ```
 
-⚡ Notice that once can perform `c1 + c2` here without holding private key. However, just the data owner with private key can perform encryption and decryption. This is the basic definition of homomorphic encryption.
+### Scalar Multiplication
 
-Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. Simply put, decryption of scalar multiplication of ciphertext is equivalent to that constant times plaintext as well. 
+Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. This Python code snippet demonstrates how to perform scalar multiplication on encrypted data using homomorphic encryption with the LightPHE library. The factor k is set to 1.05, representing a 5% increase. On the cloud side, this factor is used to multiply the ciphertext c1, resulting in a new ciphertext c4. When the on-premises system, which holds the private key, receives c4, it decrypts it and verifies that the decrypted value matches the original plaintext m1 scaled by k (i.e., 1.05 * m1). This ensures that the homomorphic scalar multiplication was performed correctly on the encrypted data.
 
 ```python
 # increasing something 5%
 k = 1.05
 
-# scalar multiplication - private key is not required!
+# scalar multiplication - cloud (private key is not required)
 c4 = k * c1
 
-# proof of work
+# proof of work - on-prem
 assert cs.decrypt(c4) == k * m1
 ```
 
-⚡ Herein, `k * c1` operation can be performed by anyone without holding private key.
+### Ciphertext Regeneration
 
 Similar to the most of additively homomorphic algorithms, Paillier lets you to regenerate ciphertext while you are not breaking its plaintext restoration. You may consider to do this re-generation many times to have stronger ciphertexts.
 
@@ -145,6 +184,8 @@ assert c1_prime.value != c1.value
 assert cs.decrypt(c1_prime) == m1
 assert cs.decrypt(c1) == m1
 ```
+
+### Unsupported Operations
 
 Finally, if you try to perform an operation that algorithm does not support, then an exception will be thrown. For instance, Paillier is not homomorphic with respect to the multiplication or xor. To put it simply, you cannot multiply two ciphertexts. If you enforce this calculation, you will have an exception.
 
