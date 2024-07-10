@@ -114,6 +114,9 @@ cs = LightPHE(algorithm_name = "Paillier")
 # export public key to build same cryptosystem with only public key in the cloud
 cs.export_keys(target_file = "public.txt", public = True)
 
+# export private key to build same cryptosystem on-prem later
+cs.export_keys(target_file = "private.txt", public = False)
+
 # define plaintexts
 m1 = 17
 m2 = 23
@@ -158,6 +161,9 @@ This Python code snippet demonstrates the final step in a secure computation pro
 
 ```python
 # on-prem side receives c3 from cloud
+
+# build cryptosystem with the exported private key
+cs = LightPHE(algorithm_name = "Paillier", key_file = "private.txt")
 
 # proof of work
 assert cs.decrypt(c3) == m1 + m2
