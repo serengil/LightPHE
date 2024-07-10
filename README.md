@@ -119,8 +119,8 @@ m1 = 17
 m2 = 23
 
 # calculate ciphertexts
-c1 = cs.encrypt(m1)
-c2 = cs.encrypt(m2)
+c1 = cs.encrypt(m1).value
+c2 = cs.encrypt(m2).value
 
 # send c1 and c2 pair to a cloud system
 ```
@@ -134,6 +134,10 @@ This Python code snippet illustrates how to handle encrypted data on the cloud s
 
 # build cryptosystem with the exported public key
 cs = LightPHE(algorithm_name = "Paillier", key_file = "public.txt")
+
+# convert c1 and c2 to ciphertext objects
+c1 = cs.create_ciphertext_obj(c1)
+c2 = cs.create_ciphertext_obj(c2)
 
 # confirm that cloud cannot decrypt c1 and c2
 with pytest.raises(ValueError, match="You must have private key to perform decryption"):
