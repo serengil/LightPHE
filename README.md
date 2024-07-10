@@ -103,19 +103,9 @@ assert cs.decrypt(c) == m
 
 Once you have the ciphertext, you will be able to perform homomorphic operations on encrypted data without holding private key. For instance, Paillier is homomorphic with respect to the addition. In other words, decryption of the addition of two ciphertexts is equivalent to addition of plaintexts.
 
-<table>
-<tr>
-<th> Time </th>
-<th> On-Prem </th>
-<th> Cloud </th>
-</tr>
+### On-Prem Encryption
 
-<!-- stage 1 -->
-<tr>
-<td>
-T
-</td>
-<td>
+This Python code snippet demonstrates how to generate a private-public key pair using the Paillier cryptosystem via the LightPHE library. First, an instance of the LightPHE class is created with the Paillier algorithm. Then, the public key is exported and saved to a file named "public.txt" to build the same cryptosystem with only public key in the cloud side later. The code defines two plaintext values, m1 and m2, respectively. These plaintext values are encrypted to generate ciphertexts c1 and c2 using the public key. Finally, the ciphertexts c1 and c2 are prepared to be sent to a cloud system for secure processing or storage.
 
 ```python
 # generate private-public key pair
@@ -123,6 +113,9 @@ cs = LightPHE(algorithm_name = "Paillier")
 
 # export public key to build same cryptosystem with only public key in the cloud
 cs.export_keys(target_file = "public.txt", public = True)
+
+# export private key to build same cryptosystem on-prem later
+cs.export_keys(target_file = "private.txt", public = False)
 
 # define plaintexts
 m1 = 17
@@ -135,21 +128,9 @@ c2 = cs.encrypt(m2).value
 # send c1 and c2 pair to a cloud system
 ```
 
-</td>
+### Homomorphic Operations on Cloud
 
-<td>
-<!-- cloud does not take any action in this step -->
-</td>
-</tr>
-<!-- stage 2 -->
-<tr>
-<td>
-T+1
-</td>
-<td>
-<!-- on-prem side does not take any action in this step -->
-</td>
-<td>
+This Python code snippet illustrates how to handle encrypted data on the cloud side using the Paillier cryptosystem with the LightPHE library. Upon receiving the encrypted values c1 and c2, the cloud system initializes the cryptosystem using the exported public key stored in public.txt. To ensure the security of the data, a test is performed to confirm that the cloud system cannot decrypt c1 and c2 without the private key. This is done using the pytest library, which raises a ValueError if decryption is attempted, verifying that decryption is not possible without the private key. Finally, the code demonstrates homomorphic addition by adding the two ciphertexts, resulting in a new ciphertext c3 that represents the encrypted sum of the original plaintext values.
 
 ```python
 # cloud side receives encrypted c1 and c2
@@ -162,52 +143,31 @@ c1 = cs.create_ciphertext_obj(c1)
 c2 = cs.create_ciphertext_obj(c2)
 
 # confirm that cloud cannot decrypt c1 and c2
-with pytest.raises(
-    ValueError,
-    match="You must have private key to perform decryption"
-):
-    cs.decrypt(c1)
-    cs.decrypt(c2)
+with pytest.raises(ValueError, match="You must have private key to perform decryption"):
+  cs.decrypt(c1)
+  cs.decrypt(c2)
 
 # homomorphic addition
 c3 = c1 + c2
 
 # confirm that cloud cannot decrypt c3
-with pytest.raises(
-    ValueError,
-    match="You must have private key to perform decryption"
-):
-    cs.decrypt(c3)
-
-# send c3 to on-prem side
+with pytest.raises(ValueError, match="You must have private key to perform decryption"):
+  cs.decrypt(c3)
 ```
 
-</td>
-</tr>
+### On-Prem Decryption
 
-<!-- stage 3 -->
-<tr>
-<td>
-T+2
-</td>
-<td>
+This Python code snippet demonstrates the final step in a secure computation process using homomorphic encryption with the LightPHE library. After receiving the ciphertext c3 from the cloud, which is the result of homomorphic addition of two ciphertexts c1 and c2, the on-premises system (which has the private key) decrypts c3 to verify the result. The decrypted value is then asserted to be equal to the sum of the original plaintext values m1 and m2. This step ensures the correctness of the homomorphic computation performed by the cloud.
 
 ```python
-# on-prem side retrieves c3 from cloud
+# on-prem side receives c3 from cloud
 
-c3 = cs.create_ciphertext_obj(c3)
+# build cryptosystem with the exported private key
+cs = LightPHE(algorithm_name = "Paillier", key_file = "private.txt")
 
 # proof of work
 assert cs.decrypt(c3) == m1 + m2
 ```
-
-</td>
-<td>
-<!-- cloud does not take any action in this step -->
-</td>
-</tr>
-
-</table>
 
 ### Scalar Multiplication
 
