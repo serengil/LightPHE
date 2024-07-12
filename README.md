@@ -147,7 +147,7 @@ with pytest.raises(ValueError, match="You must have private key to perform decry
   cs.decrypt(c1)
   cs.decrypt(c2)
 
-# homomorphic addition
+# homomorphic addition - private key not required
 c3 = c1 + c2
 
 # confirm that cloud cannot decrypt c3
@@ -165,7 +165,7 @@ This Python code snippet demonstrates the final step in a secure computation pro
 # build cryptosystem with the exported private key
 cs = LightPHE(algorithm_name = "Paillier", key_file = "private.txt")
 
-# proof of work
+# proof of work - private key required
 assert cs.decrypt(c3) == m1 + m2
 ```
 
@@ -180,7 +180,7 @@ k = 1.05
 # scalar multiplication - cloud (private key is not required)
 c4 = k * c1
 
-# proof of work - on-prem
+# proof of work on-prem - private key is required
 assert cs.decrypt(c4) == k * m1
 ```
 
