@@ -135,7 +135,7 @@ This Python code snippet illustrates how to handle encrypted data on the cloud s
 ```python
 # cloud side receives encrypted c1 and c2
 
-# build cryptosystem with the exported public key
+# restore cryptosystem with the exported public key
 cs = LightPHE(algorithm_name = "Paillier", key_file = "public.txt")
 
 # convert c1 and c2 to ciphertext objects
@@ -162,7 +162,7 @@ This Python code snippet demonstrates the final step in a secure computation pro
 ```python
 # on-prem side receives c3 from cloud
 
-# build cryptosystem with the exported private key
+# restore cryptosystem with the exported private key
 cs = LightPHE(algorithm_name = "Paillier", key_file = "private.txt")
 
 # proof of work - private key required
