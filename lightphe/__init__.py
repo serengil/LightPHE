@@ -229,8 +229,8 @@ class LightPHE:
         Returns:
             ciphertext (from lightphe.models.Ciphertext import Ciphertext): encrypted message
         """
-        if self.cs.keys.get("private_key") is None:
-            raise ValueError("You must have private key to perform decryption")
+        if self.cs.keys.get("public_key") is None:
+            raise ValueError("You must have public key to perform decryption")
 
         ciphertext_new = self.cs.reencrypt(ciphertext=ciphertext.value)
         return Ciphertext(
