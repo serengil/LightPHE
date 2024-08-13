@@ -143,9 +143,12 @@ cs = LightPHE(algorithm_name = "Paillier", key_file = "public.txt")
 c1 = cs.create_ciphertext_obj(c1)
 c2 = cs.create_ciphertext_obj(c2)
 
-# confirm that cloud cannot decrypt c1 and c2
+# confirm that cloud cannot decrypt c1
 with pytest.raises(ValueError, match="You must have private key to perform decryption"):
   cs.decrypt(c1)
+
+# confirm that cloud cannot decrypt c2
+with pytest.raises(ValueError, match="You must have private key to perform decryption"):
   cs.decrypt(c2)
 
 # homomorphic addition - private key not required
