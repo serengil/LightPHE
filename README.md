@@ -283,12 +283,15 @@ Also, your company's logo will be shown on README on GitHub if you become sponso
 Please cite LightPHE in your publications if it helps your research. Here is its BibTex entry:
 
 ```BibTeX
-@misc{serengil2023lightphe,
-  abstract     = {LightPHE: A Lightweight Partially Homomorphic Encryption Library for Python},
-  author       = {Serengil, Sefik Ilkin},
-  title        = {LightPHE},
-  howpublished = {https://github.com/serengil/LightPHE},
-  year         = {2023}
+@misc{serengil2024lightphe,
+      title={LightPHE: Integrating Partially Homomorphic Encryption into Python with Extensive Cloud Environment Evaluations}, 
+      author={Sefik Ilkin Serengil and Alper Ozpinar},
+      year={2024},
+      eprint={2408.05219},
+      archivePrefix={arXiv},
+      primaryClass={cs.CR},
+      url={https://arxiv.org/abs/2408.05219},
+      doi={10.48550/arXiv.2408.05219},
 }
 ```
 
