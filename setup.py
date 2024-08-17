@@ -8,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as f:
 
 setuptools.setup(
     name="lightphe",
-    version="0.0.7",
+    version="0.0.8",
     author="Sefik Ilkin Serengil",
     author_email="serengil@gmail.com",
     description="A Lightweight Partially Homomorphic Encryption Library for Python",
