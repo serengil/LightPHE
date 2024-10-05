@@ -182,7 +182,7 @@ class EncryptedTensor:
                         f"{i}-th items of the vectors have different signs, and result's sign "
                         "cannot be determined in PHE. Result will be shown for positive for this anyway."
                     )
-                
+
                 current_tensor = Fraction(
                     dividend=current_dividend,
                     abs_dividend=current_dividend,
