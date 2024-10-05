@@ -1,6 +1,9 @@
 from typing import Union, List
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons import phe_utils
+from lightphe.commons.logger import Logger
+
+logger = Logger(module="lightphe/models/Tensor.py")
 
 
 # pylint: disable=too-few-public-methods, no-else-return
@@ -174,6 +177,12 @@ class EncryptedTensor:
             else:
                 # if one is positive and one is negative, then i cannot know
                 # the result is positive or negative. trust mod calculations.
+                if alpha_tensor.sign != beta_tensor.sign:
+                    logger.warn(
+                        f"{i}-th items of the vectors have different signs, and result's sign "
+                        "cannot be determined in PHE. Result will be shown for positive for this anyway."
+                    )
+
                 current_tensor = Fraction(
                     dividend=current_dividend,
                     abs_dividend=current_dividend,
