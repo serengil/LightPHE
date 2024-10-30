@@ -109,24 +109,19 @@ Once you have the ciphertext, you will be able to perform homomorphic operations
 This code snippet illustrates how to generate a random public-private key pair using the Paillier and encrypt a plaintext pair. The resulting ciphertext pair, c1 and c2, along with the public key, is then sent from the on-premises environment to the cloud.
 
 ```python
-# generate private-public key pair
-cs = LightPHE(algorithm_name = "Paillier")
+def on_premise() -> Tuple[int, int, dict]:
+    # generate a random private-public key pair
+    phe = LightPHE(algorithm_name = "Paillier")
 
-# export public key to build same cryptosystem with only public key in the cloud
-cs.export_keys(target_file = "public.txt", public = True)
+    # define plaintexts
+    m1 = 17
+    m2 = 23
 
-# export private key to build same cryptosystem on-prem later
-cs.export_keys(target_file = "private.txt", public = False)
+    # calculate ciphertexts
+    c1 = phe.encrypt(m1).value
+    c2 = phe.encrypt(m2).value
 
-# define plaintexts
-m1 = 17
-m2 = 23
-
-# calculate ciphertexts
-c1 = cs.encrypt(m1).value
-c2 = cs.encrypt(m2).value
-
-# send c1 and c2 pair to a cloud system
+    return (c1, c2, phe.cs.public_key)
 ```
 
 ### Homomorphic Operations on Cloud
@@ -134,29 +129,30 @@ c2 = cs.encrypt(m2).value
 This code snippet demonstrates how to perform homomorphic addition on the cloud side without using the private key. However, the cloud is unable to decrypt c3 itself, even though it is the one that calculated it.
 
 ```python
-# cloud side receives encrypted c1 and c2, and public key
+def perform_homomorphic_operation(c1: int, c2: int, public_key: dict) -> int:
+    # restore cryptosystem with just the public key
+    phe = LightPHE(algorithm_name = "Paillier", keys = public_key)
 
-# restore cryptosystem with the exported public key
-cs = LightPHE(algorithm_name = "Paillier", key_file = "public.txt")
+    # cast c1 and c2 to ciphertext objects
+    c1 = phe.create_ciphertext_obj(c1)
+    c2 = phe.create_ciphertext_obj(c2)
 
-# convert c1 and c2 to ciphertext objects
-c1 = cs.create_ciphertext_obj(c1)
-c2 = cs.create_ciphertext_obj(c2)
+    # confirm that cloud cannot decrypt c1
+    with pytest.raises(ValueError, match="You must have private key"):
+      phe.decrypt(c1)
 
-# confirm that cloud cannot decrypt c1
-with pytest.raises(ValueError, match="You must have private key to perform decryption"):
-  cs.decrypt(c1)
+    # confirm that cloud cannot decrypt c2
+    with pytest.raises(ValueError, match="You must have private key"):
+      phe.decrypt(c2)
 
-# confirm that cloud cannot decrypt c2
-with pytest.raises(ValueError, match="You must have private key to perform decryption"):
-  cs.decrypt(c2)
+    # perform homomorphic addition
+    c3 = c1 + c2
 
-# homomorphic addition - private key not required
-c3 = c1 + c2
-
-# confirm that cloud cannot decrypt c3
-with pytest.raises(ValueError, match="You must have private key to perform decryption"):
-  cs.decrypt(c3)
+    # confirm that cloud cannot decrypt c3
+    with pytest.raises(ValueError, match="You must have private key"):
+      phe.decrypt(c3)
+    
+    return c3.value
 ```
 
 ### On-Prem Decryption And Proof of Work
@@ -164,13 +160,8 @@ with pytest.raises(ValueError, match="You must have private key to perform decry
 This code snippet demonstrates the proof of work. Even though c3 was calculated in the cloud by adding c1 and c2, on-premises can validate that its decryption must be equal to the addition of plaintexts m1 and m2.
 
 ```python
-# on-prem side receives c3 from cloud
-
-# restore cryptosystem with the exported private key
-cs = LightPHE(algorithm_name = "Paillier", key_file = "private.txt")
-
 # proof of work - private key required
-assert cs.decrypt(c3) == m1 + m2
+assert phe.decrypt(c3) == m1 + m2
 ```
 
 In this homomorphic pipeline, the cloud's computational power was utilized to calculate c3, but it can only be decrypted by the on-premises side. Additionally, while we performed the encryption on the on-premises side, this is not strictly necessary; only the public key is required for encryption. Therefore, encryption can also be performed on the non-premises side. This approach is particularly convenient when collecting data from multiple edge devices and storing all of it in the cloud simultaneously.
@@ -187,7 +178,7 @@ k = 1.05
 c4 = k * c1
 
 # proof of work on-prem - private key is required
-assert cs.decrypt(c4) == k * m1
+assert phe.decrypt(c4) == k * m1
 ```
 
 ### Ciphertext Regeneration
@@ -195,7 +186,7 @@ assert cs.decrypt(c4) == k * m1
 Similar to the most of additively homomorphic algorithms, Paillier lets you to regenerate ciphertext while you are not breaking its plaintext restoration. You may consider to do this re-generation many times to have stronger ciphertexts.
 
 ```python
-c1_prime = cs.regenerate_ciphertext(c1)
+c1_prime = phe.regenerate_ciphertext(c1)
 assert c1_prime.value != c1.value
 assert cs.decrypt(c1_prime) == m1
 assert cs.decrypt(c1) == m1
