@@ -109,7 +109,7 @@ Once you have the ciphertext, you will be able to perform homomorphic operations
 This code snippet illustrates how to generate a random public-private key pair using the Paillier and encrypt a plaintext pair. The resulting ciphertext pair, c1 and c2, along with the public key, is then sent from the on-premises environment to the cloud.
 
 ```python
-def on_premise():
+def on_premise() -> Tuple[int, int, dict]:
     # generate a random private-public key pair
     phe = LightPHE(algorithm_name = "Paillier")
 
@@ -129,7 +129,7 @@ def on_premise():
 This code snippet demonstrates how to perform homomorphic addition on the cloud side without using the private key. However, the cloud is unable to decrypt c3 itself, even though it is the one that calculated it.
 
 ```python
-def perform_homomorphic_operation(c1: int, c2: int, public_key: dict):
+def cloud(c1: int, c2: int, public_key: dict) -> int:
     # restore cryptosystem with just the public key
     phe = LightPHE(algorithm_name = "Paillier", keys = public_key)
 
