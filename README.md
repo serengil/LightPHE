@@ -114,7 +114,7 @@ def on_premise() -> Tuple[int, int, dict]:
     phe = LightPHE(algorithm_name = "Paillier")
 
     # define plaintexts
-    m1 = 10000 # base salary
+    m1 = 10000 # base salary in usd
     m2 = 500 # wage increase in usd
 
     # calculate ciphertexts
