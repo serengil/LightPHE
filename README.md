@@ -106,7 +106,7 @@ Once you have the ciphertext, you will be able to perform homomorphic operations
 
 ### On-Prem Encryption
 
-This Python code snippet demonstrates how to generate a private-public key pair using the Paillier cryptosystem via the LightPHE library. First, an instance of the LightPHE class is created with the Paillier algorithm. Then, the public key is exported and saved to a file named "public.txt" to build the same cryptosystem with only public key in the cloud side later. The code defines two plaintext values, m1 and m2, respectively. These plaintext values are encrypted to generate ciphertexts c1 and c2 using the public key. Finally, the ciphertexts c1 and c2 are prepared to be sent to a cloud system for secure processing or storage.
+This code snippet illustrates how to generate a random public-private key pair using the Paillier and encrypt a plaintext pair. The resulting ciphertext pair, c1 and c2, along with the public key, is then sent from the on-premises environment to the cloud.
 
 ```python
 # generate private-public key pair
@@ -131,10 +131,10 @@ c2 = cs.encrypt(m2).value
 
 ### Homomorphic Operations on Cloud
 
-This Python code snippet illustrates how to handle encrypted data on the cloud side using the Paillier cryptosystem with the LightPHE library. Upon receiving the encrypted values c1 and c2, the cloud system initializes the cryptosystem using the exported public key stored in public.txt. To ensure the security of the data, a test is performed to confirm that the cloud system cannot decrypt c1 and c2 without the private key. This is done using the pytest library, which raises a ValueError if decryption is attempted, verifying that decryption is not possible without the private key. Finally, the code demonstrates homomorphic addition by adding the two ciphertexts, resulting in a new ciphertext c3 that represents the encrypted sum of the original plaintext values.
+This code snippet demonstrates how to perform homomorphic addition on the cloud side without using the private key. However, the cloud is unable to decrypt c3 itself, even though it is the one that calculated it.
 
 ```python
-# cloud side receives encrypted c1 and c2
+# cloud side receives encrypted c1 and c2, and public key
 
 # restore cryptosystem with the exported public key
 cs = LightPHE(algorithm_name = "Paillier", key_file = "public.txt")
@@ -159,9 +159,9 @@ with pytest.raises(ValueError, match="You must have private key to perform decry
   cs.decrypt(c3)
 ```
 
-### On-Prem Decryption
+### On-Prem Decryption And Proof of Work
 
-This Python code snippet demonstrates the final step in a secure computation process using homomorphic encryption with the LightPHE library. After receiving the ciphertext c3 from the cloud, which is the result of homomorphic addition of two ciphertexts c1 and c2, the on-premises system (which has the private key) decrypts c3 to verify the result. The decrypted value is then asserted to be equal to the sum of the original plaintext values m1 and m2. This step ensures the correctness of the homomorphic computation performed by the cloud.
+This code snippet demonstrates the proof of work. Even though c3 was calculated in the cloud by adding c1 and c2, on-premises can validate that its decryption must be equal to the addition of plaintexts m1 and m2.
 
 ```python
 # on-prem side receives c3 from cloud
@@ -173,9 +173,11 @@ cs = LightPHE(algorithm_name = "Paillier", key_file = "private.txt")
 assert cs.decrypt(c3) == m1 + m2
 ```
 
+In this homomorphic pipeline, the cloud's computational power was utilized to calculate c3, but it can only be decrypted by the on-premises side. Additionally, while we performed the encryption on the on-premises side, this is not strictly necessary; only the public key is required for encryption. Therefore, encryption can also be performed on the non-premises side. This approach is particularly convenient when collecting data from multiple edge devices and storing all of it in the cloud simultaneously.
+
 ### Scalar Multiplication
 
-Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. This Python code snippet demonstrates how to perform scalar multiplication on encrypted data using homomorphic encryption with the LightPHE library. The factor k is set to 1.05, representing a 5% increase. On the cloud side, this factor is used to multiply the ciphertext c1, resulting in a new ciphertext c4. When the on-premises system, which holds the private key, receives c4, it decrypts it and verifies that the decrypted value matches the original plaintext m1 scaled by k (i.e., 1.05 * m1). This ensures that the homomorphic scalar multiplication was performed correctly on the encrypted data.
+Besides, Paillier is supporting multiplying ciphertexts by a known plain constant. This code snippet demonstrates how to perform scalar multiplication on encrypted data using Paillier homomorphic encryption with the LightPHE library.
 
 ```python
 # increasing something 5%
@@ -214,51 +216,6 @@ with pytest.raises(ValueError, match="Paillier is not homomorphic with respect t
 ```
 
 However, if you tried to multiply ciphertexts with RSA, or xor ciphertexts with Goldwasser-Micali, these will be succeeded because those cryptosystems support those homomorphic operations.
-
-# Working with vectors
-
-You can encrypt the output vectors of machine learning models with LightPHE. These encrypted tensors come with homomorphic operation support including homomorphic addition, element-wise multiplication and scalar multiplication.
-
-```python
-# build an additively homomorphic cryptosystem
-cs = LightPHE(algorithm_name="Paillier")
-
-# define plain tensors
-t1 = [1.005, 2.05, 3.5, 4]
-t2 = [5, 6.2, 7.002, 8.02]
-
-# encrypt tensors
-c1 = cs.encrypt(t1)
-c2 = cs.encrypt(t2)
-
-# perform homomorphic addition
-c3 = c1 + c2
-
-# perform homomorphic element-wise multiplication
-c4 = c1 * c2
-
-# perform homomorphic scalar multiplication
-k = 5
-c5 = k * c1
-
-# decrypt the addition tensor
-t3 = cs.decrypt(c3)
-
-# decrypt the element-wise multiplied tensor
-t4 = cs.decrypt(c4)
-
-# decrypt the scalar multiplied tensor
-t5 = cs.decrypt(c5)
-
-# data validations
-threshold = 0.5
-for i in range(0, len(t1)):
-   assert abs((t1[i] + t2[i]) - t3[i]) < threshold
-   assert abs((t1[i] * t2[i]) - t4[i]) < threshold
-   assert abs((t1[i] * k) - t5[i]) < threshold
-```
-
-Unfortunately, vector multiplication (dot product) requires both homomorphic addition and homomorphic multiplication and this cannot be done with partially homomorphic encryption algorithms.
 
 # Contributing
 
