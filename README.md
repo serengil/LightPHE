@@ -110,6 +110,15 @@ This code snippet illustrates how to generate a random public-private key pair u
 
 ```python
 def on_premise() -> Tuple[int, int, dict]:
+    """
+    Perform on-prem side operations: build a cryptosystem with
+       a random private public key pair and encrypt plaintexts
+    Returns:
+       a tuple of
+       - c1 (int): 1st ciphertext
+       - c2 (int): 2nd ciphertext
+       - public_key (dict): public key of the built cryptosystem
+    """
     # generate a random private-public key pair
     phe = LightPHE(algorithm_name = "Paillier")
 
@@ -130,6 +139,16 @@ This code snippet demonstrates how to perform homomorphic addition on the cloud 
 
 ```python
 def cloud(c1: int, c2: int, public_key: dict) -> int:
+    """
+    Perform cloud side operations: build a cryptosystem with given
+       public key, and do homomorphic addition
+    Args:
+       c1 (int): 1st ciphertext
+       c2 (int): 2nd ciphertext
+       public_key (dict): public key of a built cryptosystem
+    Retunrs:
+       c3 (int): 3rd ciphertext
+    """
     # restore cryptosystem with just the public key
     phe = LightPHE(algorithm_name = "Paillier", keys = public_key)
 
