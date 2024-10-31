@@ -82,7 +82,7 @@ algorithms = [
   "EllipticCurve-ElGamal"
 ]
 
-cs = LightPHE(algorithm_name = algorithms[0])
+phe = LightPHE(algorithm_name = algorithms[0])
 ```
 
 # Encryption & Decryption
@@ -94,10 +94,10 @@ Once you built your cryptosystem, you will be able to encrypt and decrypt messag
 m = 17
 
 # calculate ciphertext
-c = cs.encrypt(m)
+c = phe.encrypt(m)
 
 # proof of work
-assert cs.decrypt(c) == m
+assert phe.decrypt(c) == m
 ```
 
 # Homomorphic Operations
