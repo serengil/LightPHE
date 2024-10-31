@@ -207,8 +207,8 @@ Similar to the most of additively homomorphic algorithms, Paillier lets you to r
 ```python
 c1_prime = phe.regenerate_ciphertext(c1)
 assert c1_prime.value != c1.value
-assert cs.decrypt(c1_prime) == m1
-assert cs.decrypt(c1) == m1
+assert phe.decrypt(c1_prime) == m1
+assert phe.decrypt(c1) == m1
 ```
 
 ### Unsupported Operations
