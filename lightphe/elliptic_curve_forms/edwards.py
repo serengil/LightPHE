@@ -4,8 +4,10 @@ from lightphe.models.EllipticCurve import EllipticCurve
 
 class TwistedEdwards(EllipticCurve):
     """
-    Builds twisted edwards curves
-    Ref: https://sefiks.com/2018/12/26/twisted-edwards-curves/
+    Builds (twisted) edwards curves
+    Refs:
+        [1] https://sefiks.com/2018/12/19/a-gentle-introduction-to-edwards-curves/
+        [2] https://sefiks.com/2018/12/26/twisted-edwards-curves/
     """
     def __init__(self, curve="ed25519"):
 
