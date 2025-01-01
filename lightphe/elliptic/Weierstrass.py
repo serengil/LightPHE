@@ -6,6 +6,8 @@ class Weierstrass(EllipticCurve):
     def __init__(self, curve="secp256k1"):
         """
         Create Elliptic Curve satisfying y^2 = x^3 + ax + b
+        This is the most popular elliptic curve form. Bitcoin is depending on this form.
+        Ref: https://sefiks.com/2016/03/13/the-math-behind-elliptic-curve-cryptography/
         """
         if curve == "secp256k1":
             self.a = 0
@@ -54,36 +56,12 @@ class Weierstrass(EllipticCurve):
         x3 = (beta * beta - x1 - x2) % p
         y3 = (beta * (x1 - x3) - y1) % p
 
-        self.is_on_curve((x3, y3), p)
+        assert self.is_on_curve((x3, y3), p) is True
 
         return x3, y3
 
-    def apply_double_and_add_method(self, G: Tuple[int, int], k: int, p: int) -> Tuple[int, int]:
-        """
-        Perform scalar multiplication over elliptic curve
-        Args:
-            G (Tuple[int, int]): a point on an elliptic curve
-            k (int): scalar value
-            p (int): modulo
-        Returns
-            kxG (Tuple[int, int])
-        """
-        target_point = G
-
-        k_binary = bin(k)[2:]
-
-        for i in range(1, len(k_binary)):
-            current_bit = k_binary[i : i + 1]
-
-            # doubling - always
-            target_point = self.add_points(target_point, target_point, p)
-
-            if current_bit == "1":
-                target_point = self.add_points(target_point, G, p)
-
-        self.is_on_curve(target_point, p)
-
-        return target_point
+    def negative_point(self, P: Tuple[int, int], p: int) -> Tuple[int, int]:
+        return (P[0], (-1 * P[1]) % p)
 
     def is_on_curve(self, P: Tuple[int, int], p: int):
         """
@@ -95,4 +73,4 @@ class Weierstrass(EllipticCurve):
             is_on_curve (boolean): returns True if point is on the curve
         """
         x, y = P
-        assert (y * y) % p == (pow(x, 3, p) + self.a * x + self.b) % p
+        return (y * y) % p == (pow(x, 3, p) + self.a * x + self.b) % p

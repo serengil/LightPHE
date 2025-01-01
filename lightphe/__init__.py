@@ -30,6 +30,7 @@ class LightPHE:
         key_file: Optional[str] = None,
         key_size: Optional[int] = None,
         precision: int = 5,
+        form: str = "weierstrass",
     ):
         """
         Build LightPHE class
@@ -41,15 +42,19 @@ class LightPHE:
             key_file (str): if keys are exported, you can load them into cryptosystem
             key_size (int): key size in bits
             precision (int): precision for homomorphic operations on tensors
+            form (str): specifies the form of the elliptic curve. 
+                Options: 'weierstrass' (default), 'edwards', 'twisted-edwards', 'koblitz'.
+                This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         """
         self.algorithm_name = algorithm_name
         self.precision = precision
+        self.form = form
 
         if key_file is not None:
             keys = self.restore_keys(target_file=key_file)
 
         self.cs: Homomorphic = self.__build_cryptosystem(
-            algorithm_name=algorithm_name, keys=keys, key_size=key_size
+            algorithm_name=algorithm_name, keys=keys, key_size=key_size, form=form,
         )
 
     def __build_cryptosystem(
@@ -57,6 +62,7 @@ class LightPHE:
         algorithm_name: str,
         keys: Optional[dict] = None,
         key_size: Optional[int] = None,
+        form: Optional[str] = None,
     ) -> Union[
         RSA,
         ElGamal,
@@ -72,14 +78,16 @@ class LightPHE:
         Args:
             algorithm_name (str): RSA | ElGamal | Exponential-ElGamal | EllipticCurve-ElGamal
                 | Paillier | Damgard-Jurik | Okamoto-Uchiyama | Benaloh | Naccache-Stern
-                | Goldwasser-Micali
+                | Goldwasser-Micali | Edwards-ElGamal
             keys (dict): optional private-public key pair
             key_file (str): if keys are exported, you can load them into cryptosystem
             key_size (int): key size in bits
+            form (str): specifies the form of the elliptic curve. 
+                Options: 'weierstrass' (default), 'edwards', 'twisted-edwards', 'koblitz'.
+                This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         Returns
             cryptosystem
         """
-
         if key_size is None:
             key_size = self.recommend_key_size(algorithm_name=algorithm_name)
 
@@ -91,7 +99,7 @@ class LightPHE:
         elif algorithm_name == Algorithm.ExponentialElGamal:
             cs = ElGamal(keys=keys, key_size=key_size, exponential=True)
         elif algorithm_name == Algorithm.EllipticCurveElGamal:
-            cs = EllipticCurveElGamal(keys=keys, key_size=key_size)
+            cs = EllipticCurveElGamal(keys=keys, key_size=key_size, form=form)
         elif algorithm_name == Algorithm.Paillier:
             cs = Paillier(keys=keys, key_size=key_size)
         elif algorithm_name == Algorithm.DamgardJurik:
@@ -126,7 +134,7 @@ class LightPHE:
         ciphertext = self.cs.encrypt(
             plaintext=phe_utils.parse_int(value=plaintext, modulo=self.cs.plaintext_modulo)
         )
-        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext)
+        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext, form=self.form)
 
     def decrypt(
         self, ciphertext: Union[Ciphertext, EncryptedTensor]

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.models.Algorithm import Algorithm
 from lightphe.cryptosystems.RSA import RSA
@@ -19,7 +19,7 @@ logger = Logger(module="lightphe/models/Ciphertext.py")
 
 
 class Ciphertext:
-    def __init__(self, algorithm_name: str, keys: dict, value: Union[int, tuple, list]):
+    def __init__(self, algorithm_name: str, keys: dict, value: Union[int, tuple, list], form: Optional[str] = None):
         self.algorithm_name = algorithm_name
         self.keys = keys
         self.value = value
@@ -31,7 +31,7 @@ class Ciphertext:
         elif algorithm_name == Algorithm.ExponentialElGamal:
             cs = ElGamal(keys=keys, exponential=True)
         elif algorithm_name == Algorithm.EllipticCurveElGamal:
-            cs = EllipticCurveElGamal(keys=keys)
+            cs = EllipticCurveElGamal(keys=keys, form=form)
         elif algorithm_name == Algorithm.Paillier:
             cs = Paillier(keys=keys)
         elif algorithm_name == Algorithm.DamgardJurik:
