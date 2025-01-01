@@ -1,8 +1,8 @@
 import random
 from typing import Optional
 from lightphe.models.Homomorphic import Homomorphic
-from lightphe.elliptic.weierstrass import Weierstrass
-from lightphe.elliptic.edwards import TwistedEdwards
+from lightphe.elliptic_curve_forms.weierstrass import Weierstrass
+from lightphe.elliptic_curve_forms.edwards import TwistedEdwards
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="lightphe/cryptosystems/EllipticCurveElGamal.py")
