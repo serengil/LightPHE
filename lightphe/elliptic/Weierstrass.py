@@ -9,29 +9,28 @@ class Weierstrass(EllipticCurve):
         This is the most popular elliptic curve form. Bitcoin is depending on this form.
         Ref: https://sefiks.com/2016/03/13/the-math-behind-elliptic-curve-cryptography/
         """
-        if curve == "secp256k1":
-            self.a = 0
-            self.b = 7
-            # modulo
-            self.p = (
-                pow(2, 256)
-                - pow(2, 32)
-                - pow(2, 9)
-                - pow(2, 8)
-                - pow(2, 7)
-                - pow(2, 6)
-                - pow(2, 4)
-                - pow(2, 0)
-            )
-            self.G = (
-                55066263022277343669578718895168534326250603453777594175500187360389116729240,
-                32670510020758816978083085130507043184471273380659243275938904335757337482424,
-            )
-            # elliptic curve order - number of points on the curve
-            self.n = 115792089237316195423570985008687907852837564279074904382605163141518161494337
-
-        else:
+        if curve != "secp256k1":
             raise ValueError(f"unimplemented curve {curve}")
+
+        self.a = 0
+        self.b = 7
+        # modulos
+        self.p = (
+            pow(2, 256)
+            - pow(2, 32)
+            - pow(2, 9)
+            - pow(2, 8)
+            - pow(2, 7)
+            - pow(2, 6)
+            - pow(2, 4)
+            - pow(2, 0)
+        )
+        self.G = (
+            55066263022277343669578718895168534326250603453777594175500187360389116729240,
+            32670510020758816978083085130507043184471273380659243275938904335757337482424,
+        )
+        # elliptic curve order - number of points on the curve
+        self.n = 115792089237316195423570985008687907852837564279074904382605163141518161494337
 
     def add_points(self, P: Tuple[int, int], Q: Tuple[int, int], p: int) -> Tuple[int, int]:
         """
