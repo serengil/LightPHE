@@ -43,7 +43,7 @@ class LightPHE:
             key_size (int): key size in bits
             precision (int): precision for homomorphic operations on tensors
             form (str): specifies the form of the elliptic curve. 
-                Options: 'weierstrass' (default), 'edwards', 'koblitz'.
+                Options: 'weierstrass' (default), 'edwards'.
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         """
         self.algorithm_name = algorithm_name
@@ -83,7 +83,7 @@ class LightPHE:
             key_file (str): if keys are exported, you can load them into cryptosystem
             key_size (int): key size in bits
             form (str): specifies the form of the elliptic curve. 
-                Options: 'weierstrass' (default), 'edwards', 'koblitz'.
+                Options: 'weierstrass' (default), 'edwards'.
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         Returns
             cryptosystem
