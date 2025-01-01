@@ -25,11 +25,11 @@ class EllipticCurveElGamal(Homomorphic):
             key_size (int): key size in bits. default is 160.
                 this is equivalent to 1024 bit RSA.
             form (str): specifies the elliptic curve form.
-                Options are 'weierstrass' (default), 'koblitz', 'edwards', 'twisted-edwards'.
+                Options are 'weierstrass' (default), 'koblitz', 'edwards'.
         """
         if form is None or form == "weierstrass":
             self.curve = Weierstrass()
-        elif form == "twisted-edwards":
+        elif form in "edwards":
             self.curve = TwistedEdwards()
         else:
             raise ValueError(f"unimplemented curve form - {form}")

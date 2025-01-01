@@ -4,7 +4,7 @@ from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_ellipticcurveelgamal.py")
 
-FORMS =  ["weierstrass", "twisted-edwards"]
+FORMS =  ["weierstrass", "edwards"]
 
 
 def test_elliptic_curve_elgamal():
