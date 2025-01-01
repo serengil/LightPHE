@@ -17,14 +17,15 @@ class GoldwasserMicali(Homomorphic):
     Ref: https://sefiks.com/2023/10/27/a-step-by-step-partially-homomorphic-encryption-example-with-goldwasser-micali-in-python/
     """
 
-    def __init__(self, keys: Optional[dict] = None, key_size=100):
+    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None):
         """
         Args:
             keys (dict): private - public key pair.
                 set this to None if you want to generate random keys.
             key_size (int): key size in bits
         """
-        self.keys = keys or self.generate_keys(key_size)
+        # key size should be several hundred bits or more
+        self.keys = keys or self.generate_keys(key_size or 100)
         self.ciphertext_modulo = self.keys["public_key"]["n"]
         # TODO: not sure about the plaintext modulo
         self.plaintext_modulo = self.keys["public_key"]["n"]

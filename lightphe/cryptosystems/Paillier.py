@@ -15,14 +15,14 @@ class Paillier(Homomorphic):
     Ref: https://sefiks.com/2023/04/03/a-step-by-step-partially-homomorphic-encryption-example-with-paillier-in-python/
     """
 
-    def __init__(self, keys: Optional[dict] = None, key_size=1024):
+    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None):
         """
         Args:
             keys (dict): private - public key pair.
                 set this to None if you want to generate random keys.
             key_size (int): key size in bits
         """
-        self.keys = keys or self.generate_keys(key_size)
+        self.keys = keys or self.generate_keys(key_size or 1024)
         n = self.keys["public_key"]["n"]
         self.plaintext_modulo = n
         self.ciphertext_modulo = n * n

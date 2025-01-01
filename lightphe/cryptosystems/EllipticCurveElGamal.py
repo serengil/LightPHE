@@ -1,7 +1,8 @@
 import random
 from typing import Optional
 from lightphe.models.Homomorphic import Homomorphic
-from lightphe.elliptic.Weierstrass import Weierstrass
+from lightphe.elliptic_curve_forms.weierstrass import Weierstrass
+from lightphe.elliptic_curve_forms.edwards import TwistedEdwards
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="lightphe/cryptosystems/EllipticCurveElGamal.py")
@@ -16,17 +17,26 @@ class EllipticCurveElGamal(Homomorphic):
     Ref: https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/
     """
 
-    def __init__(self, keys: Optional[dict] = None, key_size: int = 160):
+    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None, form: str = "weierstrass"):
         """
         Args:
             keys (dict): private - public key pair.
                 set this to None if you want to generate random keys.
             key_size (int): key size in bits. default is 160.
                 this is equivalent to 1024 bit RSA.
+            form (str): specifies the elliptic curve form.
+                Options are 'weierstrass' (default), 'koblitz', 'edwards', 'twisted-edwards'.
         """
-        # TODO: add different forms and curves. e.g. Koblitz, Edwards (Ed25519)
-        self.curve = Weierstrass()
-        self.keys = keys or self.generate_keys(key_size)
+        if form is None or form == "weierstrass":
+            self.curve = Weierstrass()
+        elif form == "twisted-edwards":
+            self.curve = TwistedEdwards()
+        else:
+            raise ValueError(f"unimplemented curve form - {form}")
+
+        self.keys = keys or self.generate_keys(key_size or 160)
+        self.keys["public_key"]["form"] = form
+        self.keys["private_key"]["form"] = form
         self.plaintext_modulo = self.curve.p
         self.ciphertext_modulo = self.curve.p
 
@@ -46,7 +56,7 @@ class EllipticCurveElGamal(Homomorphic):
         ka = random.getrandbits(key_size)
 
         # public key
-        Qa = self.curve.apply_double_and_add_method(G=self.curve.G, k=ka, p=self.curve.p)
+        Qa = self.curve.double_and_add(G=self.curve.G, k=ka, p=self.curve.p)
 
         keys["public_key"]["Qa"] = Qa
         keys["private_key"]["ka"] = ka
@@ -82,11 +92,11 @@ class EllipticCurveElGamal(Homomorphic):
         # random key
         r = random_key or self.generate_random_key()
 
-        s = self.curve.apply_double_and_add_method(G=G, k=plaintext, p=p)
+        s = self.curve.double_and_add(G=G, k=plaintext, p=p)
 
-        c1 = self.curve.apply_double_and_add_method(G=G, k=r, p=p)
+        c1 = self.curve.double_and_add(G=G, k=r, p=p)
 
-        c2 = self.curve.apply_double_and_add_method(G=Qa, k=r, p=p)
+        c2 = self.curve.double_and_add(G=Qa, k=r, p=p)
         c2 = self.curve.add_points(c2, s, p)
 
         return c1, c2
@@ -106,8 +116,9 @@ class EllipticCurveElGamal(Homomorphic):
         ka = self.keys["private_key"]["ka"]
 
         c1, c2 = ciphertext
-        c1_prime = (c1[0], (-1 * c1[1]) % p)
-        s_prime = self.curve.apply_double_and_add_method(G=c1_prime, k=ka, p=p)
+
+        c1_prime = self.curve.negative_point(c1, p)
+        s_prime = self.curve.double_and_add(G=c1_prime, k=ka, p=p)
         s_prime = self.curve.add_points(P=c2, Q=s_prime, p=p)
 
         # s_prime is a point on the elliptic curve
@@ -161,9 +172,9 @@ class EllipticCurveElGamal(Homomorphic):
         Returns:
             ciphertext (int): new ciphertext created with Elliptic Curve ElGamal
         """
-        return self.curve.apply_double_and_add_method(
+        return self.curve.double_and_add(
             G=ciphertext[0], k=constant, p=self.curve.p
-        ), self.curve.apply_double_and_add_method(G=ciphertext[1], k=constant, p=self.curve.p)
+        ), self.curve.double_and_add(G=ciphertext[1], k=constant, p=self.curve.p)
 
     def reencrypt(self, ciphertext: tuple) -> tuple:
         raise ValueError("Elliptic Curve ElGamal does not support regeneration of ciphertext")

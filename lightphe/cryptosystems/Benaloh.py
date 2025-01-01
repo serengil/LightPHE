@@ -9,7 +9,7 @@ logger = Logger(module="lightphe/cryptosystems/Benaloh.py")
 
 
 class Benaloh(Homomorphic):
-    def __init__(self, keys: Optional[dict] = None, key_size: int = 50):
+    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None):
         """
         Args:
             keys (dict): private - public key pair.
@@ -36,7 +36,8 @@ class Benaloh(Homomorphic):
         x = 1
         while x == 1:
             # picking a prime p
-            p = sympy.randprime(200, 2**key_size)
+            p = sympy.randprime(200, 2**(key_size or 50))
+            # benaloh requires to solve DLP in decryption, so small key is recommended
 
             # picking a prime q
             q = sympy.randprime(100, p)
