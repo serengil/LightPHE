@@ -23,6 +23,7 @@ logger = Logger(module="lightphe/__init__.py")
 
 
 class LightPHE:
+    __version__ = "0.0.9"
     def __init__(
         self,
         algorithm_name: str,
