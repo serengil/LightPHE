@@ -15,7 +15,7 @@ class DamgardJurik(Homomorphic):
     Ref: https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-damgard-jurik-in-python/
     """
 
-    def __init__(self, s: int = 2, keys: Optional[dict] = None, key_size: int = 1024):
+    def __init__(self, s: int = 2, keys: Optional[dict] = None, key_size: Optional[int] = None):
         """
         Args:
             s (int): cryptosystem's module is going to be n^(s+1). if s == 1 then this is Paillier
@@ -23,7 +23,7 @@ class DamgardJurik(Homomorphic):
                 set this to None if you want to generate random keys.
             key_size (int): key size in bits
         """
-        self.keys = keys or self.generate_keys(key_size=key_size, s=s)
+        self.keys = keys or self.generate_keys(key_size=key_size or 1024, s=s)
         n = self.keys["public_key"]["n"]
         self.plaintext_modulo = n
         self.ciphertext_modulo = pow(n, s + 1)

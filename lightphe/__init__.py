@@ -88,9 +88,6 @@ class LightPHE:
         Returns
             cryptosystem
         """
-        if key_size is None:
-            key_size = self.recommend_key_size(algorithm_name=algorithm_name)
-
         # build cryptosystem
         if algorithm_name == Algorithm.RSA:
             cs = RSA(keys=keys, key_size=key_size)
@@ -296,42 +293,6 @@ class LightPHE:
         else:
             raise ValueError(f"File {target_file} must have public_key key")
         return keys
-
-    def recommend_key_size(self, algorithm_name: str) -> int:
-        """
-        Recommend a key size in bits if it is not mentioned by the user
-        Args:
-            algorithm_name (str): algorithm name
-        Returns
-            key_size (int)
-        """
-        if algorithm_name == Algorithm.RSA:
-            key_size = 1024
-        elif algorithm_name == Algorithm.ElGamal:
-            key_size = 1024
-        elif algorithm_name == Algorithm.ExponentialElGamal:
-            key_size = 1024
-        # 160-bit ECC is equivalent to 1024-bit RSA
-        elif algorithm_name == Algorithm.EllipticCurveElGamal:
-            key_size = 160
-        elif algorithm_name == Algorithm.Paillier:
-            key_size = 1024
-        elif algorithm_name == Algorithm.DamgardJurik:
-            key_size = 1024
-        elif algorithm_name == Algorithm.OkamotoUchiyama:
-            key_size = 1024
-        # n should be several hundred bits or more
-        elif algorithm_name == Algorithm.GoldwasserMicali:
-            key_size = 100
-        # Benaloh and Naccache-Stern require to solve DLP in decryption
-        # so small key is recommended
-        elif algorithm_name == Algorithm.Benaloh:
-            key_size = 50
-        elif algorithm_name == Algorithm.NaccacheStern:
-            key_size = 37
-        else:
-            raise ValueError(f"unimplemented algorithm - {algorithm_name}")
-        return key_size
 
     def create_ciphertext_obj(self, ciphertext: Union[int, tuple, list]) -> Ciphertext:
         """

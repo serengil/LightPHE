@@ -19,7 +19,7 @@ class ElGamal(Homomorphic):
     Ref: https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/
     """
 
-    def __init__(self, keys: Optional[dict] = None, exponential=False, key_size: int = 1024):
+    def __init__(self, keys: Optional[dict] = None, exponential=False, key_size: Optional[int] = None):
         """
         Args:
             keys (dict): private - public key pair.
@@ -30,7 +30,7 @@ class ElGamal(Homomorphic):
                 exponential ElGamal is homomorphic with respect to the addition
         """
         self.exponential = exponential
-        self.keys = keys or self.generate_keys(key_size)
+        self.keys = keys or self.generate_keys(key_size or 1024)
         self.plaintext_modulo = self.keys["public_key"]["p"]
         self.ciphertext_modulo = self.keys["public_key"]["p"]
 

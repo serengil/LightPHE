@@ -17,7 +17,7 @@ class EllipticCurveElGamal(Homomorphic):
     Ref: https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/
     """
 
-    def __init__(self, keys: Optional[dict] = None, key_size: int = 160, form: str = "weierstrass"):
+    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None, form: str = "weierstrass"):
         """
         Args:
             keys (dict): private - public key pair.
@@ -34,7 +34,9 @@ class EllipticCurveElGamal(Homomorphic):
         else:
             raise ValueError(f"unimplemented curve form - {form}")
 
-        self.keys = keys or self.generate_keys(key_size)
+        self.keys = keys or self.generate_keys(key_size or 160)
+        self.keys["public_key"]["form"] = form
+        self.keys["private_key"]["form"] = form
         self.plaintext_modulo = self.curve.p
         self.ciphertext_modulo = self.curve.p
 

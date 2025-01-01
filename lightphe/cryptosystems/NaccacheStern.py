@@ -19,7 +19,7 @@ class NaccacheStern(Homomorphic):
     Original paper: https://dl.acm.org/doi/pdf/10.1145/288090.288106
     """
 
-    def __init__(self, keys: Optional[dict] = None, key_size=37, deterministic: bool = False):
+    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None, deterministic: bool = False):
         """
         Args:
             keys (dict): private - public key pair.
@@ -29,7 +29,8 @@ class NaccacheStern(Homomorphic):
             deterministic (boolean): deterministic or probabilistic version of
                 cryptosystem
         """
-        self.keys = keys or self.generate_keys(key_size)
+        # Naccache-Stern requires to solve DLP in decryption, so small key is recommended
+        self.keys = keys or self.generate_keys(key_size or 37)
         self.plaintext_modulo = self.keys["public_key"]["sigma"]
         self.ciphertext_modulo = self.keys["public_key"]["n"]
         self.deterministic = deterministic

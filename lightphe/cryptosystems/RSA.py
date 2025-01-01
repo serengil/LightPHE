@@ -14,7 +14,7 @@ class RSA(Homomorphic):
     Ref: https://sefiks.com/2023/03/06/a-step-by-step-partially-homomorphic-encryption-example-with-rsa-in-python/
     """
 
-    def __init__(self, keys: Optional[dict] = None, key_size: int = 1024, encrypt_with_public=True):
+    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None, encrypt_with_public=True):
         """
         Args:
             keys (dict): private - public key pair.
@@ -27,7 +27,7 @@ class RSA(Homomorphic):
                 Set this arg to True if you want to do encryption with public key e,
                 and do decryption with private key d.
         """
-        self.keys = keys or self.generate_keys(key_size)
+        self.keys = keys or self.generate_keys(key_size or 1024)
         self.plaintext_modulo = self.keys["public_key"]["n"]
         self.ciphertext_modulo = self.keys["public_key"]["n"]
         self.encrypt_with_public = encrypt_with_public
