@@ -1,6 +1,15 @@
+# built-in dependencies
+from abc import ABC
 from typing import Tuple
 from lightphe.models.EllipticCurve import EllipticCurve
-from lightphe.elliptic_curves.edwards import TwistedEdwards as TwistedEdwardsInterface
+
+
+class TwistedEdwardsInterface(ABC):
+    p: int  # modulo
+    a: int  # equation parameters
+    d: int  # equation parameters
+    G: Tuple[int, int]  # base point G
+    n: int  # elliptic curve order (number of points on the curve)
 
 
 # pylint: disable=too-few-public-methods
