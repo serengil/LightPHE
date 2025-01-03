@@ -1,40 +1,17 @@
 # built-in dependencies
-from abc import ABC
 from typing import Tuple
 from lightphe.models.EllipticCurve import EllipticCurve
+from lightphe.standard_curves import edwards as EdwardsInterface
 
-
-class TwistedEdwardsInterface(ABC):
-    p: int  # modulo
-    a: int  # equation parameters
-    d: int  # equation parameters
-    G: Tuple[int, int]  # base point G
-    n: int  # elliptic curve order (number of points on the curve)
-
-
-# pylint: disable=too-few-public-methods
-class Ed25519(TwistedEdwardsInterface):
-    p = pow(2, 255) - 19
-    a = -1
-    d = (-121665 * pow(121666, -1, p)) % p
-
-    u = 9
-    g_y = ((u - 1) * pow(u + 1, -1, p)) % p
-    g_x = 15112221349535400772501151409588531511454012693041857206046113283949847762202
-    G = (g_x, g_y)
-
-    n = pow(2, 253) + 27742317777372353535851937790883648493
-
-
-class Ed448(TwistedEdwardsInterface):
-    p = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-    a = 1
-    d = 0xD78B4BDC7F0DAF19F24F38C29373A2CCAD46157242A50F37809B1DA3412A12E79CCC9C81264CFE9AD080997058FB61C4243CC32DBAA156B9
-    G = (
-        0x79A70B2B70400553AE7C9DF416C792C61128751AC92969240C25A07D728BDC93E21F7787ED6972249DE732F38496CD11698713093E9C04FC,
-        0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80000000000000000000000000000000000000000000000000000001,
-    )
-    n = 0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3
+CURVE_MAP = {
+    None: EdwardsInterface.Ed25519,
+    "ed25519": EdwardsInterface.Ed25519,
+    "ed448": EdwardsInterface.Ed448,
+    "e521": EdwardsInterface.E521,
+    "curve41417": EdwardsInterface.Curve41417,
+    "jubjub": EdwardsInterface.JubJub,
+    "mdc201601": EdwardsInterface.MDC201601,
+}
 
 
 class TwistedEdwards(EllipticCurve):
@@ -48,12 +25,10 @@ class TwistedEdwards(EllipticCurve):
 
     def __init__(self, curve="ed25519"):
 
-        if curve is None or curve == "ed25519":
-            curve_args = Ed25519()
-        elif curve == "ed448":
-            curve_args = Ed448()
-        else:
-            raise ValueError(f"unimplemented curve - {curve}")
+        if curve not in CURVE_MAP:
+            raise ValueError(f"Unsupported curve - {curve}")
+
+        curve_args = CURVE_MAP[curve]()
 
         # modulo
         self.p = curve_args.p

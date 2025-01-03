@@ -1,5 +1,42 @@
 from typing import Tuple
 from lightphe.models.EllipticCurve import EllipticCurve
+from lightphe.standard_curves import weierstrass as WeierstrassInterface
+
+CURVE_MAP = {
+    None: WeierstrassInterface.Secp256k1,
+    "secp256k1": WeierstrassInterface.Secp256k1,
+    "p192": WeierstrassInterface.P192,
+    "secp192r1": WeierstrassInterface.P192,
+    "prime192v1": WeierstrassInterface.P192,
+    "p224": WeierstrassInterface.P224,
+    "secp224r1": WeierstrassInterface.P224,
+    "wap-wsg-idm-ecid-wtls12": WeierstrassInterface.P224,
+    "ansip224r1": WeierstrassInterface.P224,
+    "p256": WeierstrassInterface.P256,
+    "secp256r1": WeierstrassInterface.P256,
+    "prime256v1": WeierstrassInterface.P256,
+    "p384": WeierstrassInterface.P384,
+    "secp384r1": WeierstrassInterface.P384,
+    "ansip384r1": WeierstrassInterface.P384,
+    "p521": WeierstrassInterface.P521,
+    "secp521r1": WeierstrassInterface.P521,
+    "ansip521r1": WeierstrassInterface.P521,
+    "curve22103": WeierstrassInterface.Curve22103,
+    "curve4417": WeierstrassInterface.Curve4417,
+    "curve1174": WeierstrassInterface.Curve1174,
+    "curve67254": WeierstrassInterface.Curve67254,
+    "fp254bna": WeierstrassInterface.Fp254BNa,
+    "fp254bnb": WeierstrassInterface.Fp254BNb,
+    "fp224bn": WeierstrassInterface.Fp224BN,
+    "fp256bn": WeierstrassInterface.Fp256BN,
+    "fp384bn": WeierstrassInterface.Fp384BN,
+    "fp512bn": WeierstrassInterface.Fp512BN,
+    "tweedledum": WeierstrassInterface.Tweedledum,
+    "tweedledee": WeierstrassInterface.Tweedledee,
+    "pallas": WeierstrassInterface.Pallas,
+    "vesta": WeierstrassInterface.Vesta,
+    "tom256": WeierstrassInterface.Tom256,
+}
 
 
 class Weierstrass(EllipticCurve):
@@ -9,30 +46,27 @@ class Weierstrass(EllipticCurve):
         This is the most popular elliptic curve form. Bitcoin is depending on this form.
         Ref: https://sefiks.com/2016/03/13/the-math-behind-elliptic-curve-cryptography/
         """
-        if curve != "secp256k1":
-            raise ValueError(f"unimplemented curve {curve}")
 
-        self.a = 0
-        self.b = 7
+        if curve not in CURVE_MAP:
+            raise ValueError(f"Unsupported curve - {curve}")
+
+        curve_args = CURVE_MAP[curve]()
+
+        # equation parameters
+        self.a = curve_args.a
+        self.b = curve_args.b
+
         # modulos
-        self.p = (
-            pow(2, 256)
-            - pow(2, 32)
-            - pow(2, 9)
-            - pow(2, 8)
-            - pow(2, 7)
-            - pow(2, 6)
-            - pow(2, 4)
-            - pow(2, 0)
-        )
-        self.G = (
-            55066263022277343669578718895168534326250603453777594175500187360389116729240,
-            32670510020758816978083085130507043184471273380659243275938904335757337482424,
-        )
-        # elliptic curve order - number of points on the curve
-        self.n = 115792089237316195423570985008687907852837564279074904382605163141518161494337
+        self.p = curve_args.p
 
-    def add_points(self, P: Tuple[int, int], Q: Tuple[int, int], p: int) -> Tuple[int, int]:
+        # base point G
+        self.G = curve_args.G
+        # elliptic curve order - number of points on the curve
+        self.n = curve_args.n
+
+    def add_points(
+        self, P: Tuple[int, int], Q: Tuple[int, int], p: int
+    ) -> Tuple[int, int]:
         """
         Find the 3rd point from given 2 points on an elliptic curve
         Args:
