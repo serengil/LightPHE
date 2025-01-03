@@ -4,13 +4,43 @@ from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_ellipticcurveelgamal.py")
 
-FORMS =  ["weierstrass", "edwards"]
+FORMS = [
+    (None, None),
+    ("weierstrass", None),
+    ("weierstrass", "secp256k1"),
+    ("weierstrass", "p192"),
+    ("weierstrass", "p224"),
+    ("weierstrass", "p256"),
+    ("weierstrass", "p384"),
+    ("weierstrass", "p521"),
+    ("weierstrass", "curve22103"),
+    ("weierstrass", "curve4417"),
+    ("weierstrass", "curve1174"),
+    ("weierstrass", "curve67254"),
+    ("weierstrass", "fp254bna"),
+    ("weierstrass", "fp254bnb"),
+    ("weierstrass", "fp224bn"),
+    ("weierstrass", "fp256bn"),
+    ("weierstrass", "fp384bn"),
+    ("weierstrass", "fp512bn"),
+    ("weierstrass", "tweedledum"),
+    ("weierstrass", "tweedledee"),
+    ("weierstrass", "pallas"),
+    ("weierstrass", "vesta"),
+    ("weierstrass", "tom256"),
+    ("edwards", None),
+    ("edwards", "ed448"),
+    ("edwards", "e521"),
+    ("edwards", "curve41417"),
+    ("edwards", "jubjub"),
+    ("edwards", "mdc201601"),
+]
 
 
 def test_elliptic_curve_elgamal():
 
-    for form in FORMS:
-        cs = EllipticCurveElGamal(form=form)
+    for form, curve in FORMS:
+        cs = EllipticCurveElGamal(form=form, curve=curve)
 
         m1 = 17
         m2 = 33
@@ -37,14 +67,16 @@ def test_elliptic_curve_elgamal():
         with pytest.raises(ValueError):
             cs.reencrypt(c1)
 
-        logger.info(f"✅ Elliptic Curve ElGamal test succeeded for EC form {form}")
+        logger.info(
+            f"✅ Elliptic Curve ElGamal test succeeded for EC form {form}&{curve}"
+        )
 
 
 def test_api():
     from lightphe import LightPHE
 
-    for form in FORMS:
-        cs = LightPHE(algorithm_name="EllipticCurve-ElGamal", form=form)
+    for form, curve in FORMS:
+        cs = LightPHE(algorithm_name="EllipticCurve-ElGamal", form=form, curve=curve)
 
         m1 = 17
         m2 = 21
@@ -66,4 +98,6 @@ def test_api():
         with pytest.raises(ValueError):
             _ = c1 ^ c2
 
-        logger.info(f"✅ Elliptic Curve ElGamal api test succeeded for EC form {form}")
+        logger.info(
+            f"✅ Elliptic Curve ElGamal api test succeeded for EC form {form}&{curve}"
+        )

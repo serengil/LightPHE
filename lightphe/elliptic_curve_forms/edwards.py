@@ -1,34 +1,51 @@
+# built-in dependencies
 from typing import Tuple
 from lightphe.models.EllipticCurve import EllipticCurve
+from lightphe.standard_curves import edwards as EdwardsInterface
+
+CURVE_MAP = {
+    None: EdwardsInterface.Ed25519,
+    "ed25519": EdwardsInterface.Ed25519,
+    "ed448": EdwardsInterface.Ed448,
+    "e521": EdwardsInterface.E521,
+    "curve41417": EdwardsInterface.Curve41417,
+    "jubjub": EdwardsInterface.JubJub,
+    "mdc201601": EdwardsInterface.MDC201601,
+}
 
 
 class TwistedEdwards(EllipticCurve):
     """
-    Builds (twisted) edwards curves
+    Builds (twisted) edwards curves satisfying the equation
+        (a*x^2 + y^2) mod p = (1 + d*x^2*y^2) mod p
     Refs:
         [1] https://sefiks.com/2018/12/19/a-gentle-introduction-to-edwards-curves/
         [2] https://sefiks.com/2018/12/26/twisted-edwards-curves/
     """
+
     def __init__(self, curve="ed25519"):
 
-        if curve != "ed25519":
-            raise ValueError(f"unimplemented curve - {curve}")
+        if curve not in CURVE_MAP:
+            raise ValueError(f"Unsupported curve - {curve}")
 
-        # (a*x^2 + y^2) mod p = (1 + d*x^2*y^2) mod p
-        self.p = pow(2, 255) - 19
-        self.a = -1
-        self.d = (-121665 * pow(121666, -1, self.p)) % self.p
+        curve_args = CURVE_MAP[curve]()
+
+        # modulo
+        self.p = curve_args.p
+
+        # equation parameters
+        self.a = curve_args.a
+        self.d = curve_args.d
 
         # base point G
-        u = 9
-        g_y = ((u - 1) * pow(u + 1, -1, self.p)) % self.p
-        g_x = 15112221349535400772501151409588531511454012693041857206046113283949847762202
-        self.G = (g_x, g_y)
+        self.G = curve_args.G
 
-        # elliptic curve order - number of points on the curve
-        self.n = pow(2, 253) + 27742317777372353535851937790883648493
+        # elliptic curve order (number of points on the curve)
+        self.n = curve_args.n
 
-    def add_points(self, P: Tuple[int, int], Q: Tuple[int, int], p: int) -> Tuple[int, int]:
+    def add_points(
+        self, P: Tuple[int, int], Q: Tuple[int, int], p: int
+    ) -> Tuple[int, int]:
         """
         Find the 3rd point from given 2 points on an elliptic curve
         Args:
@@ -40,8 +57,13 @@ class TwistedEdwards(EllipticCurve):
         x1, y1 = P
         x2, y2 = Q
 
-        x3 = (((x1 * y2 + y1 * x2) % p) * pow(1 + self.d * x1 * x2 * y1 * y2, -1, p)) % p
-        y3 = (((y1 * y2 - self.a * x1 * x2) % p) * pow(1 - self.d * x1 * x2 * y1 * y2, -1, p)) % p
+        x3 = (
+            ((x1 * y2 + y1 * x2) % p) * pow(1 + self.d * x1 * x2 * y1 * y2, -1, p)
+        ) % p
+        y3 = (
+            ((y1 * y2 - self.a * x1 * x2) % p)
+            * pow(1 - self.d * x1 * x2 * y1 * y2, -1, p)
+        ) % p
 
         return (x3, y3)
 

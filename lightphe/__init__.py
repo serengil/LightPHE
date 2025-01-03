@@ -24,6 +24,7 @@ logger = Logger(module="lightphe/__init__.py")
 
 class LightPHE:
     __version__ = "0.0.9"
+
     def __init__(
         self,
         algorithm_name: str,
@@ -31,7 +32,8 @@ class LightPHE:
         key_file: Optional[str] = None,
         key_size: Optional[int] = None,
         precision: int = 5,
-        form: str = "weierstrass",
+        form: Optional[str] = None,
+        curve: Optional[str] = None,
     ):
         """
         Build LightPHE class
@@ -43,19 +45,29 @@ class LightPHE:
             key_file (str): if keys are exported, you can load them into cryptosystem
             key_size (int): key size in bits
             precision (int): precision for homomorphic operations on tensors
-            form (str): specifies the form of the elliptic curve. 
+            form (str): specifies the form of the elliptic curve.
                 Options: 'weierstrass' (default), 'edwards'.
+                This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
+            curve (str): specifies the elliptic curve to use.
+                Options:
+                 - ed25519, ed448 for edwards form
+                 - secp256k1 for weierstrass form
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         """
         self.algorithm_name = algorithm_name
         self.precision = precision
         self.form = form
+        self.curve = curve
 
         if key_file is not None:
             keys = self.restore_keys(target_file=key_file)
 
         self.cs: Homomorphic = self.__build_cryptosystem(
-            algorithm_name=algorithm_name, keys=keys, key_size=key_size, form=form,
+            algorithm_name=algorithm_name,
+            keys=keys,
+            key_size=key_size,
+            form=form,
+            curve=curve,
         )
 
     def __build_cryptosystem(
@@ -64,6 +76,7 @@ class LightPHE:
         keys: Optional[dict] = None,
         key_size: Optional[int] = None,
         form: Optional[str] = None,
+        curve: Optional[str] = None,
     ) -> Union[
         RSA,
         ElGamal,
@@ -83,8 +96,13 @@ class LightPHE:
             keys (dict): optional private-public key pair
             key_file (str): if keys are exported, you can load them into cryptosystem
             key_size (int): key size in bits
-            form (str): specifies the form of the elliptic curve. 
+            form (str): specifies the form of the elliptic curve.
                 Options: 'weierstrass' (default), 'edwards'.
+                This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
+            curve (str): specifies the elliptic curve to use.
+                Options:
+                 - ed25519, ed448 for edwards form
+                 - secp256k1 for weierstrass form
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         Returns
             cryptosystem
@@ -97,7 +115,9 @@ class LightPHE:
         elif algorithm_name == Algorithm.ExponentialElGamal:
             cs = ElGamal(keys=keys, key_size=key_size, exponential=True)
         elif algorithm_name == Algorithm.EllipticCurveElGamal:
-            cs = EllipticCurveElGamal(keys=keys, key_size=key_size, form=form)
+            cs = EllipticCurveElGamal(
+                keys=keys, key_size=key_size, form=form, curve=curve
+            )
         elif algorithm_name == Algorithm.Paillier:
             cs = Paillier(keys=keys, key_size=key_size)
         elif algorithm_name == Algorithm.DamgardJurik:
@@ -114,7 +134,9 @@ class LightPHE:
             raise ValueError(f"unimplemented algorithm - {algorithm_name}")
         return cs
 
-    def encrypt(self, plaintext: Union[int, float, list]) -> Union[Ciphertext, EncryptedTensor]:
+    def encrypt(
+        self, plaintext: Union[int, float, list]
+    ) -> Union[Ciphertext, EncryptedTensor]:
         """
         Encrypt a plaintext with a built cryptosystem
         Args:
@@ -130,9 +152,17 @@ class LightPHE:
             return self.__encrypt_tensors(tensor=plaintext)
 
         ciphertext = self.cs.encrypt(
-            plaintext=phe_utils.parse_int(value=plaintext, modulo=self.cs.plaintext_modulo)
+            plaintext=phe_utils.parse_int(
+                value=plaintext, modulo=self.cs.plaintext_modulo
+            )
         )
-        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext, form=self.form)
+        return Ciphertext(
+            algorithm_name=self.algorithm_name,
+            keys=self.cs.keys,
+            value=ciphertext,
+            form=self.form,
+            curve=self.curve,
+        )
 
     def decrypt(
         self, ciphertext: Union[Ciphertext, EncryptedTensor]
@@ -171,7 +201,8 @@ class LightPHE:
                     plaintext=(m % self.cs.plaintext_modulo) * pow(10, self.precision)
                 )
                 abs_dividend_encrypted = self.cs.encrypt(
-                    plaintext=(abs(m) % self.cs.plaintext_modulo) * pow(10, self.precision)
+                    plaintext=(abs(m) % self.cs.plaintext_modulo)
+                    * pow(10, self.precision)
                 )
                 divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
                 c = Fraction(
@@ -205,7 +236,9 @@ class LightPHE:
             encrypted_tensor.append(c)
         return EncryptedTensor(fractions=encrypted_tensor, cs=self.cs)
 
-    def __decrypt_tensors(self, encrypted_tensor: EncryptedTensor) -> Union[List[int], List[float]]:
+    def __decrypt_tensors(
+        self, encrypted_tensor: EncryptedTensor
+    ) -> Union[List[int], List[float]]:
         """
         Decrypt a given encrypted tensor
         Args:
@@ -304,4 +337,6 @@ class LightPHE:
         Returns:
             Ciphertext
         """
-        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext)
+        return Ciphertext(
+            algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext
+        )

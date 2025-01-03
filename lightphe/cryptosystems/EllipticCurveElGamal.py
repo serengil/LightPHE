@@ -17,7 +17,13 @@ class EllipticCurveElGamal(Homomorphic):
     Ref: https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/
     """
 
-    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None, form: str = "weierstrass"):
+    def __init__(
+        self,
+        keys: Optional[dict] = None,
+        key_size: Optional[int] = None,
+        form: Optional[str] = None,
+        curve: Optional[str] = None,
+    ):
         """
         Args:
             keys (dict): private - public key pair.
@@ -26,11 +32,16 @@ class EllipticCurveElGamal(Homomorphic):
                 this is equivalent to 1024 bit RSA.
             form (str): specifies the elliptic curve form.
                 Options are 'weierstrass' (default), 'edwards'.
+            curve (str): specifies the elliptic curve to use.
+                Options:
+                 - ed25519, ed448 for edwards form
+                 - secp256k1 for weierstrass form
+                This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         """
         if form is None or form == "weierstrass":
             self.curve = Weierstrass()
         elif form in "edwards":
-            self.curve = TwistedEdwards()
+            self.curve = TwistedEdwards(curve=curve)
         else:
             raise ValueError(f"unimplemented curve form - {form}")
 
@@ -135,7 +146,9 @@ class EllipticCurveElGamal(Homomorphic):
                 return k
             k = k + 1
             if k > self.curve.n:
-                raise ValueError(f"Cannot restore scalar from {s_prime} = k x {self.curve.G}")
+                raise ValueError(
+                    f"Cannot restore scalar from {s_prime} = k x {self.curve.G}"
+                )
 
     def multiply(self, ciphertext1: tuple, ciphertext2: tuple) -> tuple:
         raise ValueError(
@@ -177,4 +190,6 @@ class EllipticCurveElGamal(Homomorphic):
         ), self.curve.double_and_add(G=ciphertext[1], k=constant, p=self.curve.p)
 
     def reencrypt(self, ciphertext: tuple) -> tuple:
-        raise ValueError("Elliptic Curve ElGamal does not support regeneration of ciphertext")
+        raise ValueError(
+            "Elliptic Curve ElGamal does not support regeneration of ciphertext"
+        )

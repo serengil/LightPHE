@@ -19,7 +19,14 @@ logger = Logger(module="lightphe/models/Ciphertext.py")
 
 
 class Ciphertext:
-    def __init__(self, algorithm_name: str, keys: dict, value: Union[int, tuple, list], form: Optional[str] = None):
+    def __init__(
+        self,
+        algorithm_name: str,
+        keys: dict,
+        value: Union[int, tuple, list],
+        form: Optional[str] = None,
+        curve: Optional[str] = None,
+    ):
         self.algorithm_name = algorithm_name
         self.keys = keys
         self.value = value
@@ -31,7 +38,7 @@ class Ciphertext:
         elif algorithm_name == Algorithm.ExponentialElGamal:
             cs = ElGamal(keys=keys, exponential=True)
         elif algorithm_name == Algorithm.EllipticCurveElGamal:
-            cs = EllipticCurveElGamal(keys=keys, form=form)
+            cs = EllipticCurveElGamal(keys=keys, form=form, curve=curve)
         elif algorithm_name == Algorithm.Paillier:
             cs = Paillier(keys=keys)
         elif algorithm_name == Algorithm.DamgardJurik:
@@ -67,7 +74,9 @@ class Ciphertext:
             raise ValueError("You must have public key to perform homomorphic addition")
 
         result = self.cs.add(ciphertext1=self.value, ciphertext2=other.value)
-        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
+        return Ciphertext(
+            algorithm_name=self.algorithm_name, keys=self.keys, value=result
+        )
 
     def __mul__(self, other: Union["Ciphertext", int, float]) -> "Ciphertext":
         """
@@ -78,7 +87,9 @@ class Ciphertext:
             homomorphic multiplication of ciphertexts | scalar multiplication of ciphertext
         """
         if self.cs.keys.get("public_key") is None:
-            raise ValueError("You must have public key to perform homomorphic multiplication")
+            raise ValueError(
+                "You must have public key to perform homomorphic multiplication"
+            )
 
         if isinstance(other, Ciphertext):
             # Handle multiplication with another EncryptedObject
@@ -87,12 +98,16 @@ class Ciphertext:
             result = self.cs.multiply_by_contant(ciphertext=self.value, constant=other)
         elif isinstance(other, float):
             constant = phe_utils.parse_int(value=other, modulo=self.cs.plaintext_modulo)
-            result = self.cs.multiply_by_contant(ciphertext=self.value, constant=constant)
+            result = self.cs.multiply_by_contant(
+                ciphertext=self.value, constant=constant
+            )
         else:
             raise ValueError(
                 f"A ciphertext can be multiplied by either ciphertext itself or a scalar but it is {type(other)}"
             )
-        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
+        return Ciphertext(
+            algorithm_name=self.algorithm_name, keys=self.keys, value=result
+        )
 
     def __rmul__(self, constant: Union[int, float]) -> "Ciphertext":
         """
@@ -116,4 +131,6 @@ class Ciphertext:
             raise ValueError("You must have public key to perform homomorphic xor")
 
         result = self.cs.xor(ciphertext1=self.value, ciphertext2=other.value)
-        return Ciphertext(algorithm_name=self.algorithm_name, keys=self.keys, value=result)
+        return Ciphertext(
+            algorithm_name=self.algorithm_name, keys=self.keys, value=result
+        )
