@@ -1,6 +1,5 @@
 # built-in dependencies
-from abc import ABC
-from typing import Union, Tuple
+from typing import Union
 
 # project dependencies
 from lightphe.standard_curves import weierstrass, edwards
