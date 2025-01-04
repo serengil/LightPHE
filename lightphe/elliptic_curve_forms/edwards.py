@@ -1,17 +1,8 @@
 # built-in dependencies
 from typing import Tuple
 from lightphe.models.EllipticCurve import EllipticCurve
-from lightphe.standard_curves import edwards as EdwardsInterface
-
-CURVE_MAP = {
-    None: EdwardsInterface.Ed25519,
-    "ed25519": EdwardsInterface.Ed25519,
-    "ed448": EdwardsInterface.Ed448,
-    "e521": EdwardsInterface.E521,
-    "curve41417": EdwardsInterface.Curve41417,
-    "jubjub": EdwardsInterface.JubJub,
-    "mdc201601": EdwardsInterface.MDC201601,
-}
+from lightphe.standard_curves import inventory
+from lightphe.standard_curves.edwards import TwistedEdwardsInterface
 
 
 class TwistedEdwards(EllipticCurve):
@@ -24,11 +15,9 @@ class TwistedEdwards(EllipticCurve):
     """
 
     def __init__(self, curve="ed25519"):
-
-        if curve not in CURVE_MAP:
-            raise ValueError(f"Unsupported curve - {curve}")
-
-        curve_args = CURVE_MAP[curve]()
+        curve_args: TwistedEdwardsInterface = inventory.build_curve(
+            form_name="edwards", curve_name=curve
+        )
 
         # modulo
         self.p = curve_args.p
