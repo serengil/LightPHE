@@ -45,7 +45,7 @@ class EllipticCurveElGamal(Homomorphic):
         else:
             raise ValueError(f"unimplemented curve form - {form}")
 
-        self.keys = keys or self.generate_keys(key_size or 160)
+        self.keys = keys or self.generate_keys(key_size or self.curve.n.bit_length())
         self.keys["public_key"]["form"] = form
         self.keys["private_key"]["form"] = form
         self.plaintext_modulo = self.curve.p
@@ -80,7 +80,8 @@ class EllipticCurveElGamal(Homomorphic):
         Returns:
             random key (int): one time random key for encryption
         """
-        return random.getrandbits(128)
+        # return random.getrandbits(128)
+        return random.getrandbits(self.curve.n.bit_length())
 
     def encrypt(self, plaintext: int, random_key: Optional[int] = None) -> tuple:
         """
