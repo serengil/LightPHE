@@ -1,3 +1,8 @@
+"""
+Curves in this class are heavily inspired from
+- https://neuromancer.sk/std/search/
+"""
+
 # built-in dependencies
 from abc import ABC
 from typing import Tuple

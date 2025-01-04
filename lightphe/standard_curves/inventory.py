@@ -1,5 +1,6 @@
 # built-in dependencies
-from typing import Union
+from abc import ABC
+from typing import Union, Tuple
 
 # project dependencies
 from lightphe.standard_curves import weierstrass, edwards
@@ -66,6 +67,44 @@ CURVE_MAP = {
         "mnt5/1": weierstrass.Mnt5_1,
         "mnt5/2": weierstrass.Mnt5_2,
         "mnt5/3": weierstrass.Mnt5_3,
+        "prime192v2": weierstrass.Prime192v2,
+        "prime192v3": weierstrass.Prime192v3,
+        "prime239v1": weierstrass.Prime239v1,
+        "prime239v2": weierstrass.Prime239v2,
+        "prime239v3": weierstrass.Prime239v3,
+        "bls12-377": weierstrass.Bls12_377,
+        "bls12-381": weierstrass.Bls12_381,
+        "bls12-446": weierstrass.Bls12_446,
+        "bls12-455": weierstrass.Bls12_455,
+        "bls12-638": weierstrass.Bls12_638,
+        "bls24-477": weierstrass.Bls24_477,
+        "gost256": weierstrass.Gost256,
+        "gost512": weierstrass.Gost512,
+        "bn158": weierstrass.Bn158,
+        "bn190": weierstrass.Bn190,
+        "bn222": weierstrass.Bn222,
+        "bn254": weierstrass.Bn254,
+        "bn286": weierstrass.Bn286,
+        "bn318": weierstrass.Bn318,
+        "bn350": weierstrass.Bn350,
+        "bn382": weierstrass.Bn382,
+        "bn414": weierstrass.Bn414,
+        "bn446": weierstrass.Bn446,
+        "bn478": weierstrass.Bn478,
+        "bn510": weierstrass.Bn510,
+        "bn542": weierstrass.Bn542,
+        "bn574": weierstrass.Bn574,
+        "bn606": weierstrass.Bn606,
+        "bn638": weierstrass.Bn638,
+        "secp112r1": weierstrass.Secp112r1,
+        "secp112r2": weierstrass.Secp112r2,
+        "secp128r1": weierstrass.Secp128r1,
+        "secp128r2": weierstrass.Secp128r2,
+        "secp160k1": weierstrass.Secp160k1,
+        "secp160r1": weierstrass.Secp160r1,
+        "secp160r2": weierstrass.Secp160r2,
+        "secp192k1": weierstrass.Secp192k1,
+        "secp224k1": weierstrass.Secp224k1,
     },
     "edwards": {
         None: edwards.Ed25519,
