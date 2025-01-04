@@ -94,6 +94,7 @@ FORMS = [
     ("weierstrass", "secp192k1"),
     ("weierstrass", "secp224k1"),
     ("edwards", None),
+    ("edwards", "ed25519"),
     ("edwards", "ed448"),
     ("edwards", "e521"),
     ("edwards", "curve41417"),
