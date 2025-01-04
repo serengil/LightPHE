@@ -920,18 +920,3 @@ class Secp224k1(WeierstrassInterface):
         0x7E089FED7FBA344282CAFBD6F7E319F7C0B0BD59E2CA4BDB556D61A5,
     )
     n = 0x10000000000000000000000000001DCE8D2EC6184CAF0A971769FB1F7
-
-
-"""
-class SomeCurve(WeierstrassInterface):
-    a = 
-    b = 
-    p = 
-    G = 
-    n = 
-"""
-
-"""
-TODO: add those curve families:
-- https://neuromancer.sk/std/secg
-"""
