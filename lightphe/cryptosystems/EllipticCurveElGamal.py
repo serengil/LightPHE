@@ -92,9 +92,6 @@ class EllipticCurveElGamal(Homomorphic):
         Returns
             ciphertext (tuple): c1 and c2
         """
-        # modulo
-        p = self.curve.p
-
         # base point
         G = self.curve.G
 
@@ -121,9 +118,6 @@ class EllipticCurveElGamal(Homomorphic):
         Returns:
             plaintext (int): restored message
         """
-        # modulo
-        p = self.curve.p
-
         # private key
         ka = self.keys["private_key"]["ka"]
 
