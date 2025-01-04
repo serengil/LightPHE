@@ -6,18 +6,18 @@ from abc import ABC, abstractmethod
 
 class EllipticCurve(ABC):
     @abstractmethod
-    def add_points(self, P: Tuple[int, int], Q: Tuple[int, int], p: int) -> Tuple[int, int]:
+    def add_points(self, P: Tuple[int, int], Q: Tuple[int, int]) -> Tuple[int, int]:
         pass
 
     @abstractmethod
-    def is_on_curve(self, P: Tuple[int, int], p: int):
+    def is_on_curve(self, P: Tuple[int, int]):
         pass
 
     @abstractmethod
-    def negative_point(self, P: Tuple[int, int], p: int) -> Tuple[int, int]:
+    def negative_point(self, P: Tuple[int, int]) -> Tuple[int, int]:
         pass
 
-    def double_and_add(self, G: Tuple[int, int], k: int, p: int) -> Tuple[int, int]:
+    def double_and_add(self, G: Tuple[int, int], k: int) -> Tuple[int, int]:
         """
         Perform scalar multiplication over elliptic curve
         Args:
@@ -35,11 +35,11 @@ class EllipticCurve(ABC):
             current_bit = k_binary[i : i + 1]
 
             # doubling - always
-            target_point = self.add_points(target_point, target_point, p)
+            target_point = self.add_points(target_point, target_point)
 
             if current_bit == "1":
-                target_point = self.add_points(target_point, G, p)
+                target_point = self.add_points(target_point, G)
 
-        assert self.is_on_curve(target_point, p) is True
+        assert self.is_on_curve(target_point) is True
 
         return target_point

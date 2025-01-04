@@ -27,9 +27,7 @@ class Weierstrass(EllipticCurve):
         # elliptic curve order - number of points on the curve
         self.n = curve_args.n
 
-    def add_points(
-        self, P: Tuple[int, int], Q: Tuple[int, int], p: int
-    ) -> Tuple[int, int]:
+    def add_points(self, P: Tuple[int, int], Q: Tuple[int, int]) -> Tuple[int, int]:
         """
         Find the 3rd point from given 2 points on an elliptic curve
         Args:
@@ -44,22 +42,22 @@ class Weierstrass(EllipticCurve):
         # check point addition or doubling required
         if x1 == x2 and y1 == y2:
             # doubling
-            beta = (3 * x1 * x2 + self.a) * pow(2 * y1, -1, p)
+            beta = (3 * x1 * x2 + self.a) * pow(2 * y1, -1, self.p)
         else:
             # addition
-            beta = (y2 - y1) * pow(x2 - x1, -1, p)
+            beta = (y2 - y1) * pow(x2 - x1, -1, self.p)
 
-        x3 = (beta * beta - x1 - x2) % p
-        y3 = (beta * (x1 - x3) - y1) % p
+        x3 = (beta * beta - x1 - x2) % self.p
+        y3 = (beta * (x1 - x3) - y1) % self.p
 
-        assert self.is_on_curve((x3, y3), p) is True
+        assert self.is_on_curve((x3, y3)) is True
 
         return x3, y3
 
-    def negative_point(self, P: Tuple[int, int], p: int) -> Tuple[int, int]:
-        return (P[0], (-1 * P[1]) % p)
+    def negative_point(self, P: Tuple[int, int]) -> Tuple[int, int]:
+        return (P[0], (-1 * P[1]) % self.p)
 
-    def is_on_curve(self, P: Tuple[int, int], p: int):
+    def is_on_curve(self, P: Tuple[int, int]):
         """
         Check a given point is on an elliptic curve
         Args:
@@ -69,4 +67,4 @@ class Weierstrass(EllipticCurve):
             is_on_curve (boolean): returns True if point is on the curve
         """
         x, y = P
-        return (y * y) % p == (pow(x, 3, p) + self.a * x + self.b) % p
+        return (y * y) % self.p == (pow(x, 3, self.p) + self.a * x + self.b) % self.p

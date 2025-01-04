@@ -32,9 +32,7 @@ class TwistedEdwards(EllipticCurve):
         # elliptic curve order (number of points on the curve)
         self.n = curve_args.n
 
-    def add_points(
-        self, P: Tuple[int, int], Q: Tuple[int, int], p: int
-    ) -> Tuple[int, int]:
+    def add_points(self, P: Tuple[int, int], Q: Tuple[int, int]) -> Tuple[int, int]:
         """
         Find the 3rd point from given 2 points on an elliptic curve
         Args:
@@ -47,19 +45,20 @@ class TwistedEdwards(EllipticCurve):
         x2, y2 = Q
 
         x3 = (
-            ((x1 * y2 + y1 * x2) % p) * pow(1 + self.d * x1 * x2 * y1 * y2, -1, p)
-        ) % p
+            ((x1 * y2 + y1 * x2) % self.p)
+            * pow(1 + self.d * x1 * x2 * y1 * y2, -1, self.p)
+        ) % self.p
         y3 = (
-            ((y1 * y2 - self.a * x1 * x2) % p)
-            * pow(1 - self.d * x1 * x2 * y1 * y2, -1, p)
-        ) % p
+            ((y1 * y2 - self.a * x1 * x2) % self.p)
+            * pow(1 - self.d * x1 * x2 * y1 * y2, -1, self.p)
+        ) % self.p
 
         return (x3, y3)
 
-    def negative_point(self, P: Tuple[int, int], p: int) -> Tuple[int, int]:
+    def negative_point(self, P: Tuple[int, int]) -> Tuple[int, int]:
         return (-P[0], P[1])
 
-    def is_on_curve(self, P: Tuple[int, int], p: int):
+    def is_on_curve(self, P: Tuple[int, int]):
         """
         Check a given point is on an elliptic curve
         Args:
@@ -69,4 +68,6 @@ class TwistedEdwards(EllipticCurve):
             is_on_curve (boolean): returns True if point is on the curve
         """
         x, y = P
-        return (self.a * x * x + y * y) % p == (1 + self.d * x * x * y * y) % p
+        return (self.a * x * x + y * y) % self.p == (
+            1 + self.d * x * x * y * y
+        ) % self.p

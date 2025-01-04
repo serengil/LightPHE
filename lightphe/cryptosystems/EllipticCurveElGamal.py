@@ -67,7 +67,7 @@ class EllipticCurveElGamal(Homomorphic):
         ka = random.getrandbits(key_size)
 
         # public key
-        Qa = self.curve.double_and_add(G=self.curve.G, k=ka, p=self.curve.p)
+        Qa = self.curve.double_and_add(G=self.curve.G, k=ka)
 
         keys["public_key"]["Qa"] = Qa
         keys["private_key"]["ka"] = ka
@@ -104,12 +104,12 @@ class EllipticCurveElGamal(Homomorphic):
         # random key
         r = random_key or self.generate_random_key()
 
-        s = self.curve.double_and_add(G=G, k=plaintext, p=p)
+        s = self.curve.double_and_add(G=G, k=plaintext)
 
-        c1 = self.curve.double_and_add(G=G, k=r, p=p)
+        c1 = self.curve.double_and_add(G=G, k=r)
 
-        c2 = self.curve.double_and_add(G=Qa, k=r, p=p)
-        c2 = self.curve.add_points(c2, s, p)
+        c2 = self.curve.double_and_add(G=Qa, k=r)
+        c2 = self.curve.add_points(c2, s)
 
         return c1, c2
 
@@ -129,9 +129,9 @@ class EllipticCurveElGamal(Homomorphic):
 
         c1, c2 = ciphertext
 
-        c1_prime = self.curve.negative_point(c1, p)
-        s_prime = self.curve.double_and_add(G=c1_prime, k=ka, p=p)
-        s_prime = self.curve.add_points(P=c2, Q=s_prime, p=p)
+        c1_prime = self.curve.negative_point(c1)
+        s_prime = self.curve.double_and_add(G=c1_prime, k=ka)
+        s_prime = self.curve.add_points(P=c2, Q=s_prime)
 
         # s_prime is a point on the elliptic curve
         # s_prime = k x G
@@ -142,7 +142,7 @@ class EllipticCurveElGamal(Homomorphic):
         G = self.curve.G
         k = 2
         while True:
-            G = self.curve.add_points(P=G, Q=self.curve.G, p=p)
+            G = self.curve.add_points(P=G, Q=self.curve.G)
             if G[0] == s_prime[0] and G[1] == s_prime[1]:
                 return k
             k = k + 1
@@ -166,8 +166,8 @@ class EllipticCurveElGamal(Homomorphic):
         Returns
             ciphertext (dict): Elliptic Curve ElGamal ciphertext consisting of c1 and c2 keys
         """
-        a = self.curve.add_points(P=ciphertext1[0], Q=ciphertext2[0], p=self.curve.p)
-        b = self.curve.add_points(P=ciphertext1[1], Q=ciphertext2[1], p=self.curve.p)
+        a = self.curve.add_points(P=ciphertext1[0], Q=ciphertext2[0])
+        b = self.curve.add_points(P=ciphertext1[1], Q=ciphertext2[1])
         return a, b
 
     def xor(self, ciphertext1: tuple, ciphertext2: tuple) -> int:
@@ -187,8 +187,9 @@ class EllipticCurveElGamal(Homomorphic):
             ciphertext (int): new ciphertext created with Elliptic Curve ElGamal
         """
         return self.curve.double_and_add(
-            G=ciphertext[0], k=constant, p=self.curve.p
-        ), self.curve.double_and_add(G=ciphertext[1], k=constant, p=self.curve.p)
+            G=ciphertext[0],
+            k=constant,
+        ), self.curve.double_and_add(G=ciphertext[1], k=constant)
 
     def reencrypt(self, ciphertext: tuple) -> tuple:
         raise ValueError(
