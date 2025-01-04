@@ -1,42 +1,7 @@
 from typing import Tuple
 from lightphe.models.EllipticCurve import EllipticCurve
 from lightphe.standard_curves import weierstrass as WeierstrassInterface
-
-CURVE_MAP = {
-    None: WeierstrassInterface.Secp256k1,
-    "secp256k1": WeierstrassInterface.Secp256k1,
-    "p192": WeierstrassInterface.P192,
-    "secp192r1": WeierstrassInterface.P192,
-    "prime192v1": WeierstrassInterface.P192,
-    "p224": WeierstrassInterface.P224,
-    "secp224r1": WeierstrassInterface.P224,
-    "wap-wsg-idm-ecid-wtls12": WeierstrassInterface.P224,
-    "ansip224r1": WeierstrassInterface.P224,
-    "p256": WeierstrassInterface.P256,
-    "secp256r1": WeierstrassInterface.P256,
-    "prime256v1": WeierstrassInterface.P256,
-    "p384": WeierstrassInterface.P384,
-    "secp384r1": WeierstrassInterface.P384,
-    "ansip384r1": WeierstrassInterface.P384,
-    "p521": WeierstrassInterface.P521,
-    "secp521r1": WeierstrassInterface.P521,
-    "ansip521r1": WeierstrassInterface.P521,
-    "curve22103": WeierstrassInterface.Curve22103,
-    "curve4417": WeierstrassInterface.Curve4417,
-    "curve1174": WeierstrassInterface.Curve1174,
-    "curve67254": WeierstrassInterface.Curve67254,
-    "fp254bna": WeierstrassInterface.Fp254BNa,
-    "fp254bnb": WeierstrassInterface.Fp254BNb,
-    "fp224bn": WeierstrassInterface.Fp224BN,
-    "fp256bn": WeierstrassInterface.Fp256BN,
-    "fp384bn": WeierstrassInterface.Fp384BN,
-    "fp512bn": WeierstrassInterface.Fp512BN,
-    "tweedledum": WeierstrassInterface.Tweedledum,
-    "tweedledee": WeierstrassInterface.Tweedledee,
-    "pallas": WeierstrassInterface.Pallas,
-    "vesta": WeierstrassInterface.Vesta,
-    "tom256": WeierstrassInterface.Tom256,
-}
+from lightphe.standard_curves import inventory
 
 
 class Weierstrass(EllipticCurve):
@@ -46,11 +11,9 @@ class Weierstrass(EllipticCurve):
         This is the most popular elliptic curve form. Bitcoin is depending on this form.
         Ref: https://sefiks.com/2016/03/13/the-math-behind-elliptic-curve-cryptography/
         """
-
-        if curve not in CURVE_MAP:
-            raise ValueError(f"Unsupported curve - {curve}")
-
-        curve_args = CURVE_MAP[curve]()
+        curve_args: WeierstrassInterface = inventory.build_curve(
+            form_name="weierstrass", curve_name=curve
+        )
 
         # equation parameters
         self.a = curve_args.a
