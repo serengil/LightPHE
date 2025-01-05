@@ -65,6 +65,9 @@ class EllipticCurveElGamal(Homomorphic):
 
         # private key
         ka = random.getrandbits(key_size)
+        logger.debug(
+            f"{key_size} bit private key generated for Elliptic Curve ElGamal."
+        )
 
         # public key
         Qa = self.curve.double_and_add(G=self.curve.G, k=ka)

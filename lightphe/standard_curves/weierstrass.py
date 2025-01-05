@@ -3,18 +3,8 @@ Curves in this class are heavily inspired from
 - https://neuromancer.sk/std/search/
 """
 
-# built-in dependencies
-from abc import ABC
-from typing import Tuple
-
-
-# pylint: disable=too-few-public-methods
-class WeierstrassInterface(ABC):
-    p: int  # modulo
-    a: int  # equation parameters
-    b: int  # equation parameters
-    G: Tuple[int, int]  # base point G
-    n: int  # elliptic curve order (number of points on the curve)
+# project dependencies
+from lightphe.models.Curve import WeierstrassInterface
 
 
 # pylint: disable=too-few-public-methods
