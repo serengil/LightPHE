@@ -10,12 +10,9 @@ from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_ellipticcurveelgamal.py")
 
-FORMS = [("koblitz", "k163")]
-
-__FORMS = [
+FORMS = [
     (None, None),
-    ("weierstrass", None),
-    ("weierstrass", "secp256k1"),
+    ("weierstrass", None),  # secp256k1
     ("weierstrass", "p192"),
     ("weierstrass", "p224"),
     ("weierstrass", "p256"),
@@ -101,8 +98,7 @@ __FORMS = [
     ("weierstrass", "secp160r2"),
     ("weierstrass", "secp192k1"),
     ("weierstrass", "secp224k1"),
-    ("edwards", None),
-    ("edwards", "ed25519"),
+    ("edwards", None),  # ed25519
     ("edwards", "ed448"),
     ("edwards", "e521"),
     ("edwards", "curve41417"),
@@ -111,12 +107,16 @@ __FORMS = [
     ("edwards", "numsp256d1"),
     ("edwards", "numsp384t1"),
     ("edwards", "numsp512t1"),
-    ("koblitz", None),
-    ("koblitz", "k163"),
-    # ("koblitz", "k233"),
-    # ("koblitz", "k283"),
-    # ("koblitz", "k409"),
-    # ("koblitz", "k571"),
+    ("koblitz", None),  # k163
+    ("koblitz", "b163"),
+    ("koblitz", "k233"),
+    ("koblitz", "b233"),
+    ("koblitz", "k283"),
+    ("koblitz", "b283"),
+    ("koblitz", "k409"),
+    ("koblitz", "b409"),
+    ("koblitz", "k571"),
+    ("koblitz", "b571"),
 ]
 
 
@@ -126,7 +126,6 @@ def test_elliptic_curve_elgamal():
     for form, curve in FORMS:
         tic = time.time()
         cs = EllipticCurveElGamal(form=form, curve=curve)
-        logger.info("ℹ️ key generation is done") if form == "koblitz" else None
 
         m1 = 10
         m2 = 5
@@ -136,23 +135,14 @@ def test_elliptic_curve_elgamal():
 
         # encryption decryption test
         assert cs.decrypt(c1) == m1
-        logger.info("ℹ️ 1st message encrypted") if form == "koblitz" else None
-
         assert cs.decrypt(c2) == m2
-        logger.info("ℹ️ 2nd message encrypted") if form == "koblitz" else None
 
         # homomorphic operations
         c3 = cs.add(c1, c2)
-        logger.info("ℹ️ homomorphic addition done") if form == "koblitz" else None
-
         c4 = cs.multiply_by_contant(c1, m2)
-        logger.info("ℹ️ scalar multiplication done") if form == "koblitz" else None
 
         assert cs.decrypt(c3) == m1 + m2
-        logger.info("ℹ️ 1st message decrypted") if form == "koblitz" else None
-
         assert cs.decrypt(c4) == m1 * m2
-        logger.info("ℹ️ 2nd message decrypted") if form == "koblitz" else None
 
         # unsupported operations
         with pytest.raises(ValueError):
