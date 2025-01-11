@@ -118,7 +118,7 @@ CURVE_MAP = {
         "numsp512t1": edwards.numsp512t1,
     },
     "koblitz": {
-        None: koblitz.K409,
+        None: koblitz.K163,
         "k163": koblitz.K163,
         "k233": koblitz.K233,
         "k283": koblitz.K283,
