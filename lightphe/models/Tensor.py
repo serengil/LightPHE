@@ -78,8 +78,12 @@ class EncryptedTensor:
             encrypted tensor
         """
         if isinstance(other, EncryptedTensor):
-            if isinstance(other, EncryptedTensor) and len(self.fractions) != len(other.fractions):
-                raise ValueError("Tensor sizes must be equal in homomorphic multiplication")
+            if isinstance(other, EncryptedTensor) and len(self.fractions) != len(
+                other.fractions
+            ):
+                raise ValueError(
+                    "Tensor sizes must be equal in homomorphic multiplication"
+                )
 
             fractions = []
             for i, alpha_tensor in enumerate(self.fractions):
@@ -90,7 +94,8 @@ class EncryptedTensor:
                 )
 
                 current_abs_dividend = self.cs.multiply(
-                    ciphertext1=alpha_tensor.abs_dividend, ciphertext2=beta_tensor.abs_dividend
+                    ciphertext1=alpha_tensor.abs_dividend,
+                    ciphertext2=beta_tensor.abs_dividend,
                 )
 
                 current_divisor = self.cs.multiply(
@@ -111,7 +116,9 @@ class EncryptedTensor:
             constant_sign = 1 if other >= 0 else -1
             other = abs(other)
             if isinstance(other, float):
-                other = phe_utils.parse_int(value=other, modulo=self.cs.plaintext_modulo)
+                other = phe_utils.normalize_input(
+                    value=other, modulo=self.cs.plaintext_modulo
+                )
 
             fractions = []
             for alpha_tensor in self.fractions:
@@ -164,7 +171,8 @@ class EncryptedTensor:
                 ciphertext1=alpha_tensor.dividend, ciphertext2=beta_tensor.dividend
             )
             current_abs_dividend = self.cs.add(
-                ciphertext1=alpha_tensor.abs_dividend, ciphertext2=beta_tensor.abs_dividend
+                ciphertext1=alpha_tensor.abs_dividend,
+                ciphertext2=beta_tensor.abs_dividend,
             )
             # notice that divisor is alpha tensor's divisor instead of addition
             if alpha_tensor.sign == -1 and beta_tensor.sign == -1:

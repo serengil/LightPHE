@@ -119,7 +119,11 @@ CURVE_MAP = {
     },
     "koblitz": {
         None: koblitz.K409,
+        "k163": koblitz.K163,
+        "k233": koblitz.K233,
+        "k283": koblitz.K283,
         "k409": koblitz.K409,
+        "k571": koblitz.K571,
     },
 }
 

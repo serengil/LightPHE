@@ -10,7 +10,7 @@ from lightphe.models.Curve import KoblitzInterface
 
 # pylint: disable=no-else-return, too-many-instance-attributes
 class Koblitz(EllipticCurve):
-    def __init__(self, curve: Optional[str] = "k409"):
+    def __init__(self, curve: Optional[str] = "k163"):
         """
         Create Elliptic Curve satisfying y^2 + xy = x^3 + ax ^2+ b
         References:

@@ -10,7 +10,9 @@ from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_ellipticcurveelgamal.py")
 
-FORMS = [
+FORMS = [("koblitz", "k163")]
+
+__FORMS = [
     (None, None),
     ("weierstrass", None),
     ("weierstrass", "secp256k1"),
@@ -109,6 +111,12 @@ FORMS = [
     ("edwards", "numsp256d1"),
     ("edwards", "numsp384t1"),
     ("edwards", "numsp512t1"),
+    ("koblitz", None),
+    ("koblitz", "k163"),
+    # ("koblitz", "k233"),
+    # ("koblitz", "k283"),
+    # ("koblitz", "k409"),
+    # ("koblitz", "k571"),
 ]
 
 
