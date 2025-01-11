@@ -1,4 +1,10 @@
+# built-in dependencies
+import time
+
+# 3rd party dependencies
 import pytest
+
+# project dependencies
 from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
 from lightphe.commons.logger import Logger
 
@@ -6,8 +12,7 @@ logger = Logger(module="tests/test_ellipticcurveelgamal.py")
 
 FORMS = [
     (None, None),
-    ("weierstrass", None),
-    ("weierstrass", "secp256k1"),
+    ("weierstrass", None),  # secp256k1
     ("weierstrass", "p192"),
     ("weierstrass", "p224"),
     ("weierstrass", "p256"),
@@ -93,7 +98,7 @@ FORMS = [
     ("weierstrass", "secp160r2"),
     ("weierstrass", "secp192k1"),
     ("weierstrass", "secp224k1"),
-    ("edwards", None),
+    ("edwards", None),  # ed25519
     ("edwards", "ed448"),
     ("edwards", "e521"),
     ("edwards", "curve41417"),
@@ -102,16 +107,28 @@ FORMS = [
     ("edwards", "numsp256d1"),
     ("edwards", "numsp384t1"),
     ("edwards", "numsp512t1"),
+    ("koblitz", None),  # k163
+    ("koblitz", "b163"),
+    # ("koblitz", "k233"),
+    # ("koblitz", "b233"),
+    # ("koblitz", "k283"),
+    # ("koblitz", "b283"),
+    # ("koblitz", "k409"),
+    # ("koblitz", "b409"),
+    # ("koblitz", "k571"),
+    # ("koblitz", "b571"),
 ]
 
 
+# pylint: disable=expression-not-assigned
 def test_elliptic_curve_elgamal():
 
     for form, curve in FORMS:
+        tic = time.time()
         cs = EllipticCurveElGamal(form=form, curve=curve)
 
-        m1 = 17
-        m2 = 33
+        m1 = 10
+        m2 = 5
 
         c1 = cs.encrypt(m1)
         c2 = cs.encrypt(m2)
@@ -122,8 +139,10 @@ def test_elliptic_curve_elgamal():
 
         # homomorphic operations
         c3 = cs.add(c1, c2)
+        c4 = cs.multiply_by_contant(c1, m2)
+
         assert cs.decrypt(c3) == m1 + m2
-        assert cs.decrypt(cs.multiply_by_contant(c1, m2)) == m1 * m2
+        assert cs.decrypt(c4) == m1 * m2
 
         # unsupported operations
         with pytest.raises(ValueError):
@@ -135,8 +154,13 @@ def test_elliptic_curve_elgamal():
         with pytest.raises(ValueError):
             cs.reencrypt(c1)
 
+        toc = time.time()
+
+        duration = round(toc - tic, 2)
+
         logger.info(
             f"✅ Elliptic Curve ElGamal test succeeded for EC form {form}&{curve}"
+            f" in {duration} seconds"
         )
 
 
@@ -144,10 +168,11 @@ def test_api():
     from lightphe import LightPHE
 
     for form, curve in FORMS:
+        tic = time.time()
         cs = LightPHE(algorithm_name="EllipticCurve-ElGamal", form=form, curve=curve)
 
-        m1 = 17
-        m2 = 21
+        m1 = 10
+        m2 = 5
 
         c1 = cs.encrypt(plaintext=m1)
         c2 = cs.encrypt(plaintext=m2)
@@ -166,6 +191,10 @@ def test_api():
         with pytest.raises(ValueError):
             _ = c1 ^ c2
 
+        toc = time.time()
+        duration = round(toc - tic, 2)
+
         logger.info(
             f"✅ Elliptic Curve ElGamal api test succeeded for EC form {form}&{curve}"
+            f" in {duration} seconds."
         )

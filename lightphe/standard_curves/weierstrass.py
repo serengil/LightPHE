@@ -3,18 +3,8 @@ Curves in this class are heavily inspired from
 - https://neuromancer.sk/std/search/
 """
 
-# built-in dependencies
-from abc import ABC
-from typing import Tuple
-
-
-# pylint: disable=too-few-public-methods
-class WeierstrassInterface(ABC):
-    p: int  # modulo
-    a: int  # equation parameters
-    b: int  # equation parameters
-    G: Tuple[int, int]  # base point G
-    n: int  # elliptic curve order (number of points on the curve)
+# project dependencies
+from lightphe.models.Curve import WeierstrassInterface
 
 
 # pylint: disable=too-few-public-methods
@@ -920,18 +910,3 @@ class Secp224k1(WeierstrassInterface):
         0x7E089FED7FBA344282CAFBD6F7E319F7C0B0BD59E2CA4BDB556D61A5,
     )
     n = 0x10000000000000000000000000001DCE8D2EC6184CAF0A971769FB1F7
-
-
-"""
-class SomeCurve(WeierstrassInterface):
-    a = 
-    b = 
-    p = 
-    G = 
-    n = 
-"""
-
-"""
-TODO: add those curve families:
-- https://neuromancer.sk/std/secg
-"""

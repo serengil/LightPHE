@@ -1,5 +1,8 @@
+# built-in dependencies
 from typing import Union, Tuple, Optional
 from decimal import Decimal, getcontext
+
+# project dependencies
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="lightphe/commons/phe_utils.py")
@@ -7,8 +10,19 @@ logger = Logger(module="lightphe/commons/phe_utils.py")
 # pylint: disable=no-else-return, no-else-break
 
 
-def parse_int(value: Union[int, float], modulo: int) -> int:
-    if isinstance(value, int):
+def normalize_input(value: Union[int, float], modulo: Union[int, str]) -> int:
+    """
+    Normaliz given value to be in the range of modulo
+    Args:
+        value (int, float): the value to be normalized
+        modulo (int): the modulo value
+    Returns:
+        result (int, str): the normalized value
+    """
+    if isinstance(value, int) and isinstance(modulo, str):
+        # elliptic curve elgamal & koblitz curves
+        result = value % int(modulo, 2)
+    elif isinstance(value, int) and isinstance(modulo, int):
         result = value % modulo
     elif isinstance(value, float) and value >= 0:
         dividend, divisor = fractionize(value=value, modulo=modulo)
@@ -23,7 +37,9 @@ def parse_int(value: Union[int, float], modulo: int) -> int:
     return result
 
 
-def fractionize(value: float, modulo: int, precision: Optional[int] = None) -> Tuple[int, int]:
+def fractionize(
+    value: float, modulo: int, precision: Optional[int] = None
+) -> Tuple[int, int]:
     getcontext().prec = 50
 
     if precision is None:
@@ -40,7 +56,9 @@ def fractionize(value: float, modulo: int, precision: Optional[int] = None) -> T
 
         if scaling_factor > 10**precision:
             # If scaling factor is too large, discard excess part of integer value
-            integer_value = int(integer_value / (10 ** (scaling_factor - 10**precision)))
+            integer_value = int(
+                integer_value / (10 ** (scaling_factor - 10**precision))
+            )
             break
         elif scaling_factor < 10 ** (precision - 1):
             # If scaling factor is too small, multiply dividend and divisor 10 times

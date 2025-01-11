@@ -97,7 +97,9 @@ class Ciphertext:
         elif isinstance(other, int):
             result = self.cs.multiply_by_contant(ciphertext=self.value, constant=other)
         elif isinstance(other, float):
-            constant = phe_utils.parse_int(value=other, modulo=self.cs.plaintext_modulo)
+            constant = phe_utils.normalize_input(
+                value=other, modulo=self.cs.plaintext_modulo
+            )
             result = self.cs.multiply_by_contant(
                 ciphertext=self.value, constant=constant
             )

@@ -46,12 +46,13 @@ class LightPHE:
             key_size (int): key size in bits
             precision (int): precision for homomorphic operations on tensors
             form (str): specifies the form of the elliptic curve.
-                Options: 'weierstrass' (default), 'edwards'.
+                Options: 'weierstrass' (default), 'edwards', 'koblitz'.
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
             curve (str): specifies the elliptic curve to use.
                 Options:
-                 - ed25519, ed448 for edwards form
-                 - secp256k1 for weierstrass form
+                 - e.g. ed25519, ed448 for edwards form
+                 - e.g. secp256k1 for weierstrass form
+                 - e.g. k-409 for koblitz form
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         """
         self.algorithm_name = algorithm_name
@@ -152,7 +153,7 @@ class LightPHE:
             return self.__encrypt_tensors(tensor=plaintext)
 
         ciphertext = self.cs.encrypt(
-            plaintext=phe_utils.parse_int(
+            plaintext=phe_utils.normalize_input(
                 value=plaintext, modulo=self.cs.plaintext_modulo
             )
         )

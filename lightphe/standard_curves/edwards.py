@@ -3,20 +3,11 @@ Curves in this class are heavily inspired from
 - https://neuromancer.sk/std/search/
 """
 
-# built-in dependencies
-from abc import ABC
-from typing import Tuple
+# project dependencies
+from lightphe.models.Curve import TwistedEdwardsInterface
 
 
 # pylint: disable=too-few-public-methods
-class TwistedEdwardsInterface(ABC):
-    p: int  # modulo
-    a: int  # equation parameters
-    d: int  # equation parameters
-    G: Tuple[int, int]  # base point G
-    n: int  # elliptic curve order (number of points on the curve)
-
-
 class Ed25519(TwistedEdwardsInterface):
     p = pow(2, 255) - 19
     a = -1

@@ -1,9 +1,8 @@
 # built-in dependencies
-from abc import ABC
-from typing import Union, Tuple
+from typing import Union, Optional
 
 # project dependencies
-from lightphe.standard_curves import weierstrass, edwards
+from lightphe.standard_curves import weierstrass, edwards, koblitz
 
 CURVE_MAP = {
     "weierstrass": {
@@ -118,12 +117,37 @@ CURVE_MAP = {
         "numsp384t1": edwards.numsp384t1,
         "numsp512t1": edwards.numsp512t1,
     },
+    "koblitz": {
+        None: koblitz.K163,
+        "k163": koblitz.K163,
+        "k233": koblitz.K233,
+        "k283": koblitz.K283,
+        "k409": koblitz.K409,
+        "k571": koblitz.K571,
+        "b571": koblitz.B571,
+        "sect571r1": koblitz.B571,
+        "ansit571r1": koblitz.B571,
+        "b409": koblitz.B409,
+        "sect409r1": koblitz.B409,
+        "ansit409r1": koblitz.B409,
+        "b283": koblitz.B283,
+        "sect283r1": koblitz.B283,
+        "ansit283r1": koblitz.B283,
+        "b233": koblitz.B233,
+        "sect233r1": koblitz.B233,
+        "ansit233r1": koblitz.B233,
+        "b163": koblitz.B163,
+        "sect163r2": koblitz.B163,
+        "ansit163r2": koblitz.B163,
+    },
 }
 
 
-def build_curve(
-    form_name: str, curve_name: str
-) -> Union[weierstrass.WeierstrassInterface, edwards.TwistedEdwardsInterface]:
+def build_curve(form_name: str, curve_name: Optional[str] = None) -> Union[
+    weierstrass.WeierstrassInterface,
+    edwards.TwistedEdwardsInterface,
+    koblitz.KoblitzInterface,
+]:
     """
     Builds a curve arguments based on the form and curve name
     Args:
