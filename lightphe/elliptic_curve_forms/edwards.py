@@ -1,5 +1,5 @@
 # built-in dependencies
-from typing import Tuple
+from typing import Tuple, Optional
 from lightphe.models.EllipticCurve import EllipticCurve
 from lightphe.standard_curves import inventory
 from lightphe.standard_curves.edwards import TwistedEdwardsInterface
@@ -14,7 +14,7 @@ class TwistedEdwards(EllipticCurve):
         [2] https://sefiks.com/2018/12/26/twisted-edwards-curves/
     """
 
-    def __init__(self, curve="ed25519"):
+    def __init__(self, curve: Optional[str] = "ed25519"):
         curve_args: TwistedEdwardsInterface = inventory.build_curve(
             form_name="edwards", curve_name=curve
         )
@@ -44,21 +44,32 @@ class TwistedEdwards(EllipticCurve):
         x1, y1 = P
         x2, y2 = Q
 
+        p: int = self.p
+
         x3 = (
-            ((x1 * y2 + y1 * x2) % self.p)
-            * pow(1 + self.d * x1 * x2 * y1 * y2, -1, self.p)
-        ) % self.p
+            ((x1 * y2 + y1 * x2) % p) * pow(1 + self.d * x1 * x2 * y1 * y2, -1, p)
+        ) % p
         y3 = (
-            ((y1 * y2 - self.a * x1 * x2) % self.p)
-            * pow(1 - self.d * x1 * x2 * y1 * y2, -1, self.p)
-        ) % self.p
+            ((y1 * y2 - self.a * x1 * x2) % p)
+            * pow(1 - self.d * x1 * x2 * y1 * y2, -1, p)
+        ) % p
 
         return (x3, y3)
+
+    def double_point(self, P: Tuple[int, int]) -> Tuple[int, int]:
+        """
+        Find a 2nd point from a given point on an elliptic curve
+        Args:
+            P (Tuple[int, int]): 1st point on the elliptic curve
+        Returns:
+            2P (Tuple[int, int]): 2nd point on the elliptic curve
+        """
+        return self.add_points(P, P)
 
     def negative_point(self, P: Tuple[int, int]) -> Tuple[int, int]:
         return (-P[0], P[1])
 
-    def is_on_curve(self, P: Tuple[int, int]):
+    def is_on_curve(self, P: Tuple[int, int]) -> bool:
         """
         Check a given point is on an elliptic curve
         Args:

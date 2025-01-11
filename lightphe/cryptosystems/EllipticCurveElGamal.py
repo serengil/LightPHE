@@ -3,6 +3,7 @@ from typing import Optional
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.elliptic_curve_forms.weierstrass import Weierstrass
 from lightphe.elliptic_curve_forms.edwards import TwistedEdwards
+from lightphe.elliptic_curve_forms.koblitz import Koblitz
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="lightphe/cryptosystems/EllipticCurveElGamal.py")
@@ -42,14 +43,20 @@ class EllipticCurveElGamal(Homomorphic):
             self.curve = Weierstrass()
         elif form in "edwards":
             self.curve = TwistedEdwards(curve=curve)
+        elif form in "koblitz":
+            self.curve = Koblitz(curve=curve)
         else:
             raise ValueError(f"unimplemented curve form - {form}")
 
-        self.keys = keys or self.generate_keys(key_size or self.curve.n.bit_length())
+        self.keys = keys or self.generate_keys(
+            key_size
+            or (isinstance(self.curve.n, int) and self.curve.n.bit_length())
+            or (isinstance(self.curve.n, str) and len(self.curve.n))
+        )
         self.keys["public_key"]["form"] = form
         self.keys["private_key"]["form"] = form
-        self.plaintext_modulo = self.curve.p
-        self.ciphertext_modulo = self.curve.p
+        self.plaintext_modulo = self.curve.p or self.curve.fx
+        self.ciphertext_modulo = self.curve.p or self.curve.fx
 
     def generate_keys(self, key_size: int):
         """
@@ -84,7 +91,10 @@ class EllipticCurveElGamal(Homomorphic):
             random key (int): one time random key for encryption
         """
         # return random.getrandbits(128)
-        return random.getrandbits(self.curve.n.bit_length())
+        return random.getrandbits(
+            (isinstance(self.curve.n, int) and self.curve.n.bit_length())
+            or (isinstance(self.curve.n, str) and len(self.curve.n))
+        )
 
     def encrypt(self, plaintext: int, random_key: Optional[int] = None) -> tuple:
         """
@@ -143,7 +153,10 @@ class EllipticCurveElGamal(Homomorphic):
             if G[0] == s_prime[0] and G[1] == s_prime[1]:
                 return k
             k = k + 1
-            if k > self.curve.n:
+            n = (isinstance(self.curve.n, int) and self.curve.n) or (
+                isinstance(self.curve.n, str) and int(self.curve.n, 2)
+            )
+            if k > n:
                 raise ValueError(
                     f"Cannot restore scalar from {s_prime} = k x {self.curve.G}"
                 )

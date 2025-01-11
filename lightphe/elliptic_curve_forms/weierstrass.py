@@ -54,6 +54,25 @@ class Weierstrass(EllipticCurve):
 
         return x3, y3
 
+    def double_point(self, P: Tuple[int, int]) -> Tuple[int, int]:
+        """
+        Find a 2nd point from a given point on an elliptic curve
+        Args:
+            P (Tuple[int, int]): 1st point on the elliptic curve
+        Returns:
+            2P (Tuple[int, int]): 2nd point on the elliptic curve
+        """
+        x1, y1 = P
+
+        beta = (3 * x1 * x1 + self.a) * pow(2 * y1, -1, self.p)
+
+        x3 = (beta * beta - x1 - x1) % self.p
+        y3 = (beta * (x1 - x3) - y1) % self.p
+
+        assert self.is_on_curve((x3, y3)) is True
+
+        return x3, y3
+
     def negative_point(self, P: Tuple[int, int]) -> Tuple[int, int]:
         return (P[0], (-1 * P[1]) % self.p)
 
