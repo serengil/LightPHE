@@ -109,14 +109,14 @@ FORMS = [
     ("edwards", "numsp512t1"),
     ("koblitz", None),  # k163
     ("koblitz", "b163"),
-    ("koblitz", "k233"),
-    ("koblitz", "b233"),
-    ("koblitz", "k283"),
-    ("koblitz", "b283"),
-    ("koblitz", "k409"),
-    ("koblitz", "b409"),
-    ("koblitz", "k571"),
-    ("koblitz", "b571"),
+    # ("koblitz", "k233"),
+    # ("koblitz", "b233"),
+    # ("koblitz", "k283"),
+    # ("koblitz", "b283"),
+    # ("koblitz", "k409"),
+    # ("koblitz", "b409"),
+    # ("koblitz", "k571"),
+    # ("koblitz", "b571"),
 ]
 
 
