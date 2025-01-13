@@ -170,7 +170,6 @@ def inverse(num: str, modulo: str) -> str:
     r = b
     p1 = "1"
     p2 = "0"
-    # God rest ye, merry gentlemen.
     while r != "1":
         r = mod(a, b)
         q = div(a, b)

@@ -6,6 +6,8 @@ Curves in this class are heavily inspired from
 # project dependencies
 from lightphe.models.Curve import WeierstrassInterface
 
+DEFAULT_CURVE = "secp256k1"
+
 
 # pylint: disable=too-few-public-methods
 class Secp256k1(WeierstrassInterface):

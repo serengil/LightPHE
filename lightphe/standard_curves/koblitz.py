@@ -7,6 +7,9 @@ Curves in this class are heavily inspired from
 from lightphe.models.Curve import KoblitzInterface
 
 
+DEFAULT_CURVE = "k163"
+
+
 # pylint: disable=too-few-public-methods
 class K409(KoblitzInterface):
     m = 409

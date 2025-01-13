@@ -6,6 +6,8 @@ Curves in this class are heavily inspired from
 # project dependencies
 from lightphe.models.Curve import TwistedEdwardsInterface
 
+DEFAULT_CURVE = "ed25519"
+
 
 # pylint: disable=too-few-public-methods
 class Ed25519(TwistedEdwardsInterface):

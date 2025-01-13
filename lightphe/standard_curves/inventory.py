@@ -1,165 +1,83 @@
 # built-in dependencies
-from typing import Union, Optional
+from typing import Union, Optional, List
+import inspect
 
 # project dependencies
 from lightphe.standard_curves import weierstrass, edwards, koblitz
 
-CURVE_MAP = {
-    "weierstrass": {
-        None: weierstrass.Secp256k1,
-        "secp256k1": weierstrass.Secp256k1,
-        "p192": weierstrass.P192,
-        "secp192r1": weierstrass.P192,
-        "prime192v1": weierstrass.P192,
-        "p224": weierstrass.P224,
-        "secp224r1": weierstrass.P224,
-        "wap-wsg-idm-ecid-wtls12": weierstrass.P224,
-        "ansip224r1": weierstrass.P224,
-        "p256": weierstrass.P256,
-        "secp256r1": weierstrass.P256,
-        "prime256v1": weierstrass.P256,
-        "p384": weierstrass.P384,
-        "secp384r1": weierstrass.P384,
-        "ansip384r1": weierstrass.P384,
-        "p521": weierstrass.P521,
-        "secp521r1": weierstrass.P521,
-        "ansip521r1": weierstrass.P521,
-        "curve22103": weierstrass.Curve22103,
-        "curve4417": weierstrass.Curve4417,
-        "curve1174": weierstrass.Curve1174,
-        "curve67254": weierstrass.Curve67254,
-        "fp254bna": weierstrass.Fp254BNa,
-        "fp254bnb": weierstrass.Fp254BNb,
-        "fp224bn": weierstrass.Fp224BN,
-        "fp256bn": weierstrass.Fp256BN,
-        "fp384bn": weierstrass.Fp384BN,
-        "fp512bn": weierstrass.Fp512BN,
-        "tweedledum": weierstrass.Tweedledum,
-        "tweedledee": weierstrass.Tweedledee,
-        "pallas": weierstrass.Pallas,
-        "vesta": weierstrass.Vesta,
-        "tom256": weierstrass.Tom256,
-        "numsp256d1": weierstrass.Numsp256d1,
-        "numsp384d1": weierstrass.Numsp384d1,
-        "numsp512d1": weierstrass.Numsp512d1,
-        "brainpoolP160r1": weierstrass.BrainpoolP160r1,
-        "brainpoolP160t1": weierstrass.BrainpoolP160t1,
-        "brainpoolP192r1": weierstrass.BrainpoolP192r1,
-        "brainpoolP192t1": weierstrass.BrainpoolP192t1,
-        "brainpoolP224r1": weierstrass.BrainpoolP224r1,
-        "brainpoolP224t1": weierstrass.BrainpoolP224t1,
-        "brainpoolP256r1": weierstrass.BrainpoolP256r1,
-        "brainpoolP256t1": weierstrass.BrainpoolP256t1,
-        "brainpoolP320r1": weierstrass.BrainpoolP320r1,
-        "brainpoolP320t1": weierstrass.BrainpoolP320t1,
-        "brainpoolP384r1": weierstrass.BrainpoolP384r1,
-        "brainpoolP384t1": weierstrass.BrainpoolP384t1,
-        "brainpoolP512r1": weierstrass.BrainpoolP512r1,
-        "brainpoolP512t1": weierstrass.BrainpoolP512t1,
-        "mnt1": weierstrass.Mnt1,
-        "mnt2/1": weierstrass.Mnt2_1,
-        "mnt2/2": weierstrass.Mnt2_2,
-        "mnt3/1": weierstrass.Mnt3_1,
-        "mnt3/2": weierstrass.Mnt3_2,
-        "mnt3/3": weierstrass.Mnt3_3,
-        "mnt4": weierstrass.Mnt4,
-        "mnt5/1": weierstrass.Mnt5_1,
-        "mnt5/2": weierstrass.Mnt5_2,
-        "mnt5/3": weierstrass.Mnt5_3,
-        "prime192v2": weierstrass.Prime192v2,
-        "prime192v3": weierstrass.Prime192v3,
-        "prime239v1": weierstrass.Prime239v1,
-        "prime239v2": weierstrass.Prime239v2,
-        "prime239v3": weierstrass.Prime239v3,
-        "bls12-377": weierstrass.Bls12_377,
-        "bls12-381": weierstrass.Bls12_381,
-        "bls12-446": weierstrass.Bls12_446,
-        "bls12-455": weierstrass.Bls12_455,
-        "bls12-638": weierstrass.Bls12_638,
-        "bls24-477": weierstrass.Bls24_477,
-        "gost256": weierstrass.Gost256,
-        "gost512": weierstrass.Gost512,
-        "bn158": weierstrass.Bn158,
-        "bn190": weierstrass.Bn190,
-        "bn222": weierstrass.Bn222,
-        "bn254": weierstrass.Bn254,
-        "bn286": weierstrass.Bn286,
-        "bn318": weierstrass.Bn318,
-        "bn350": weierstrass.Bn350,
-        "bn382": weierstrass.Bn382,
-        "bn414": weierstrass.Bn414,
-        "bn446": weierstrass.Bn446,
-        "bn478": weierstrass.Bn478,
-        "bn510": weierstrass.Bn510,
-        "bn542": weierstrass.Bn542,
-        "bn574": weierstrass.Bn574,
-        "bn606": weierstrass.Bn606,
-        "bn638": weierstrass.Bn638,
-        "secp112r1": weierstrass.Secp112r1,
-        "secp112r2": weierstrass.Secp112r2,
-        "secp128r1": weierstrass.Secp128r1,
-        "secp128r2": weierstrass.Secp128r2,
-        "secp160k1": weierstrass.Secp160k1,
-        "secp160r1": weierstrass.Secp160r1,
-        "secp160r2": weierstrass.Secp160r2,
-        "secp192k1": weierstrass.Secp192k1,
-        "secp224k1": weierstrass.Secp224k1,
-    },
-    "edwards": {
-        None: edwards.Ed25519,
-        "ed25519": edwards.Ed25519,
-        "ed448": edwards.Ed448,
-        "e521": edwards.E521,
-        "curve41417": edwards.Curve41417,
-        "jubjub": edwards.JubJub,
-        "mdc201601": edwards.MDC201601,
-        "numsp256d1": edwards.numsp256t1,
-        "numsp384t1": edwards.numsp384t1,
-        "numsp512t1": edwards.numsp512t1,
-    },
-    "koblitz": {
-        None: koblitz.K163,
-        "k163": koblitz.K163,
-        "k233": koblitz.K233,
-        "k283": koblitz.K283,
-        "k409": koblitz.K409,
-        "k571": koblitz.K571,
-        "b571": koblitz.B571,
-        "sect571r1": koblitz.B571,
-        "ansit571r1": koblitz.B571,
-        "b409": koblitz.B409,
-        "sect409r1": koblitz.B409,
-        "ansit409r1": koblitz.B409,
-        "b283": koblitz.B283,
-        "sect283r1": koblitz.B283,
-        "ansit283r1": koblitz.B283,
-        "b233": koblitz.B233,
-        "sect233r1": koblitz.B233,
-        "ansit233r1": koblitz.B233,
-        "b163": koblitz.B163,
-        "sect163r2": koblitz.B163,
-        "ansit163r2": koblitz.B163,
-    },
+FORM_MODULES = {
+    "weierstrass": weierstrass,
+    "edwards": edwards,
+    "koblitz": koblitz,
 }
 
 
+def list_curves(form_name: str) -> List[str]:
+    """
+    Lists the supported curves for a given form
+
+    Args:
+        form_name (str): curve form name
+
+    Returns:
+        List[str]: The list of supported curves
+    """
+
+    if FORM_MODULES.get(form_name) is None:
+        raise ValueError(f"Unsupported curve form - {form_name}")
+
+    module = FORM_MODULES[form_name]
+    module_file = inspect.getsourcefile(module)
+
+    return [
+        cls[0].lower().replace("_", "-")
+        for cls in inspect.getmembers(module, inspect.isclass)
+        if inspect.getsourcefile(cls[1]) == module_file  # exclude imported classes
+    ]
+
+
 def build_curve(form_name: str, curve_name: Optional[str] = None) -> Union[
-    weierstrass.WeierstrassInterface,
-    edwards.TwistedEdwardsInterface,
-    koblitz.KoblitzInterface,
+    "weierstrass.WeierstrassInterface",
+    "edwards.TwistedEdwardsInterface",
+    "koblitz.KoblitzInterface",
 ]:
     """
     Builds a curve arguments based on the form and curve name
+
     Args:
         form_name (str): curve form name
         curve_name (str): curve name
+
     Returns:
-        curve_args (WeierstrassInterface or TwistedEdwardsInterface): curve arguments
+        Union[WeierstrassInterface, TwistedEdwardsInterface, KoblitzInterface]:
+            The constructed curve instance
+
+    Raises:
+        ValueError: If the form or curve name is unsupported
     """
-    if form_name not in CURVE_MAP:
+
+    curve_map = {
+        name: {
+            cls[0].lower().replace("_", "-"): cls[0]
+            for cls in inspect.getmembers(module, inspect.isclass)
+        }
+        for name, module in FORM_MODULES.items()
+    }
+
+    if form_name not in curve_map:
         raise ValueError(f"Unsupported curve form - {form_name}")
 
-    if curve_name not in CURVE_MAP[form_name]:
+    if curve_name is None:
+        module = FORM_MODULES[form_name]
+        curve_name = getattr(module, "DEFAULT_CURVE", None)
+        if curve_name is None:
+            raise ValueError(f"Default curve not defined for {form_name}")
+
+    if curve_name not in curve_map[form_name]:
         raise ValueError(f"Unsupported {form_name} curve - {curve_name}")
 
-    return CURVE_MAP[form_name][curve_name]()
+    curve_class_name = curve_map[form_name][curve_name]
+    module = FORM_MODULES[form_name]
+    curve_class = getattr(module, curve_class_name)
+
+    return curve_class()
