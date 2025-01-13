@@ -51,6 +51,8 @@ class Koblitz(EllipticCurve):
     def negative_point(self, P: Tuple[str, str]) -> Tuple[str, str]:
         """
         Returns the negative of the point P
+            if P is (x, y), then -P is (x, -(x+y))
+            for F2^n -x = x because of xor operation
         Args:
             P (tuple of str): Point on the curve
         Returns:
@@ -68,6 +70,7 @@ class Koblitz(EllipticCurve):
             result (bool): True if the point is on the curve, False otherwise
         """
         x, y = P
+
         return bin_ops.mod(
             bin_ops.add(
                 bin_ops.square(y),
@@ -77,7 +80,7 @@ class Koblitz(EllipticCurve):
         ) == bin_ops.mod(
             bin_ops.add(
                 bin_ops.add(
-                    bin_ops.multi(bin_ops.square(x), x),
+                    bin_ops.power_mod(x, 3, self.fx),
                     bin_ops.multi(self.a, bin_ops.square(x)),
                 ),
                 self.b,
