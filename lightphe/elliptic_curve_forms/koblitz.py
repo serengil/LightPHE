@@ -58,7 +58,7 @@ class Koblitz(EllipticCurve):
         Returns:
             -P (tuple of str): Negative of the point P
         """
-        return (P[0], bin_ops.add(P[0], P[1]))
+        return (P[0], bin_ops.xor(P[0], P[1]))
 
     def is_on_curve(self, P: Tuple[str, str]) -> bool:
         """
@@ -72,14 +72,14 @@ class Koblitz(EllipticCurve):
         x, y = P
 
         return bin_ops.mod(
-            bin_ops.add(
+            bin_ops.xor(
                 bin_ops.square(y),
                 bin_ops.multi(x, y),
             ),
             self.fx,
         ) == bin_ops.mod(
-            bin_ops.add(
-                bin_ops.add(
+            bin_ops.xor(
+                bin_ops.xor(
                     bin_ops.power_mod(x, 3, self.fx),
                     bin_ops.multi(self.a, bin_ops.square(x)),
                 ),
@@ -108,25 +108,25 @@ class Koblitz(EllipticCurve):
 
         # ß = (y1-y2)/(x1-x2)
         beta = bin_ops.divide(
-            a_bin=bin_ops.subtract(P[1], Q[1]),
-            b_bin=bin_ops.subtract(P[0], Q[0]),
+            a_bin=bin_ops.xor(P[1], Q[1]),
+            b_bin=bin_ops.xor(P[0], Q[0]),
             p=self.fx,
         )
         x1, y1 = P
         x2, _ = Q
 
         # x3 = ß^2 + ß – x1 – x2 – a
-        x3 = bin_ops.add(
-            bin_ops.add(
-                bin_ops.add(bin_ops.subtract(bin_ops.square(beta), beta), x1),
+        x3 = bin_ops.xor(
+            bin_ops.xor(
+                bin_ops.xor(bin_ops.xor(bin_ops.square(beta), beta), x1),
                 x2,
             ),
             self.a,
         )
 
         # y3 = ß(x1 – x3) – x3 – y1
-        y3 = bin_ops.add(
-            bin_ops.subtract(bin_ops.multi(bin_ops.subtract(x1, x3), beta), x3),
+        y3 = bin_ops.xor(
+            bin_ops.xor(bin_ops.multi(bin_ops.xor(x1, x3), beta), x3),
             y1,
         )
 
@@ -149,13 +149,13 @@ class Koblitz(EllipticCurve):
         x1, y1 = P
 
         # beta = x1 + (y1 / x1)
-        beta = bin_ops.add(x1, bin_ops.divide(y1, x1, self.fx))
+        beta = bin_ops.xor(x1, bin_ops.divide(y1, x1, self.fx))
 
         # x2 = beta^2 + beta + a
-        x2 = bin_ops.add(bin_ops.add(bin_ops.square(beta), beta), self.a)
+        x2 = bin_ops.xor(bin_ops.xor(bin_ops.square(beta), beta), self.a)
 
         # y2 = x1^2 + beta * x2 + x2
-        y2 = bin_ops.add(bin_ops.add(bin_ops.square(x1), bin_ops.multi(beta, x2)), x2)
+        y2 = bin_ops.xor(bin_ops.xor(bin_ops.square(x1), bin_ops.multi(beta, x2)), x2)
 
         x2 = bin_ops.mod(x2, self.fx)
         y2 = bin_ops.mod(y2, self.fx)

@@ -3,19 +3,7 @@ This module is heavily inspired by repo github.com/dimitrijray/ecc-binary-field/
 """
 
 
-def subtract(a_bin: str, b_bin: str) -> str:
-    """
-    Perform bitwise-XOR-ing between A and B
-    Args:
-        a (str): binary string
-        b (str): binary string
-    Returns:
-        result (str): subtraction between A and B
-    """
-    return add(a_bin, b_bin)
-
-
-def add(a_bin: str, b_bin: str) -> str:
+def xor(a_bin: str, b_bin: str) -> str:
     """
     Perform bitwise-XOR-ing between A and B
     Args:
@@ -175,7 +163,7 @@ def inverse(num: str, modulo: str) -> str:
         q = div(a, b)
         a = b
         b = r
-        p_a = add(p1, multi(q, p2))
+        p_a = xor(p1, multi(q, p2))
         p1 = p2
         p2 = p_a
     return p_a
