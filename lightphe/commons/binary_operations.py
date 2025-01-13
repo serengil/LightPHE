@@ -3,45 +3,30 @@ This module is heavily inspired by repo github.com/dimitrijray/ecc-binary-field/
 """
 
 
-def xor(a_bin: str, b_bin: str) -> str:
-    """
-    Perform bitwise-XOR-ing between A and B
-    Args:
-        a (str): binary string
-        b (str): binary string
-    Returns:
-        result (str): bitwise-XOR-ing between A and B
-    """
-    a = int(a_bin, 2)
-    b = int(b_bin, 2)
-    result = a ^ b
-    return bin(result)[2:]
-
-
-def divide(a_bin: str, b_bin: str, p: str) -> str:
+def divide(a: int, b: int, p: int) -> int:
     """
     Returns a_bin * (b_bin)^-1 (mod p)
     Args:
-        a_bin (str): binary string
-        b_bin (str): binary string
-        p (str): modulo as binary string
+        a (int): nominator
+        b (int): denominator
+        p (str): modulo
     Returns:
-        result (str): a_bin * (b_bin)^-1 (mod p)
+        result (int): (a_bin * (b_bin)^-1 (mod p)) mod p
     """
-    result = mod(multi(a_bin, inverse(b_bin, p)), p)
+    result = mod(multi(a, inverse(b, p)), p)
     return result
 
 
-def multi(a_bin: str, b_bin: str) -> str:
+def multi(a: int, b: int) -> int:
     """
     Multiply two binary strings
     Args:
-        a_bin (str): binary string
-        b_bin (str): binary string
+        a (int): first number
+        b (int): second number
     Returns:
-        result (str): multiplication between A and B
+        result (int): multiplication between a and b
     """
-    a = int(a_bin, 2)
+    b_bin = bin(b)[2:]
     if b_bin[len(b_bin) - 1] == "0":
         c = 0
     elif b_bin[len(b_bin) - 1] == "1":
@@ -51,22 +36,22 @@ def multi(a_bin: str, b_bin: str) -> str:
         d = d << 1
         if b_bin[len(b_bin) - (i + 1)] == "1":
             c = c ^ d
-    return bin(c)[2:]
+    return c
 
 
-def power_mod(num: str, exp: int, modulo: str) -> str:
+def power_mod(num: int, exp: int, modulo: int) -> int:
     """
     Calculate num^exp (mod m)
     Args:
-        num (str): binary string
-        exp (int): exponent as integer
-        modulo (str): binary string
+        num (int): number
+        exp (int): exponent
+        modulo (int): modulo
     Returns:
-        result (str): num^exp (mod m)
+        result (int): num^exp (mod m)
     """
     expo = bin(exp)[2:]
     mult = num
-    result = "1"
+    result = 1
     for i in range(len(expo) - 1, -1, -1):
         if expo[i] == "1":
             result = multi(mult, result)
@@ -75,38 +60,39 @@ def power_mod(num: str, exp: int, modulo: str) -> str:
     return result
 
 
-def square(num: str) -> str:
+def square(num: int) -> int:
     """
     Returns squared value of given number
     Args:
-        num (str): binary string
+        num (int): number
     Returns:
-        result (str): squared value of given number
+        result (int): squared value of given number
     """
-    if num[0] == "0":
+    num_bin = bin(num)[2:]
+    if num_bin[0] == "0":
         b = 0
-    elif num[0] == "1":
+    elif num_bin[0] == "1":
         b = 1
-    for i in range(1, len(num)):
+    for i in range(1, len(num_bin)):
         b = b << 2
-        if num[i] == "1":
+        if num_bin[i] == "1":
             b = b ^ 1
-    return bin(b)[2:]
+    return b
 
 
-def mod(num: str, modulo: str) -> str:
+def mod(num: int, modulo: int) -> int:
     """
     Returns the remainder of the polynomial division num/numR
     Args:
-        num (str): binary string
-        modulo (str): binary string
+        num (int): number
+        modulo (int): modulo
     Returns:
-        result (str): remainder of the polynomial division
+        result (int): remainder of the polynomial division
     """
-    p = int(num, 2)
-    r = int(modulo, 2)
-    degP = len(num) - 1
-    degR = len(modulo) - 1
+    p = num * 1
+    r = modulo * 1
+    degP = num.bit_length() - 1
+    degR = modulo.bit_length() - 1
     if degR != 0:
         while degR <= degP:
             setDeg = degP - degR
@@ -115,10 +101,10 @@ def mod(num: str, modulo: str) -> str:
             degP = len(bin(p)[2:]) - 1
     else:
         p = 0
-    return bin(p)[2:]
+    return p
 
 
-def div(num: str, modulo: str) -> str:
+def div(num: int, modulo: int) -> int:
     """
     Returns the quotient of the polynomial division num/numR
     Args:
@@ -127,10 +113,10 @@ def div(num: str, modulo: str) -> str:
     Returns:
         result (str): quotient of the polynomial division
     """
-    p = int(num, 2)
-    r = int(modulo, 2)
-    deg_p = len(num) - 1
-    deg_r = len(modulo) - 1
+    p = num
+    r = modulo
+    deg_p = p.bit_length() - 1
+    deg_r = modulo.bit_length() - 1
     q = 0
     prev_degree = deg_p - deg_r
     for i in range(prev_degree, -1, -1):
@@ -141,29 +127,29 @@ def div(num: str, modulo: str) -> str:
             p = p ^ r_1
             deg_p = len(bin(p)[2:]) - 1
             q = q ^ 1
-    return bin(q)[2:]
+    return q
 
 
-def inverse(num: str, modulo: str) -> str:
+def inverse(num: int, modulo: int) -> int:
     """
     Returns inverse of a given binary number for a modulo
     Args:
-        num (str): binary string
-        modulo (str): binary string
+        num (int): number
+        modulo (int): modulo
     Returns:
-        result (str): inverse of a given binary number for a modulo
+        result (int): inverse of a given binary number for a modulo
     """
     a = num
     b = modulo
     r = b
-    p1 = "1"
-    p2 = "0"
-    while r != "1":
+    p1 = 1
+    p2 = 0
+    while r != 1:
         r = mod(a, b)
         q = div(a, b)
         a = b
         b = r
-        p_a = xor(p1, multi(q, p2))
+        p_a = p1 ^ multi(q, p2)
         p1 = p2
         p2 = p_a
     return p_a

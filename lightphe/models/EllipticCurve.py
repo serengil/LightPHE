@@ -1,4 +1,4 @@
-from typing import Tuple, Union, Optional
+from typing import Tuple, Optional
 from abc import ABC, abstractmethod
 
 # Signature for elliptic curve
@@ -6,42 +6,36 @@ from abc import ABC, abstractmethod
 
 class EllipticCurve(ABC):
     p: Optional[int] = None
-    fx: Optional[str] = None
+    fx: Optional[int] = None
 
     @abstractmethod
     def add_points(
         self,
-        P: Union[Tuple[int, int], Tuple[str, str]],
-        Q: Union[Tuple[int, int], Tuple[str, str]],
-    ) -> Union[Tuple[int, int], Tuple[str, str]]:
+        P: Tuple[int, int],
+        Q: Tuple[int, int],
+    ) -> Tuple[int, int]:
         pass
 
     @abstractmethod
-    def double_point(
-        self, P: Union[Tuple[int, int], Tuple[str, str]]
-    ) -> Union[Tuple[int, int], Tuple[str, str]]:
+    def double_point(self, P: Tuple[int, int]) -> Tuple[int, int]:
         pass
 
     @abstractmethod
-    def is_on_curve(self, P: Union[Tuple[int, int], Tuple[str, str]]) -> bool:
+    def is_on_curve(self, P: Tuple[int, int]) -> bool:
         pass
 
     @abstractmethod
-    def negative_point(
-        self, P: Union[Tuple[int, int], Tuple[str, str]]
-    ) -> Union[Tuple[int, int], Tuple[str, str]]:
+    def negative_point(self, P: Tuple[int, int]) -> Tuple[int, int]:
         pass
 
-    def double_and_add(
-        self, G: Union[Tuple[int, int], Tuple[str, str]], k: int
-    ) -> Union[Tuple[int, int], Tuple[str, str]]:
+    def double_and_add(self, G: Tuple[int, int], k: int) -> Tuple[int, int]:
         """
         Perform scalar multiplication over elliptic curve
         Args:
-            G (Tuple[int, int] or Tuple[str, str]): a point on an elliptic curve
+            G (Tuple[int, int]): a point on an elliptic curve
             k (int): scalar value
         Returns
-            kxG (Tuple[int, int] or Tuple[str, str]): a point on an elliptic curve
+            kxG (Tuple[int, int]): a point on an elliptic curve
         """
         target_point = G
 
