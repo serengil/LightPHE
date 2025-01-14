@@ -96,7 +96,7 @@ def test_api():
         duration = round(toc - tic, 2)
 
         logger.info(
-            f"✅ Elliptic Curve ElGamal api test succeeded for EC form {form}&{curve}"
+            f"✅ Elliptic Curve ElGamal api test succeeded for EC form {form}"
             f" in {duration} seconds."
         )
 
