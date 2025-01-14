@@ -25,8 +25,8 @@ class Koblitz(EllipticCurve):
             inventory.build_curve(form_name="koblitz", curve_name=curve),
         )
 
-        # Point at infinity
-        self.O = (0, 0)
+        # Point at infinity (sefiks.com/2023/09/29/understanding-identity-element-in-elliptic-curves)
+        self.O = (float("inf"), float("inf"))
 
         # degree of the irreducible polynomial
         self.m = curve_args.m
@@ -45,7 +45,7 @@ class Koblitz(EllipticCurve):
         if fx is None:
             raise ValueError("fx is not defined")
 
-        self.fx = int(fx, 2)
+        self.modulo = int(fx, 2)
 
         self.G = curve_args.G
         assert (
@@ -75,16 +75,16 @@ class Koblitz(EllipticCurve):
         """
         x, y = P
 
-        assert self.fx is not None, "fx is not defined"
+        assert self.modulo is not None, "fx is not defined"
 
         return bin_ops.mod(
             bin_ops.square(y) ^ bin_ops.multi(x, y),
-            self.fx,
+            self.modulo,
         ) == bin_ops.mod(
-            bin_ops.power_mod(x, 3, self.fx)
+            bin_ops.power_mod(x, 3, self.modulo)
             ^ bin_ops.multi(self.a, bin_ops.square(x))
             ^ self.b,
-            self.fx,
+            self.modulo,
         )
 
     def add_points(self, P: Tuple[int, int], Q: Tuple[int, int]) -> Tuple[int, int]:
@@ -96,7 +96,7 @@ class Koblitz(EllipticCurve):
         Returns:
             result (tuple of int): Result of the addition
         """
-        assert self.fx is not None, "fx is not defined"
+        assert self.modulo is not None, "fx is not defined"
 
         if P == Q:
             return self.double_point(P)
@@ -111,7 +111,7 @@ class Koblitz(EllipticCurve):
         beta = bin_ops.divide(
             P[1] ^ Q[1],
             P[0] ^ Q[0],
-            self.fx,
+            self.modulo,
         )
         x1, y1 = P
         x2, _ = Q
@@ -122,8 +122,8 @@ class Koblitz(EllipticCurve):
         # y3 = ß(x1 – x3) – x3 – y1
         y3 = bin_ops.multi(x1 ^ x3, beta) ^ x3 ^ y1
 
-        x3 = bin_ops.mod(x3, self.fx)
-        y3 = bin_ops.mod(y3, self.fx)
+        x3 = bin_ops.mod(x3, self.modulo)
+        y3 = bin_ops.mod(y3, self.modulo)
 
         return (x3, y3)
 
@@ -135,7 +135,7 @@ class Koblitz(EllipticCurve):
         Returns:
             2P (tuple of int): Double of the point P
         """
-        assert self.fx is not None, "fx is not defined"
+        assert self.modulo is not None, "fx is not defined"
 
         if P == self.negative_point(P):
             return self.O
@@ -143,7 +143,7 @@ class Koblitz(EllipticCurve):
         x1, y1 = P
 
         # beta = x1 + (y1 / x1)
-        beta = x1 ^ bin_ops.divide(y1, x1, self.fx)
+        beta = x1 ^ bin_ops.divide(y1, x1, self.modulo)
 
         # x2 = beta^2 + beta + a
         x2 = bin_ops.square(beta) ^ beta ^ self.a
@@ -151,7 +151,7 @@ class Koblitz(EllipticCurve):
         # y2 = x1^2 + beta * x2 + x2
         y2 = bin_ops.square(x1) ^ bin_ops.multi(beta, x2) ^ x2
 
-        x2 = bin_ops.mod(x2, self.fx)
-        y2 = bin_ops.mod(y2, self.fx)
+        x2 = bin_ops.mod(x2, self.modulo)
+        y2 = bin_ops.mod(y2, self.modulo)
 
         return (x2, y2)

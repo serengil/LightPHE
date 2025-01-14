@@ -1,9 +1,11 @@
-from typing import Tuple
+from typing import Tuple, cast
 from lightphe.models.EllipticCurve import EllipticCurve
-from lightphe.standard_curves import weierstrass as WeierstrassInterface
+
+from lightphe.standard_curves.weierstrass import WeierstrassInterface
 from lightphe.standard_curves import inventory
 
 
+# pylint: disable=no-else-return
 class Weierstrass(EllipticCurve):
     def __init__(self, curve="secp256k1"):
         """
@@ -11,8 +13,9 @@ class Weierstrass(EllipticCurve):
         This is the most popular elliptic curve form. Bitcoin is depending on this form.
         Ref: https://sefiks.com/2016/03/13/the-math-behind-elliptic-curve-cryptography/
         """
-        curve_args: WeierstrassInterface = inventory.build_curve(
-            form_name="weierstrass", curve_name=curve
+        curve_args = cast(
+            WeierstrassInterface,
+            inventory.build_curve(form_name="weierstrass", curve_name=curve),
         )
 
         # equation parameters
@@ -20,12 +23,16 @@ class Weierstrass(EllipticCurve):
         self.b = curve_args.b
 
         # modulos
-        self.p = curve_args.p
+        self.modulo = curve_args.p
 
         # base point G
         self.G = curve_args.G
+
         # elliptic curve order - number of points on the curve
         self.n = curve_args.n
+
+        # Point at infinity (sefiks.com/2023/09/29/understanding-identity-element-in-elliptic-curves)
+        self.O = (float("inf"), float("inf"))
 
     def add_points(self, P: Tuple[int, int], Q: Tuple[int, int]) -> Tuple[int, int]:
         """
@@ -39,16 +46,25 @@ class Weierstrass(EllipticCurve):
         x1, y1 = P
         x2, y2 = Q
 
+        if P == Q:
+            return self.double_point(P)
+        elif P == self.negative_point(Q):
+            return self.O
+        elif P == self.O:
+            return Q
+        elif Q == self.O:
+            return P
+
         # check point addition or doubling required
         if x1 == x2 and y1 == y2:
             # doubling
-            beta = (3 * x1 * x2 + self.a) * pow(2 * y1, -1, self.p)
+            beta = (3 * x1 * x2 + self.a) * pow(2 * y1, -1, self.modulo)
         else:
             # addition
-            beta = (y2 - y1) * pow(x2 - x1, -1, self.p)
+            beta = (y2 - y1) * pow(x2 - x1, -1, self.modulo)
 
-        x3 = (beta * beta - x1 - x2) % self.p
-        y3 = (beta * (x1 - x3) - y1) % self.p
+        x3 = (beta * beta - x1 - x2) % self.modulo
+        y3 = (beta * (x1 - x3) - y1) % self.modulo
 
         assert self.is_on_curve((x3, y3)) is True
 
@@ -64,17 +80,17 @@ class Weierstrass(EllipticCurve):
         """
         x1, y1 = P
 
-        beta = (3 * x1 * x1 + self.a) * pow(2 * y1, -1, self.p)
+        beta = (3 * x1 * x1 + self.a) * pow(2 * y1, -1, self.modulo)
 
-        x3 = (beta * beta - x1 - x1) % self.p
-        y3 = (beta * (x1 - x3) - y1) % self.p
+        x3 = (beta * beta - x1 - x1) % self.modulo
+        y3 = (beta * (x1 - x3) - y1) % self.modulo
 
         assert self.is_on_curve((x3, y3)) is True
 
         return x3, y3
 
     def negative_point(self, P: Tuple[int, int]) -> Tuple[int, int]:
-        return (P[0], (-1 * P[1]) % self.p)
+        return (P[0], (-1 * P[1]) % self.modulo)
 
     def is_on_curve(self, P: Tuple[int, int]):
         """
@@ -86,4 +102,6 @@ class Weierstrass(EllipticCurve):
             is_on_curve (boolean): returns True if point is on the curve
         """
         x, y = P
-        return (y * y) % self.p == (pow(x, 3, self.p) + self.a * x + self.b) % self.p
+        return (y * y) % self.modulo == (
+            pow(x, 3, self.modulo) + self.a * x + self.b
+        ) % self.modulo

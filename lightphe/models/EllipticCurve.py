@@ -5,8 +5,22 @@ from abc import ABC, abstractmethod
 
 
 class EllipticCurve(ABC):
-    p: Optional[int] = None
-    fx: Optional[int] = None
+    # point at infinity or neutral / identity element
+    O: Tuple[int, int]
+
+    # base point G
+    G: Tuple[int, int]
+
+    # modulo (prime p or polynomial fx)
+    modulo: int
+
+    # order of the curve
+    n: int
+
+    # coefficients
+    a: int
+    b: Optional[int]  # for weierstrass & koblitz form
+    d: Optional[int]  # for edwards form
 
     @abstractmethod
     def add_points(
@@ -38,6 +52,11 @@ class EllipticCurve(ABC):
             kxG (Tuple[int, int]): a point on an elliptic curve
         """
         target_point = G
+
+        if k == 0:
+            return self.O
+        if k < 0:
+            return self.negative_point(self.double_and_add(G, abs(k)))
 
         k_binary = bin(k)[2:]
 
