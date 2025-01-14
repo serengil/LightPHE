@@ -48,15 +48,11 @@ class EllipticCurveElGamal(Homomorphic):
         else:
             raise ValueError(f"unimplemented curve form - {form}")
 
-        self.keys = keys or self.generate_keys(
-            key_size
-            or (isinstance(self.curve.n, int) and self.curve.n.bit_length())
-            or (isinstance(self.curve.n, str) and len(self.curve.n))
-        )
+        self.keys = keys or self.generate_keys(key_size or self.curve.n.bit_length())
         self.keys["public_key"]["form"] = form
         self.keys["private_key"]["form"] = form
-        self.plaintext_modulo = self.curve.p or self.curve.fx
-        self.ciphertext_modulo = self.curve.p or self.curve.fx
+        self.plaintext_modulo = self.curve.modulo
+        self.ciphertext_modulo = self.curve.modulo
 
     def generate_keys(self, key_size: int):
         """
@@ -153,10 +149,7 @@ class EllipticCurveElGamal(Homomorphic):
             if G[0] == s_prime[0] and G[1] == s_prime[1]:
                 return k
             k = k + 1
-            n = (isinstance(self.curve.n, int) and self.curve.n) or (
-                isinstance(self.curve.n, str) and int(self.curve.n, 2)
-            )
-            if k > n:
+            if k > self.curve.n:
                 raise ValueError(
                     f"Cannot restore scalar from {s_prime} = k x {self.curve.G}"
                 )

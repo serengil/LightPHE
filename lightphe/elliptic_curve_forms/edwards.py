@@ -1,10 +1,11 @@
 # built-in dependencies
-from typing import Tuple, Optional
+from typing import Tuple, Optional, cast
 from lightphe.models.EllipticCurve import EllipticCurve
 from lightphe.standard_curves import inventory
 from lightphe.standard_curves.edwards import TwistedEdwardsInterface
 
 
+# pylint: disable=no-else-return
 class TwistedEdwards(EllipticCurve):
     """
     Builds (twisted) edwards curves satisfying the equation
@@ -15,12 +16,13 @@ class TwistedEdwards(EllipticCurve):
     """
 
     def __init__(self, curve: Optional[str] = "ed25519"):
-        curve_args: TwistedEdwardsInterface = inventory.build_curve(
-            form_name="edwards", curve_name=curve
+        curve_args = cast(
+            TwistedEdwardsInterface,
+            inventory.build_curve(form_name="edwards", curve_name=curve),
         )
 
         # modulo
-        self.p = curve_args.p
+        self.modulo = curve_args.p
 
         # equation parameters
         self.a = curve_args.a
@@ -32,6 +34,10 @@ class TwistedEdwards(EllipticCurve):
         # elliptic curve order (number of points on the curve)
         self.n = curve_args.n
 
+        # neutral or identity element instead of point at infinity
+        # sefiks.com/2023/09/29/understanding-identity-element-in-elliptic-curves/
+        self.O = (0, 1)
+
     def add_points(self, P: Tuple[int, int], Q: Tuple[int, int]) -> Tuple[int, int]:
         """
         Find the 3rd point from given 2 points on an elliptic curve
@@ -41,18 +47,24 @@ class TwistedEdwards(EllipticCurve):
         Returns:
             P+Q (Tuple[int, int]): 3rd point on the elliptic curve
         """
+        if P == self.negative_point(Q):
+            return self.O
+        elif P == self.O:
+            return Q
+        elif Q == self.O:
+            return P
+
         x1, y1 = P
         x2, y2 = Q
 
-        p: int = self.p
-
         x3 = (
-            ((x1 * y2 + y1 * x2) % p) * pow(1 + self.d * x1 * x2 * y1 * y2, -1, p)
-        ) % p
+            ((x1 * y2 + y1 * x2) % self.modulo)
+            * pow(1 + self.d * x1 * x2 * y1 * y2, -1, self.modulo)
+        ) % self.modulo
         y3 = (
-            ((y1 * y2 - self.a * x1 * x2) % p)
-            * pow(1 - self.d * x1 * x2 * y1 * y2, -1, p)
-        ) % p
+            ((y1 * y2 - self.a * x1 * x2) % self.modulo)
+            * pow(1 - self.d * x1 * x2 * y1 * y2, -1, self.modulo)
+        ) % self.modulo
 
         return (x3, y3)
 
@@ -79,6 +91,6 @@ class TwistedEdwards(EllipticCurve):
             is_on_curve (boolean): returns True if point is on the curve
         """
         x, y = P
-        return (self.a * x * x + y * y) % self.p == (
+        return (self.a * x * x + y * y) % self.modulo == (
             1 + self.d * x * x * y * y
-        ) % self.p
+        ) % self.modulo
