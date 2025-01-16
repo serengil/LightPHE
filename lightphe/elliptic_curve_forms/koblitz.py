@@ -15,7 +15,8 @@ class Koblitz(EllipticCurve):
         Create Elliptic Curve satisfying y^2 + xy = x^3 + ax ^2+ b
         References:
             [1] sefiks.com/2016/03/13/the-math-behind-elliptic-curves-over-binary-field/
-            [2] Susantio, D. R., & Muchtadi-Alamsyah, I. (2016, April).
+            [2] sefiks.com/2025/01/16/a-gentle-introduction-to-elliptic-curves-over-binary-fields/
+            [3] Susantio, D. R., & Muchtadi-Alamsyah, I. (2016, April).
                 Implementation of elliptic curve cryptography in binary field.
                 In Journal of Physics: Conference Series (Vol. 710, No. 1, p. 012022).
                 Available at: iopscience.iop.org/article/10.1088/1742-6596/710/1/012022/pdf
