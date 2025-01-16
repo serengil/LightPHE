@@ -37,8 +37,6 @@ def multi(a: int, b: int) -> int:
         if b_bin[len(b_bin) - (i + 1)] == "1":
             c = c ^ d
 
-    print(f"{a} x {b} = {c}")
-    print(f"{a} x {b} != {a*b}")
     return c
 
 
