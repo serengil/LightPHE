@@ -9,7 +9,7 @@ def divide(a: int, b: int, p: int) -> int:
     Args:
         a (int): nominator
         b (int): denominator
-        p (str): modulo
+        p (int): modulo
     Returns:
         result (int): (a_bin * (b_bin)^-1 (mod p)) mod p
     """
