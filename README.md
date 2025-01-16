@@ -229,7 +229,7 @@ with pytest.raises(ValueError, match="Paillier is not homomorphic with respect t
 
 However, if you tried to multiply ciphertexts with RSA, or xor ciphertexts with Goldwasser-Micali, these will be succeeded because those cryptosystems support those homomorphic operations.
 
-### Elliptic Curve Cryptography
+### Elliptic Curve Cryptography
 
 ECC is a powerful public-key cryptosystem based on the algebraic structure of elliptic curves over finite fields. In LightPHE, the [Elliptic Curve ElGamal](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) scheme is implemented, offering a secure and efficient homomorphic encryption option. The library supports 100+ standard elliptic curves.
 
