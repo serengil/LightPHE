@@ -43,27 +43,28 @@ class Weierstrass(EllipticCurve):
         Returns:
             P+Q (Tuple[int, int]): 3rd point on the elliptic curve
         """
+        # assert self.is_on_curve(P) is True, f"{P} is not on the curve"
+        # assert self.is_on_curve(Q) is True, f"{Q} is not on the curve"
+
         x1, y1 = P
         x2, y2 = Q
 
-        if P == Q:
-            return self.double_point(P)
-        elif P == self.negative_point(Q):
-            return self.O
-        elif P == self.O:
+        if P == self.O:
             return Q
         elif Q == self.O:
             return P
+        elif P == self.negative_point(Q):
+            return self.O
+        elif P == Q:
+            return self.double_point(P)
 
-        # check point addition or doubling required
-        if x1 == x2 and y1 == y2:
-            # doubling
-            beta = (3 * x1 * x2 + self.a) * pow(2 * y1, -1, self.modulo)
-        else:
-            # addition
-            beta = (y2 - y1) * pow(x2 - x1, -1, self.modulo)
+        # β = (y2 - y1) / (x2 - x1)
+        beta = (y2 - y1) * pow(x2 - x1, -1, self.modulo)
 
+        # x3 = β^2 - x1 - x2
         x3 = (beta * beta - x1 - x2) % self.modulo
+
+        # y3 = β * (x1 - x3) - y1
         y3 = (beta * (x1 - x3) - y1) % self.modulo
 
         assert self.is_on_curve((x3, y3)) is True
@@ -78,11 +79,20 @@ class Weierstrass(EllipticCurve):
         Returns:
             2P (Tuple[int, int]): 2nd point on the elliptic curve
         """
+        # assert self.is_on_curve(P) is True, f"{P} is not on the curve"
+
         x1, y1 = P
 
+        if y1 == 0:
+            return self.O
+
+        # β = (3 * x1^2 + a) / (2 * y1)
         beta = (3 * x1 * x1 + self.a) * pow(2 * y1, -1, self.modulo)
 
+        # x3 = β^2 - 2 * x1
         x3 = (beta * beta - x1 - x1) % self.modulo
+
+        # y3 = β * (x1 - x3) - y1
         y3 = (beta * (x1 - x3) - y1) % self.modulo
 
         assert self.is_on_curve((x3, y3)) is True

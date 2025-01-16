@@ -47,13 +47,6 @@ class TwistedEdwards(EllipticCurve):
         Returns:
             P+Q (Tuple[int, int]): 3rd point on the elliptic curve
         """
-        if P == self.negative_point(Q):
-            return self.O
-        elif P == self.O:
-            return Q
-        elif Q == self.O:
-            return P
-
         x1, y1 = P
         x2, y2 = Q
 

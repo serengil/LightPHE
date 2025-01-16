@@ -1,4 +1,4 @@
-from typing import Tuple, Optional
+from typing import Tuple
 from abc import ABC, abstractmethod
 
 # Signature for elliptic curve
@@ -19,8 +19,8 @@ class EllipticCurve(ABC):
 
     # coefficients
     a: int
-    b: Optional[int]  # for weierstrass & koblitz form
-    d: Optional[int]  # for edwards form
+    b: int = 0  # for weierstrass & koblitz form
+    d: int = 0  # for edwards form
 
     @abstractmethod
     def add_points(
@@ -53,6 +53,8 @@ class EllipticCurve(ABC):
         """
         target_point = G
 
+        if k >= self.n:
+            k = k % self.n
         if k == 0:
             return self.O
         if k < 0:

@@ -229,6 +229,32 @@ with pytest.raises(ValueError, match="Paillier is not homomorphic with respect t
 
 However, if you tried to multiply ciphertexts with RSA, or xor ciphertexts with Goldwasser-Micali, these will be succeeded because those cryptosystems support those homomorphic operations.
 
+### Elliptic Curve Cryptography
+
+ECC is a powerful public-key cryptosystem based on the algebraic structure of elliptic curves over finite fields. In LightPHE, the [Elliptic Curve ElGamal](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) scheme is implemented, offering a secure and efficient homomorphic encryption option. The library supports 100+ standard elliptic curves.
+
+```python
+some_curves = [
+    {"form": "weierstrass", "curve": "secp256k1"},
+    {"form": "edwards", "curve": "ed25519"},
+    {"form": "koblitz", "curve": "k163"}
+]
+
+curve = some_curves[1]
+
+phe = LightPHE(
+    algorithm_name="EllipticCurve-ElGamal",
+    form=curve["form"],
+    curve=curve["curve"],
+)
+```
+
+One of the crucial factors that define the security level of an elliptic curve cryptosystem is the order of the curve. The order of a curve is the number of points on the curve, and it directly influences the strength of the encryption. A higher order typically corresponds to a stronger cryptosystem, making it more resistant to cryptographic attacks.
+
+Each curve in LightPHE has a specific order, which is carefully chosen to balance performance and security. By selecting an elliptic curve with a larger order, you increase the security of your cryptographic system, but this may come with a trade-off in computational efficiency. Therefore, choosing the appropriate curve order is a crucial decision based on your application’s security and performance requirements.
+
+See [`Curves`](https://github.com/serengil/LightPHE/tree/master/lightphe/elliptic_curve_forms) page for more details.
+
 # Contributing
 
 All PRs are more than welcome! If you are planning to contribute a large patch, please create an issue first to get any upfront questions or design decisions out of the way first.
