@@ -19,12 +19,12 @@ def divide(a: int, b: int, p: int) -> int:
 
 def multi(a: int, b: int) -> int:
     """
-    Multiply two binary strings
+    Multiply two binary numbers in GF(2).
     Args:
         a (int): first number
         b (int): second number
     Returns:
-        result (int): multiplication between a and b
+        result (int): carry-less multiplication between a and b
     """
     b_bin = bin(b)[2:]
     if b_bin[len(b_bin) - 1] == "0":
@@ -36,14 +36,17 @@ def multi(a: int, b: int) -> int:
         d = d << 1
         if b_bin[len(b_bin) - (i + 1)] == "1":
             c = c ^ d
+
+    print(f"{a} x {b} = {c}")
+    print(f"{a} x {b} != {a*b}")
     return c
 
 
 def power_mod(num: int, exp: int, modulo: int) -> int:
     """
-    Calculate num^exp (mod m)
+    Calculate num^exp (mod m) in GF(2).
     Args:
-        num (int): number
+        num (int): base
         exp (int): exponent
         modulo (int): modulo
     Returns:
@@ -62,11 +65,11 @@ def power_mod(num: int, exp: int, modulo: int) -> int:
 
 def square(num: int) -> int:
     """
-    Returns squared value of given number
+    Square a binary number in GF(2).
     Args:
         num (int): number
     Returns:
-        result (int): squared value of given number
+        result (int): square of num
     """
     num_bin = bin(num)[2:]
     if num_bin[0] == "0":
@@ -82,12 +85,12 @@ def square(num: int) -> int:
 
 def mod(num: int, modulo: int) -> int:
     """
-    Returns the remainder of the polynomial division num/numR
+    Perform modulo operation for binary numbers in GF(2).
     Args:
         num (int): number
         modulo (int): modulo
     Returns:
-        result (int): remainder of the polynomial division
+        result (int): num mod modulo
     """
     p = num * 1
     r = modulo * 1
@@ -106,12 +109,12 @@ def mod(num: int, modulo: int) -> int:
 
 def div(num: int, modulo: int) -> int:
     """
-    Returns the quotient of the polynomial division num/numR
+    Return the quotient of the polynomial division num / modulo in GF(2).
     Args:
-        num (str): binary string
-        modulo (str): binary string
+        num (int): numerator
+        modulo (int): denominator
     Returns:
-        result (str): quotient of the polynomial division
+        result (int): quotient
     """
     p = num
     r = modulo
@@ -132,12 +135,12 @@ def div(num: int, modulo: int) -> int:
 
 def inverse(num: int, modulo: int) -> int:
     """
-    Returns inverse of a given binary number for a modulo
+    Calculate the inverse of a binary number modulo a polynomial in GF(2).
     Args:
         num (int): number
         modulo (int): modulo
     Returns:
-        result (int): inverse of a given binary number for a modulo
+        result (int): inverse of num mod modulo
     """
     a = num
     b = modulo
