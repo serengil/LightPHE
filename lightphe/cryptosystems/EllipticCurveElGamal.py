@@ -40,7 +40,7 @@ class EllipticCurveElGamal(Homomorphic):
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         """
         if form is None or form == "weierstrass":
-            self.curve = Weierstrass()
+            self.curve = Weierstrass(curve=curve)
         elif form in "edwards":
             self.curve = TwistedEdwards(curve=curve)
         elif form in "koblitz":

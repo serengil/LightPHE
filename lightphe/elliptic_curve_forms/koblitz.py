@@ -15,7 +15,8 @@ class Koblitz(EllipticCurve):
         Create Elliptic Curve satisfying y^2 + xy = x^3 + ax ^2+ b
         References:
             [1] sefiks.com/2016/03/13/the-math-behind-elliptic-curves-over-binary-field/
-            [2] Susantio, D. R., & Muchtadi-Alamsyah, I. (2016, April).
+            [2] sefiks.com/2025/01/16/a-gentle-introduction-to-elliptic-curves-over-binary-fields/
+            [3] Susantio, D. R., & Muchtadi-Alamsyah, I. (2016, April).
                 Implementation of elliptic curve cryptography in binary field.
                 In Journal of Physics: Conference Series (Vol. 710, No. 1, p. 012022).
                 Available at: iopscience.iop.org/article/10.1088/1742-6596/710/1/012022/pdf
@@ -75,8 +76,6 @@ class Koblitz(EllipticCurve):
         """
         x, y = P
 
-        assert self.modulo is not None, "fx is not defined"
-
         return bin_ops.mod(
             bin_ops.square(y) ^ bin_ops.multi(x, y),
             self.modulo,
@@ -96,16 +95,20 @@ class Koblitz(EllipticCurve):
         Returns:
             result (tuple of int): Result of the addition
         """
-        assert self.modulo is not None, "fx is not defined"
+        # assert self.is_on_curve(P) is True, f"{P} is not on the curve"
+        # assert self.is_on_curve(Q) is True, f"{Q} is not on the curve"
 
-        if P == Q:
-            return self.double_point(P)
-        elif P == self.negative_point(Q):
-            return self.O
-        elif P == self.O:
+        if P == self.O:
             return Q
         elif Q == self.O:
             return P
+        elif P == self.negative_point(Q):
+            return self.O
+        elif P == Q:
+            return self.double_point(P)
+
+        if P[0] == Q[0]:
+            return self.O
 
         # ß = (y1-y2)/(x1-x2)
         beta = bin_ops.divide(
@@ -135,12 +138,15 @@ class Koblitz(EllipticCurve):
         Returns:
             2P (tuple of int): Double of the point P
         """
-        assert self.modulo is not None, "fx is not defined"
+        # assert self.is_on_curve(P) is True, f"{P} is not on the curve"
 
         if P == self.negative_point(P):
             return self.O
 
         x1, y1 = P
+
+        if x1 == 0:
+            return self.O
 
         # beta = x1 + (y1 / x1)
         beta = x1 ^ bin_ops.divide(y1, x1, self.modulo)

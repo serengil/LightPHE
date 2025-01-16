@@ -15,18 +15,46 @@ FORMS = ["weierstrass", "edwards", "koblitz"]
 
 
 # pylint: disable=expression-not-assigned
-def test_elliptic_curve_elgamal():
+def __test_build_curves():
+    summary = []
+    logger.info("| form | curve | field | n (bits)|")
+    for form in FORMS:
+        curves = inventory.list_curves(form)
+        for curve in curves:
+            cs = EllipticCurveElGamal(form=form, curve=curve)
+            field = "binary" if form == "koblitz" else "prime"
+            logger.info(f"| {form} | {curve} | {field} | {cs.curve.n.bit_length()} |")
+            summary.append((form, curve, field, cs.curve.n.bit_length()))
 
+    import pandas as pd
+
+    df = pd.DataFrame(summary, columns=["form", "curve", "field", "n (bits)"])
+    df = df.sort_values(by=["form", "n (bits)"], ascending=[True, False])
+
+    logger.info("| form | curve | field | n (bits)|")
+    for _, instance in df.iterrows():
+        logger.info(
+            f"| {instance['form']} | {instance['curve']} | {instance['field']} | {instance['n (bits)']} |"
+        )
+
+
+def __test_elliptic_curve_elgamal():
     for form in FORMS:
         curves = inventory.list_curves(form)
         for curve in curves:
 
-            # exclude these because they take too long
-            if form == "koblitz" and curve not in ["k163", "b163"]:
-                continue
+            logger.debug(
+                f"ℹ️ Elliptic Curve ElGamal test is running for EC form {form}&{curve}"
+            )
 
             tic = time.time()
-            cs = EllipticCurveElGamal(form=form, curve=curve)
+
+            try:
+                cs = EllipticCurveElGamal(form=form, curve=curve)
+            except Exception as err:
+                raise ValueError(
+                    f"❌ Elliptic Curve ElGamal test failed for EC form {form}&{curve}"
+                ) from err
 
             m1 = 10
             m2 = 5
@@ -61,7 +89,7 @@ def test_elliptic_curve_elgamal():
 
             logger.info(
                 f"✅ Elliptic Curve ElGamal test succeeded for EC form {form}&{curve}"
-                f" in {duration} seconds"
+                f" ({cs.curve.n.bit_length()}-bit) in {duration} seconds"
             )
 
 
@@ -127,3 +155,58 @@ def test_double_and_add_with_negative_input():
             cs.curve.double_and_add(G, 10)
         )
         logger.info(f"✅ Test (-10) x G = -(10 x G) done for {form}")
+
+
+def test_elliptic_curve_cyclic_group_on_test_curve():
+    cs = EllipticCurveElGamal(form="weierstrass", curve="test-curve-pf-23")
+
+    for k in range(0, 5 * cs.curve.n):
+        P = cs.curve.double_and_add(cs.curve.G, k)
+        logger.debug(f"{k} x G = {P}")
+
+        if k in [0, cs.curve.n]:
+            assert P == cs.curve.O
+
+    logger.info("✅ Test elliptic curve cyclic group on test curve done.")
+
+
+def test_point_addition_returning_point_at_infinity():
+    cs = EllipticCurveElGamal(form="weierstrass", curve="test-curve-pf-23")
+
+    # we know that 20G + 8 G = 28G = point at infinity
+    P = cs.curve.add_points(
+        cs.curve.double_and_add(cs.curve.G, 20), cs.curve.double_and_add(cs.curve.G, 8)
+    )
+    assert P == cs.curve.O
+
+    _14G = cs.curve.double_and_add(cs.curve.G, 14)
+    Q = cs.curve.add_points(_14G, _14G)
+    assert Q == cs.curve.O
+
+    logger.info("✅ Test elliptic curve cyclic group on test curve done.")
+
+
+def test_double_and_add_for_k_close_to_n():
+    for form in FORMS:
+        cs = EllipticCurveElGamal(form=form)
+
+        _ = cs.curve.double_and_add(cs.curve.G, cs.curve.n - 1)
+        assert cs.curve.double_and_add(cs.curve.G, cs.curve.n) == cs.curve.O
+        assert cs.curve.double_and_add(cs.curve.G, cs.curve.n + 1) == cs.curve.G
+
+        logger.info(
+            f"✅ Double and add for k being close to order test done for {form}"
+        )
+
+
+def test_add_neutral_point():
+    for form in FORMS:
+        cs = EllipticCurveElGamal(form=form)
+
+        _7G = cs.curve.double_and_add(cs.curve.G, 7)
+
+        assert cs.curve.add_points(_7G, cs.curve.O) == _7G
+        assert cs.curve.add_points(cs.curve.O, _7G) == _7G
+        assert cs.curve.add_points(cs.curve.O, cs.curve.O) == cs.curve.O
+
+        logger.info(f"✅ Adding neutral point test done for {form}")

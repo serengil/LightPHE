@@ -912,3 +912,15 @@ class Secp224k1(WeierstrassInterface):
         0x7E089FED7FBA344282CAFBD6F7E319F7C0B0BD59E2CA4BDB556D61A5,
     )
     n = 0x10000000000000000000000000001DCE8D2EC6184CAF0A971769FB1F7
+
+
+class Test_Curve_PF_23(WeierstrassInterface):
+    """
+    http://koclab.cs.ucsb.edu/teaching/ccs130h/2018/04ecc.pdf
+    """
+
+    a = 1
+    b = 1
+    p = 23
+    G = (0, 1)
+    n = 28
