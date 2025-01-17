@@ -253,7 +253,7 @@ One of the crucial factors that define the security level of an elliptic curve c
 
 Each curve in LightPHE has a specific order, which is carefully chosen to balance performance and security. By selecting an elliptic curve with a larger order, you increase the security of your cryptographic system, but this may come with a trade-off in computational efficiency. Therefore, choosing the appropriate curve order is a crucial decision based on your application’s security and performance requirements.
 
-See [`Curves`](https://github.com/serengil/LightPHE/tree/master/lightphe/elliptic_curve_forms) page for more details.
+See [`curves`](https://github.com/serengil/LightPHE/tree/master/lightphe/elliptic_curve_forms) page for a list of all supported forms, curves and their details.
 
 # Contributing
 
