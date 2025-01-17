@@ -36,8 +36,8 @@ assert curve.is_on_curve(_2025G) is True
 When creating a LightPHE object, if the algorithm is set to EllipticCurve-ElGamal, you can optionally specify the elliptic curve's form and its specific name. By default, the form is Weierstrass, and the curve is secp256k1.
 
 ```python
-# build an Elliptic Curve ElGamal cryptosystem
-# with Edwards form and specifically the ed25519 curve
+# Build an Elliptic Curve ElGamal cryptosystem 
+# using an Edwards curve, specifically ed25519.
 phe = LightPHE(
     algorithm_name="EllipticCurve-ElGamal",
     form="edwards",
