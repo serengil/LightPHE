@@ -231,7 +231,7 @@ However, if you tried to multiply ciphertexts with RSA, or xor ciphertexts with 
 
 ### Elliptic Curve Cryptography
 
-ECC is a powerful public-key cryptosystem based on the algebraic structure of elliptic curves over finite fields. In LightPHE, the [Elliptic Curve ElGamal](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) scheme is implemented, offering a secure and efficient homomorphic encryption option. The library supports 3 elliptic curve forms (weierstrass, edwards and koblitz) and 100+ standard elliptic curves.
+ECC is a powerful public-key cryptosystem based on the algebraic structure of elliptic curves over finite fields. In LightPHE, the [Elliptic Curve ElGamal](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) scheme is implemented, offering a secure and efficient homomorphic encryption option. The library supports 3 elliptic curve forms (weierstrass, edwards and koblitz) and 100+ standard elliptic curve configurations.
 
 ```python
 forms = ["weierstass", "edwards", "koblitz"]
