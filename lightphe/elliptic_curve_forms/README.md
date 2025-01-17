@@ -58,6 +58,9 @@ Below is a list of elliptic curves supported by LightPHE. Each curve has a speci
 | edwards | mdc201601 | prime | 254 |
 | edwards | numsp256t1 | prime | 254 |
 | edwards | jubjub | prime | 252 |
+
+| form | curve | field | n (bits) |
+| --- | --- | --- | --- |
 | weierstrass | bn638 | prime | 638 |
 | weierstrass | bn606 | prime | 606 |
 | weierstrass | bn574 | prime | 574 |
@@ -144,6 +147,9 @@ Below is a list of elliptic curves supported by LightPHE. Each curve has a speci
 | weierstrass | secp128r2 | prime | 126 |
 | weierstrass | secp112r1 | prime | 112 |
 | weierstrass | secp112r2 | prime | 110 |
+
+| form | curve | field | n (bits) |
+| --- | --- | --- | --- |
 | koblitz | b571 | binary | 570 |
 | koblitz | k571 | binary | 570 |
 | koblitz | c2tnb431r1 | binary | 418 |
