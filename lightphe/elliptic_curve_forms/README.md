@@ -36,11 +36,27 @@ assert curve.is_on_curve(_2025G) is True
 When creating a LightPHE object, if the algorithm is set to EllipticCurve-ElGamal, you can optionally specify the elliptic curve's form and its specific name. By default, the form is Weierstrass, and the curve is secp256k1.
 
 ```python
+# build an Elliptic Curve ElGamal cryptosystem
+# with Edwards form and specifically the ed25519 curve
 phe = LightPHE(
     algorithm_name="EllipticCurve-ElGamal",
     form="edwards",
     curve="ed25519",
 )
+
+# define plaintexts
+m1 = 10000
+m2 = 500
+
+# encrypt plaintexts
+c1 = phe.encrypt(m1)
+c2 = phe.encrypt(m2)
+
+# homomorphic addition
+c3 = c1 + c2
+
+# proof of work
+assert phe.decrypt(c3) == m1 + m2
 ```
 
 Below is a list of elliptic curves supported by LightPHE. Each curve has a specific order (n), which defines the number of points in the finite field. The order directly impacts the cryptosystem's security strength. A higher order typically corresponds to a stronger cryptosystem, making it more resistant to cryptographic attacks.
