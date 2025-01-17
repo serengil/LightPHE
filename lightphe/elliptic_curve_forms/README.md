@@ -1,20 +1,45 @@
 # Elliptic Curve Cryptography
 
+Building an elliptic curve with LightPHE is very straightforward.
+
+```python
+# import required forms
+from lightphe.elliptic_curve_forms.weierstrass import Weierstrass
+from lightphe.elliptic_curve_forms.edwards import TwistedEdwards
+from lightphe.elliptic_curve_forms.koblitz import Koblitz
+
+# build a default Edwards curve
+curve = TwistedEdwards()
+
+# or build an Edwards curve with custom curve configuration
+# curve = TwistedEdwards(curve = "ed25519")
+```
+
+Once the curve is initialized in one of Weierstrass, Edwards or Koblitz forms, you can perform operations such as point addition, doubling, and scalar multiplication.
+
+```python
+# Base Point
+G = curve.G
+assert curve.is_on_curve(G) is True
+ 
+_2G = curve.double_point(G)
+# _2G = curve.add_points(G, G)
+assert curve.is_on_curve(_2G) is True
+ 
+_3G = curve.add_points(G, _2G)
+assert curve.is_on_curve(_2G) is True
+ 
+_2025G = curve.double_and_add(G, k=2025)
+assert curve.is_on_curve(_2025G) is True
+```
+
 When creating a LightPHE object, if the algorithm is set to EllipticCurve-ElGamal, you can optionally specify the elliptic curve's form and its specific name. By default, the form is Weierstrass, and the curve is secp256k1.
 
 ```python
-some_curves = [
-    {"form": "weierstrass", "curve": "secp256k1"},
-    {"form": "edwards", "curve": "ed25519"},
-    {"form": "koblitz", "curve": "k163"}
-]
-
-curve = some_curves[1]
-
 phe = LightPHE(
     algorithm_name="EllipticCurve-ElGamal",
-    form=curve["form"],
-    curve=curve["curve"],
+    form="edwards",
+    curve="ed25519",
 )
 ```
 
