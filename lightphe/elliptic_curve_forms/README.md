@@ -45,6 +45,8 @@ phe = LightPHE(
 
 Below is a list of elliptic curves supported by LightPHE. Each curve has a specific order (n), which defines the number of points in the finite field. The order directly impacts the cryptosystem's security strength. A higher order typically corresponds to a stronger cryptosystem, making it more resistant to cryptographic attacks.
 
+## Edwards Curves
+
 | form | curve | field | n (bits) |
 | --- | --- | --- | --- |
 | edwards | e521 | prime | 519 |
@@ -58,6 +60,8 @@ Below is a list of elliptic curves supported by LightPHE. Each curve has a speci
 | edwards | mdc201601 | prime | 254 |
 | edwards | numsp256t1 | prime | 254 |
 | edwards | jubjub | prime | 252 |
+
+## Elliptic Curves in Weierstass Form
 
 | form | curve | field | n (bits) |
 | --- | --- | --- | --- |
@@ -147,6 +151,8 @@ Below is a list of elliptic curves supported by LightPHE. Each curve has a speci
 | weierstrass | secp128r2 | prime | 126 |
 | weierstrass | secp112r1 | prime | 112 |
 | weierstrass | secp112r2 | prime | 110 |
+
+## Koblitz Curves
 
 | form | curve | field | n (bits) |
 | --- | --- | --- | --- |
