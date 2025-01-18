@@ -931,6 +931,6 @@ class Test_Curve(WeierstrassInterface):
 
     def __init__(self):
         logger.warn(
-            "test-curve is for development and educational purposes only"
+            "weierstrass test-curve is for development and educational purposes only"
             " and should not be used in production."
         )

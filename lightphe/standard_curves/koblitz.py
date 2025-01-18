@@ -428,6 +428,6 @@ class Test_Curve(KoblitzInterface):
 
     def __init__(self):
         logger.warn(
-            "test-curve is for development and educational purposes only"
+            "koblitz test-curve is for development and educational purposes only"
             " and should not be used in production."
         )
