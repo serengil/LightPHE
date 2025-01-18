@@ -5,6 +5,9 @@ Curves in this class are heavily inspired from
 
 # project dependencies
 from lightphe.models.Curve import TwistedEdwardsInterface
+from lightphe.commons.logger import Logger
+
+logger = Logger(module="lightphe/standard_curves/edwards.py")
 
 DEFAULT_CURVE = "ed25519"
 
@@ -125,3 +128,17 @@ class Id_tc26_gost_3410_2012_512_paramSetC(TwistedEdwardsInterface):
         0x469AF79D1FB1F5E16B99592B77A01E2A0FDFB0D01794368D9A56117F7B38669522DD4B650CF789EEBF068C5D139732F0905622C04B2BAAE7600303EE73001A3D,
     )
     n = 0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC98CDBA46506AB004C33A9FF5147502CC8EDA9E7A769A12694623CEF47F023ED
+
+
+class Test_Curve(TwistedEdwardsInterface):
+    p = 13
+    a = 1
+    d = 2
+    G = (9, 4)
+    n = 8
+
+    def __init__(self):
+        logger.warn(
+            "edwards test-curve is for development and educational purposes only"
+            " and should not be used in production."
+        )

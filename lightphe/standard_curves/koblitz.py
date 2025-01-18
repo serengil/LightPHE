@@ -5,7 +5,9 @@ Curves in this class are heavily inspired from
 
 # project dependencies
 from lightphe.models.Curve import KoblitzInterface
+from lightphe.commons.logger import Logger
 
+logger = Logger(module="lightphe/standard_curves/koblitz.py")
 
 DEFAULT_CURVE = "k163"
 
@@ -414,3 +416,18 @@ class Wap_wsg_idm_ecid_wtls1(KoblitzInterface):
     b = 1
     G = (0x01667979A40BA497E5D5C270780617, 0x00F44B4AF1ECC2630E08785CEBCC15)
     n = 0x00FFFFFFFFFFFFFFFDBF91AF6DEA73
+
+
+class Test_Curve(KoblitzInterface):
+    m = 5
+    coefficients = [5, 2, 0]
+    a = 13
+    b = 4
+    G = (22, 19)
+    n = 16
+
+    def __init__(self):
+        logger.warn(
+            "koblitz test-curve is for development and educational purposes only"
+            " and should not be used in production."
+        )
