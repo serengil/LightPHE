@@ -165,12 +165,12 @@ def test_elliptic_curve_cyclic_group_on_test_curve():
     curves = ["weierstrass", "koblitz", "edwards"]
 
     for form in curves:
-        logger.info(f"ℹ️ Testing elliptic curve cyclic group on {form} test curve")
+        logger.debug(f"ℹ️ Testing elliptic curve cyclic group on {form} test curve")
         cs = EllipticCurveElGamal(form=form, curve="test-curve")
 
         for k in range(0, 2 * cs.curve.n + 1):
             P = cs.curve.double_and_add(cs.curve.G, k)
-            logger.info(f"{k} x G = {P}")
+            logger.debug(f"{k} x G = {P}")
 
             if k in [0, cs.curve.n]:
                 assert P == cs.curve.O
@@ -178,10 +178,10 @@ def test_elliptic_curve_cyclic_group_on_test_curve():
         logger.info(f"✅ Test elliptic curve cyclic group on test {form} curve done.")
 
 
-def test_point_addition_returning_point_at_infinity():
+def test_weierstrass_point_addition_returning_point_at_infinity():
     cs = EllipticCurveElGamal(form="weierstrass", curve="test-curve")
 
-    # we know that 20G + 8 G = 28G = point at infinity
+    # we know that 20G + 8G = 28G = point at infinity
     P = cs.curve.add_points(
         cs.curve.double_and_add(cs.curve.G, 20), cs.curve.double_and_add(cs.curve.G, 8)
     )
@@ -191,7 +191,39 @@ def test_point_addition_returning_point_at_infinity():
     Q = cs.curve.add_points(_14G, _14G)
     assert Q == cs.curve.O
 
-    logger.info("✅ Test elliptic curve cyclic group on test curve done.")
+    logger.info("✅ Test weierstras point addition returning point at infinity done.")
+
+
+def test_koblitz_point_addition_returning_point_at_infinity():
+    cs = EllipticCurveElGamal(form="koblitz", curve="test-curve")
+
+    # we know that 12G + 4G = 16G = point at infinity
+    P = cs.curve.add_points(
+        cs.curve.double_and_add(cs.curve.G, 12), cs.curve.double_and_add(cs.curve.G, 4)
+    )
+    assert P == cs.curve.O
+
+    _8G = cs.curve.double_and_add(cs.curve.G, 8)
+    Q = cs.curve.add_points(_8G, _8G)
+    assert Q == cs.curve.O
+
+    logger.info("✅ Test koblitz point addition returning point at infinity done.")
+
+
+def test_edwards_point_addition_returning_point_at_infinity():
+    cs = EllipticCurveElGamal(form="edwards", curve="test-curve")
+
+    # we know that 6G + 2G = 8G = point at infinity
+    P = cs.curve.add_points(
+        cs.curve.double_and_add(cs.curve.G, 6), cs.curve.double_and_add(cs.curve.G, 2)
+    )
+    assert P == cs.curve.O
+
+    _4G = cs.curve.double_and_add(cs.curve.G, 4)
+    Q = cs.curve.add_points(_4G, _4G)
+    assert Q == cs.curve.O
+
+    logger.info("✅ Test edwards point addition returning point at infinity done.")
 
 
 def test_double_and_add_for_k_close_to_n():
