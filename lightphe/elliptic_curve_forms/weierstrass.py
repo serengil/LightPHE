@@ -111,6 +111,9 @@ class Weierstrass(EllipticCurve):
         Returns
             is_on_curve (boolean): returns True if point is on the curve
         """
+        if P == self.O:
+            return True
+
         x, y = P
         return (y * y) % self.modulo == (
             pow(x, 3, self.modulo) + self.a * x + self.b

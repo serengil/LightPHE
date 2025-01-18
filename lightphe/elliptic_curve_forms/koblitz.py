@@ -74,6 +74,9 @@ class Koblitz(EllipticCurve):
         Returns:
             result (bool): True if the point is on the curve, False otherwise
         """
+        if P == self.O:
+            return True
+
         x, y = P
 
         return bin_ops.mod(

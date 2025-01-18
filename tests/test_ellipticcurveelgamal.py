@@ -43,6 +43,9 @@ def __test_elliptic_curve_elgamal():
         curves = inventory.list_curves(form)
         for curve in curves:
 
+            if curve in ["test-curve"]:
+                continue
+
             logger.debug(
                 f"ℹ️ Elliptic Curve ElGamal test is running for EC form {form}&{curve}"
             )
@@ -158,20 +161,25 @@ def test_double_and_add_with_negative_input():
 
 
 def test_elliptic_curve_cyclic_group_on_test_curve():
-    cs = EllipticCurveElGamal(form="weierstrass", curve="test-curve-pf-23")
 
-    for k in range(0, 5 * cs.curve.n):
-        P = cs.curve.double_and_add(cs.curve.G, k)
-        logger.debug(f"{k} x G = {P}")
+    curves = ["weierstrass", "koblitz", "edwards"]
 
-        if k in [0, cs.curve.n]:
-            assert P == cs.curve.O
+    for form in curves:
+        logger.info(f"ℹ️ Testing elliptic curve cyclic group on {form} test curve")
+        cs = EllipticCurveElGamal(form=form, curve="test-curve")
 
-    logger.info("✅ Test elliptic curve cyclic group on test curve done.")
+        for k in range(0, 2 * cs.curve.n + 1):
+            P = cs.curve.double_and_add(cs.curve.G, k)
+            logger.info(f"{k} x G = {P}")
+
+            if k in [0, cs.curve.n]:
+                assert P == cs.curve.O
+
+        logger.info(f"✅ Test elliptic curve cyclic group on test {form} curve done.")
 
 
 def test_point_addition_returning_point_at_infinity():
-    cs = EllipticCurveElGamal(form="weierstrass", curve="test-curve-pf-23")
+    cs = EllipticCurveElGamal(form="weierstrass", curve="test-curve")
 
     # we know that 20G + 8 G = 28G = point at infinity
     P = cs.curve.add_points(

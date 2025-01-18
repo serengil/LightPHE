@@ -5,6 +5,10 @@ Curves in this class are heavily inspired from
 
 # project dependencies
 from lightphe.models.Curve import WeierstrassInterface
+from lightphe.commons.logger import Logger
+
+logger = Logger(module="lightphe/standard_curves/weierstrass.py")
+
 
 DEFAULT_CURVE = "secp256k1"
 
@@ -914,7 +918,7 @@ class Secp224k1(WeierstrassInterface):
     n = 0x10000000000000000000000000001DCE8D2EC6184CAF0A971769FB1F7
 
 
-class Test_Curve_PF_23(WeierstrassInterface):
+class Test_Curve(WeierstrassInterface):
     """
     http://koclab.cs.ucsb.edu/teaching/ccs130h/2018/04ecc.pdf
     """
@@ -924,3 +928,9 @@ class Test_Curve_PF_23(WeierstrassInterface):
     p = 23
     G = (0, 1)
     n = 28
+
+    def __init__(self):
+        logger.warn(
+            "test-curve is for development and educational purposes only"
+            " and should not be used in production."
+        )
