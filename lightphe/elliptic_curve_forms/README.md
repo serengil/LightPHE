@@ -1,36 +1,28 @@
 # Elliptic Curve Cryptography
 
-Building an elliptic curve with LightPHE is very straightforward.
+Building an elliptic curve with LightPHE is very straightforward. By default, it constructs elliptic curves in Weierstras form. You can optionally construct ones in Edwards or Koblitz form. Additionally, you can build a specific curve by giving curve_name argument. See `Supported Curves` section for more details.
 
 ```python
-# import required forms
-from lightphe.elliptic_curve_forms.weierstrass import Weierstrass
-from lightphe.elliptic_curve_forms.edwards import TwistedEdwards
-from lightphe.elliptic_curve_forms.koblitz import Koblitz
+from lightphe import ECC
 
-# build a default Edwards curve
-curve = TwistedEdwards()
+forms = ["weierstrass", "edwards", "koblitz"]
 
-# or build an Edwards curve with custom curve configuration
-# curve = TwistedEdwards(curve = "ed25519")
+# construct an Edwards curve
+ed = ECC(form_name="edwards")
 ```
 
-Once the curve is initialized in one of Weierstrass, Edwards or Koblitz forms, you can perform operations such as point addition, doubling, and scalar multiplication.
+Once the curve is initialized in one of Weierstrass, Edwards or Koblitz forms, you can perform operations such as point addition and scalar multiplication.
 
 ```python
 # Base Point
-G = curve.G
-assert curve.is_on_curve(G) is True
- 
-_2G = curve.double_point(G)
-# _2G = curve.add_points(G, G)
-assert curve.is_on_curve(_2G) is True
- 
-_3G = curve.add_points(G, _2G)
-assert curve.is_on_curve(_2G) is True
- 
-_2025G = curve.double_and_add(G, k=2025)
-assert curve.is_on_curve(_2025G) is True
+G = ed.G
+
+_2G = G + G
+_3G = _2G + G
+_5G = _3G + _2G
+
+_20G = 4 * G
+_19G = _20G - G
 ```
 
 When creating a LightPHE object, if the algorithm is set to EllipticCurve-ElGamal, you can optionally specify the elliptic curve's form and its specific name. By default, the form is Weierstrass, and the curve is secp256k1.
@@ -58,6 +50,8 @@ c3 = c1 + c2
 # proof of work
 assert phe.decrypt(c3) == m1 + m2
 ```
+
+# Supported Curves
 
 Below is a list of elliptic curves supported by LightPHE. Each curve has a specific order (n), which defines the number of points in the finite field. The order directly impacts the cryptosystem's security strength. A higher order typically corresponds to a stronger cryptosystem, making it more resistant to cryptographic attacks.
 

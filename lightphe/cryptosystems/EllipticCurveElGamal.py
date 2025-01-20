@@ -1,9 +1,10 @@
+# built-in dependencies
 import random
 from typing import Optional
+
+# project dependencies
 from lightphe.models.Homomorphic import Homomorphic
-from lightphe.elliptic_curve_forms.weierstrass import Weierstrass
-from lightphe.elliptic_curve_forms.edwards import TwistedEdwards
-from lightphe.elliptic_curve_forms.koblitz import Koblitz
+from lightphe.models.EllipticCurve import EllipticCurvePoint
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="lightphe/cryptosystems/EllipticCurveElGamal.py")
@@ -39,20 +40,16 @@ class EllipticCurveElGamal(Homomorphic):
                  - secp256k1 for weierstrass form
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         """
-        if form is None or form == "weierstrass":
-            self.curve = Weierstrass(curve=curve)
-        elif form in "edwards":
-            self.curve = TwistedEdwards(curve=curve)
-        elif form in "koblitz":
-            self.curve = Koblitz(curve=curve)
-        else:
-            raise ValueError(f"unimplemented curve form - {form}")
+        # to avoid circular import, import ECC class here
+        from lightphe import ECC
 
-        self.keys = keys or self.generate_keys(key_size or self.curve.n.bit_length())
+        self.ecc = ECC(form_name=form, curve_name=curve)
+
+        self.keys = keys or self.generate_keys(key_size or self.ecc.n.bit_length())
         self.keys["public_key"]["form"] = form
         self.keys["private_key"]["form"] = form
-        self.plaintext_modulo = self.curve.modulo
-        self.ciphertext_modulo = self.curve.modulo
+        self.plaintext_modulo = self.ecc.modulo
+        self.ciphertext_modulo = self.ecc.modulo
 
     def generate_keys(self, key_size: int):
         """
@@ -72,8 +69,10 @@ class EllipticCurveElGamal(Homomorphic):
             f"{key_size} bit private key generated for Elliptic Curve ElGamal."
         )
 
+        # base point
+
         # public key
-        Qa = self.curve.double_and_add(G=self.curve.G, k=ka)
+        Qa = self.ecc.G * ka
 
         keys["public_key"]["Qa"] = Qa
         keys["private_key"]["ka"] = ka
@@ -87,10 +86,7 @@ class EllipticCurveElGamal(Homomorphic):
             random key (int): one time random key for encryption
         """
         # return random.getrandbits(128)
-        return random.getrandbits(
-            (isinstance(self.curve.n, int) and self.curve.n.bit_length())
-            or (isinstance(self.curve.n, str) and len(self.curve.n))
-        )
+        return random.getrandbits(self.ecc.n.bit_length())
 
     def encrypt(self, plaintext: int, random_key: Optional[int] = None) -> tuple:
         """
@@ -101,23 +97,18 @@ class EllipticCurveElGamal(Homomorphic):
         Returns
             ciphertext (tuple): c1 and c2
         """
-        # base point
-        G = self.curve.G
-
         # public key
         Qa = self.keys["public_key"]["Qa"]
 
         # random key
         r = random_key or self.generate_random_key()
 
-        s = self.curve.double_and_add(G=G, k=plaintext)
+        s = self.ecc.G * plaintext
 
-        c1 = self.curve.double_and_add(G=G, k=r)
+        c1 = self.ecc.G * r
+        c2 = (Qa * r) + s
 
-        c2 = self.curve.double_and_add(G=Qa, k=r)
-        c2 = self.curve.add_points(c2, s)
-
-        return c1, c2
+        return c1.get_point(), c2.get_point()
 
     def decrypt(self, ciphertext: tuple) -> int:
         """
@@ -130,11 +121,13 @@ class EllipticCurveElGamal(Homomorphic):
         # private key
         ka = self.keys["private_key"]["ka"]
 
+        # c1 and c2 as tuple of integers
         c1, c2 = ciphertext
 
-        c1_prime = self.curve.negative_point(c1)
-        s_prime = self.curve.double_and_add(G=c1_prime, k=ka)
-        s_prime = self.curve.add_points(P=c2, Q=s_prime)
+        c1 = EllipticCurvePoint(x=c1[0], y=c1[1], curve=self.ecc.curve)
+        c2 = EllipticCurvePoint(x=c2[0], y=c2[1], curve=self.ecc.curve)
+
+        s_prime = (-c1 * ka) + c2
 
         # s_prime is a point on the elliptic curve
         # s_prime = k x G
@@ -142,16 +135,18 @@ class EllipticCurveElGamal(Homomorphic):
         # this requires to solve ECDLP
 
         # base point
-        G = self.curve.G
+        G = self.ecc.G
         k = 2
         while True:
-            G = self.curve.add_points(P=G, Q=self.curve.G)
-            if G[0] == s_prime[0] and G[1] == s_prime[1]:
+            G = G + self.ecc.G
+
+            if G == s_prime:
                 return k
+
             k = k + 1
-            if k > self.curve.n:
+            if k > self.ecc.n:
                 raise ValueError(
-                    f"Cannot restore scalar from {s_prime} = k x {self.curve.G}"
+                    f"Cannot restore scalar from {s_prime} = k x {self.ecc.G}"
                 )
 
     def multiply(self, ciphertext1: tuple, ciphertext2: tuple) -> tuple:
@@ -169,9 +164,19 @@ class EllipticCurveElGamal(Homomorphic):
         Returns
             ciphertext (dict): Elliptic Curve ElGamal ciphertext consisting of c1 and c2 keys
         """
-        a = self.curve.add_points(P=ciphertext1[0], Q=ciphertext2[0])
-        b = self.curve.add_points(P=ciphertext1[1], Q=ciphertext2[1])
-        return a, b
+        c1_1, c1_2 = ciphertext1
+        c2_1, c2_2 = ciphertext2
+
+        # cast them to elliptic curve points
+        c1_1 = EllipticCurvePoint(x=c1_1[0], y=c1_1[1], curve=self.ecc.curve)
+        c1_2 = EllipticCurvePoint(x=c1_2[0], y=c1_2[1], curve=self.ecc.curve)
+        c2_1 = EllipticCurvePoint(x=c2_1[0], y=c2_1[1], curve=self.ecc.curve)
+        c2_2 = EllipticCurvePoint(x=c2_2[0], y=c2_2[1], curve=self.ecc.curve)
+
+        a = c1_1 + c2_1
+        b = c1_2 + c2_2
+
+        return a.get_point(), b.get_point()
 
     def xor(self, ciphertext1: tuple, ciphertext2: tuple) -> int:
         raise ValueError(
@@ -189,10 +194,17 @@ class EllipticCurveElGamal(Homomorphic):
         Returns:
             ciphertext (int): new ciphertext created with Elliptic Curve ElGamal
         """
-        return self.curve.double_and_add(
-            G=ciphertext[0],
-            k=constant,
-        ), self.curve.double_and_add(G=ciphertext[1], k=constant)
+        # Both P and Q are tuples of integers
+        P, Q = ciphertext
+
+        # cast P and Q to EllipticCurvePoint
+        P = EllipticCurvePoint(x=P[0], y=P[1], curve=self.ecc.curve)
+        Q = EllipticCurvePoint(x=Q[0], y=Q[1], curve=self.ecc.curve)
+
+        P_prime = P * constant
+        Q_prime = Q * constant
+
+        return P_prime.get_point(), Q_prime.get_point()
 
     def reencrypt(self, ciphertext: tuple) -> tuple:
         raise ValueError(
