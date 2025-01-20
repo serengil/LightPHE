@@ -1,5 +1,5 @@
 # built-in dependencies
-from typing import Tuple, Any
+from typing import Tuple
 from abc import ABC, abstractmethod
 
 # Signature for elliptic curve
