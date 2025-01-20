@@ -1,10 +1,17 @@
+# built-in dependencies
 import json
 from typing import Optional, Union, List
 
+# project dependencies
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.models.Ciphertext import Ciphertext
 from lightphe.models.Algorithm import Algorithm
 from lightphe.models.Tensor import Fraction, EncryptedTensor
+from lightphe.models.EllipticCurve import EllipticCurvePoint
+from lightphe.commons import phe_utils
+from lightphe.commons.logger import Logger
+
+# cryptosystems
 from lightphe.cryptosystems.RSA import RSA
 from lightphe.cryptosystems.ElGamal import ElGamal
 from lightphe.cryptosystems.Paillier import Paillier
@@ -14,16 +21,20 @@ from lightphe.cryptosystems.Benaloh import Benaloh
 from lightphe.cryptosystems.NaccacheStern import NaccacheStern
 from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
 from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
-from lightphe.commons import phe_utils
-from lightphe.commons.logger import Logger
+from lightphe.elliptic_curve_forms.weierstrass import Weierstrass
+from lightphe.elliptic_curve_forms.edwards import TwistedEdwards
+from lightphe.elliptic_curve_forms.koblitz import Koblitz
 
-# pylint: disable=eval-used, simplifiable-if-expression
+
+# pylint: disable=eval-used, simplifiable-if-expression, too-few-public-methods
 
 logger = Logger(module="lightphe/__init__.py")
 
+VERSION = "0.0.10"
+
 
 class LightPHE:
-    __version__ = "0.0.10"
+    __version__ = VERSION
 
     def __init__(
         self,
@@ -53,6 +64,8 @@ class LightPHE:
                  - e.g. ed25519, ed448 for edwards form
                  - e.g. secp256k1 for weierstrass form
                  - e.g. k-409 for koblitz form
+                List of all available curves:
+                    github.com/serengil/LightPHE/blob/master/lightphe/elliptic_curve_forms/README.md
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         """
         self.algorithm_name = algorithm_name
@@ -341,3 +354,44 @@ class LightPHE:
         return Ciphertext(
             algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext
         )
+
+
+class ECC:
+    __version__ = VERSION
+
+    def __init__(
+        self, form_name: Optional[str] = None, curve_name: Optional[str] = None
+    ):
+        """
+        Construct an Elliptic Curve over a finite field (prime or binary)
+        Args:
+            form_name (str): specifies the form of the elliptic curve.
+                Options: 'weierstrass' (default), 'edwards', 'koblitz'.
+            curve_name (str): specifies the elliptic curve to use.
+                Options:
+                 - e.g. ed25519, ed448 for edwards form
+                 - e.g. secp256k1 for weierstrass form
+                 - e.g. k-409 for koblitz form
+                List of all available curves:
+                    github.com/serengil/LightPHE/blob/master/lightphe/elliptic_curve_forms/README.md
+        """
+        if form_name is None or form_name == "weierstrass":
+            self.curve = Weierstrass(curve=curve_name)
+        elif form_name in "edwards":
+            self.curve = TwistedEdwards(curve=curve_name)
+        elif form_name in "koblitz":
+            self.curve = Koblitz(curve=curve_name)
+        else:
+            raise ValueError(f"unimplemented curve form - {form_name}")
+
+        # base point
+        self.G = EllipticCurvePoint(self.curve.G[0], self.curve.G[1], self.curve)
+
+        # order of the curve
+        self.n = self.curve.n
+
+        # point at infinity or neutral / identity element
+        self.O = EllipticCurvePoint(self.curve.O[0], self.curve.O[1], self.curve)
+
+        # modulo
+        self.modulo = self.curve.modulo

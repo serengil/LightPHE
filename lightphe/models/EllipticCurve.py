@@ -1,4 +1,5 @@
-from typing import Tuple
+# built-in dependencies
+from typing import Tuple, Any
 from abc import ABC, abstractmethod
 
 # Signature for elliptic curve
@@ -76,3 +77,84 @@ class EllipticCurve(ABC):
         ), f"{target_point} is not on the curve!"
 
         return target_point
+
+
+class EllipticCurvePoint:
+    """
+    Define a point on an elliptic curve
+    """
+
+    def __init__(self, x: int, y: int, curve: EllipticCurve):
+        self.x = x
+        self.y = y
+        self.curve = curve
+
+        assert self.curve.is_on_curve((x, y)), f"({x}, {y}) is not on the curve!"
+
+    def get_point(self) -> Tuple[int, int]:
+        return (self.x, self.y)
+
+    def __repr__(self):
+
+        if (
+            self.x == self.curve.O[0]
+            and self.y == self.curve.O[1]
+            and self.x == float("inf")
+            and self.y == float("inf")
+        ):
+            # because Edwards has neutral / identity element instead of point at infinity
+            return "\U0001D4AA"  # unicode for "𝒪" (circle O)
+        return f"({self.x}, {self.y})"
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __add__(self, other: "EllipticCurvePoint") -> "EllipticCurvePoint":
+        """
+        Calculate P + Q for two given points P and Q
+        """
+        if not isinstance(other, EllipticCurvePoint):
+            raise ValueError("Addition is only defined for 2 points")
+
+        if self.curve != other.curve:
+            raise ValueError("Points are not on the same curve")
+
+        x, y = self.curve.add_points((self.x, self.y), (other.x, other.y))
+        return EllipticCurvePoint(x, y, self.curve)
+
+    def __sub__(self, other: "EllipticCurvePoint") -> "EllipticCurvePoint":
+        """
+        Calculate P - Q for two given points P and Q
+        """
+        return self.__add__(other=other.__neg__())
+
+    def __mul__(self, k: int) -> "EllipticCurvePoint":
+        """
+        Calculate k*P for a given k and P
+        """
+        if not isinstance(k, int):
+            raise ValueError("Multiplication is only defined for an integer")
+
+        x, y = self.curve.double_and_add((self.x, self.y), k)
+        return EllipticCurvePoint(x, y, self.curve)
+
+    def __rmul__(self, k: int) -> "EllipticCurvePoint":
+        """
+        Calculate k*P for a given k and P
+        """
+        if not isinstance(k, int):
+            raise ValueError("Multiplication is only defined for an integer")
+        return self.__mul__(k)
+
+    def __neg__(self) -> "EllipticCurvePoint":
+        """
+        Calculate -P for a given P
+        """
+        x, y = self.curve.negative_point((self.x, self.y))
+        return EllipticCurvePoint(x, y, self.curve)
+
+    def __eq__(self, other: "EllipticCurvePoint") -> bool:
+        """
+        Check if two points are equal
+        """
+        return self.x == other.x and self.y == other.y and self.curve == other.curve
