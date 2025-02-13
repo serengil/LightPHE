@@ -46,8 +46,8 @@ class EllipticCurveElGamal(Homomorphic):
         self.ecc = ECC(form_name=form, curve_name=curve)
 
         self.keys = keys or self.generate_keys(key_size or self.ecc.n.bit_length())
-        self.keys["public_key"]["form"] = form
-        self.keys["private_key"]["form"] = form
+        self.keys["curve"] = curve
+        self.keys["form"] = form
         self.plaintext_modulo = self.ecc.modulo
         self.ciphertext_modulo = self.ecc.modulo
 
