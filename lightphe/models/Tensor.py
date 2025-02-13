@@ -194,21 +194,7 @@ class EncryptedTensor:
                         sign=1,
                     )
                 )
-            """
-            # find the sum of encypted dividends
-            sum_dividend = dividends[0]
-            for i in range(1, len(dividends)):
-                sum_dividend += dividends[i]
 
-            fraction = Fraction(
-                dividend=sum_dividend.value,
-                abs_dividend=sum_dividend.value,
-                divisor=divisor.value,
-                sign=1,
-            )
-
-            return EncryptedTensor(fractions=[fraction], cs=self.cs)
-            """
             return EncryptedTensor(fractions=dividends, cs=self.cs)
 
         elif isinstance(other, (int, float)):
