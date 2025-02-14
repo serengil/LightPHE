@@ -1,9 +1,14 @@
-import pytest
+# built-in dependencies
 from typing import List
-from lightphe.commons import phe_utils
-from lightphe.models.Tensor import EncryptedTensor, Fraction
-from lightphe import LightPHE
+import random
 
+# 3rd party dependencies
+import pytest
+
+# project dependencies
+from lightphe.commons import phe_utils
+from lightphe.models.Tensor import EncryptedTensor
+from lightphe import LightPHE
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_tensors.py")
@@ -224,31 +229,19 @@ def test_for_integer_tensor():
     logger.info("✅ Integer tensor tests succeeded")
 
 
-def __test_facial_recognition_model_embedding():
-    from deepface import DeepFace
-    import numpy as np
-
+def test_real_world_embedding():
     cs = LightPHE(algorithm_name="Paillier")
 
-    source_embedding = DeepFace.represent(
-        img_path="/Users/sefik/Desktop/deepface/tests/dataset/img1.jpg"
-    )[0]["embedding"]
+    source_embedding = [float(format(random.uniform(1, 2), ".17f")) for _ in range(128)]
     logger.info(f"source image's embedding found - {len(source_embedding)}D")
-
-    source_embedding = (source_embedding / np.linalg.norm(source_embedding)).tolist()
-    logger.info("source embedding normalized")
 
     source_embedding_encrypted = cs.encrypt(source_embedding)
     logger.info("source embedding encrypted")
 
-    target_embedding = DeepFace.represent(img_path="/Users/sefik/Desktop/target.jpg")[
-        0
-    ]["embedding"]
+    target_embedding = [float(format(random.uniform(1, 2), ".17f")) for _ in range(128)]
     logger.info(f"target image's embedding found - {len(target_embedding)}D")
 
-    target_embedding = (target_embedding / np.linalg.norm(target_embedding)).tolist()
-    logger.info("target embedding normalized")
-
+    # dot product to calculate encrypted similarity
     encrypted_similarity = source_embedding_encrypted @ target_embedding
 
     decrypted_similarity = cs.decrypt(encrypted_similarity)[0]
