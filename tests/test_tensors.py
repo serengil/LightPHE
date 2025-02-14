@@ -11,6 +11,7 @@ logger = Logger(module="tests/test_tensors.py")
 THRESHOLD = 1
 
 
+# pylint: disable=consider-using-enumerate
 def convert_negative_float_to_int(value: float, modulo: int) -> float:
     x, y = phe_utils.fractionize(
         value=value % modulo,
@@ -109,7 +110,9 @@ def test_homomorphic_multiply_with_int_constant():
     for i, restored_tensor in enumerate(t2):
         assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
 
-    logger.info("✅ Homomorphic multiplication with an integer constant tests succeeded")
+    logger.info(
+        "✅ Homomorphic multiplication with an integer constant tests succeeded"
+    )
 
 
 def test_homomorphic_multiply_with_positive_float_constant():
@@ -126,7 +129,9 @@ def test_homomorphic_multiply_with_positive_float_constant():
     for i, restored_tensor in enumerate(t2):
         assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
 
-    logger.info("✅ Homomorphic multiplication with a positive float constant tests succeeded")
+    logger.info(
+        "✅ Homomorphic multiplication with a positive float constant tests succeeded"
+    )
 
 
 def test_homomorphic_multiply_with_negative_float_constant():
@@ -143,7 +148,9 @@ def test_homomorphic_multiply_with_negative_float_constant():
     for i, restored_tensor in enumerate(t2):
         assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
 
-    logger.info("✅ Homomorphic multiplication with a positive float constant tests succeeded")
+    logger.info(
+        "✅ Homomorphic multiplication with a positive float constant tests succeeded"
+    )
 
 
 def test_homomorphic_addition():
@@ -160,10 +167,16 @@ def test_homomorphic_addition():
     restored_tensors = cs.decrypt(c3)
 
     for i, restored_tensor in enumerate(restored_tensors):
-        if (t1[i] >= 0 and t2[i] >= 0) or (t1[i] < 0 and t2[i] < 0) or (t1[i] + t2[i] >= 0):
+        if (
+            (t1[i] >= 0 and t2[i] >= 0)
+            or (t1[i] < 0 and t2[i] < 0)
+            or (t1[i] + t2[i] >= 0)
+        ):
             assert abs((t1[i] + t2[i]) - restored_tensor) < THRESHOLD
         elif t1[i] + t2[i] < 0:
-            expected = convert_negative_float_to_int(t1[i] + t2[i], cs.cs.plaintext_modulo)
+            expected = convert_negative_float_to_int(
+                t1[i] + t2[i], cs.cs.plaintext_modulo
+            )
             assert abs(expected - restored_tensor) < THRESHOLD
         else:
             raise ValueError("else must not be called at all")
@@ -172,3 +185,82 @@ def test_homomorphic_addition():
         _ = c1 * c2
 
     logger.info("✅ Homomorphic addition tests succeeded")
+
+
+def test_for_integer_tensor():
+    cs = LightPHE(algorithm_name="Paillier")
+
+    # suppose that these are normalized vectors
+    a = [7.1, 5.2, 5.3, 2.4, 3.5, 4.6]
+    b = [5.6, 3.7, 2.8, 4, 0, 5.9]
+
+    expected_similarity = sum(x * y for x, y in zip(a, b))
+
+    enc_a = cs.encrypt(a)
+
+    fractions = enc_a.fractions
+
+    # we expect to have same divisor for all items
+    for fraction in fractions[1:]:
+        assert fractions[0].divisor == fraction.divisor
+
+    enc_a_times_b = enc_a * b
+
+    a_times_b = cs.decrypt(enc_a_times_b)
+
+    for i in range(0, len(a)):
+        assert (
+            abs(a[i] * b[i] - a_times_b[i]) < 0.1
+        ), f"Expected {a[i] * b[i]}, got {a_times_b[i]}"
+
+    # dot product
+    encrypted_similarity = enc_a @ b
+    decrypted_similarity = cs.decrypt(encrypted_similarity)[0]
+
+    assert (
+        abs(decrypted_similarity - expected_similarity) < 0.1
+    ), f"expected {expected_similarity} but got {decrypted_similarity}"
+
+    logger.info("✅ Integer tensor tests succeeded")
+
+
+def __test_facial_recognition_model_embedding():
+    from deepface import DeepFace
+    import numpy as np
+
+    cs = LightPHE(algorithm_name="Paillier")
+
+    source_embedding = DeepFace.represent(
+        img_path="/Users/sefik/Desktop/deepface/tests/dataset/img1.jpg"
+    )[0]["embedding"]
+    logger.info(f"source image's embedding found - {len(source_embedding)}D")
+
+    source_embedding = (source_embedding / np.linalg.norm(source_embedding)).tolist()
+    logger.info("source embedding normalized")
+
+    source_embedding_encrypted = cs.encrypt(source_embedding)
+    logger.info("source embedding encrypted")
+
+    target_embedding = DeepFace.represent(img_path="/Users/sefik/Desktop/target.jpg")[
+        0
+    ]["embedding"]
+    logger.info(f"target image's embedding found - {len(target_embedding)}D")
+
+    target_embedding = (target_embedding / np.linalg.norm(target_embedding)).tolist()
+    logger.info("target embedding normalized")
+
+    encrypted_similarity = source_embedding_encrypted @ target_embedding
+
+    decrypted_similarity = cs.decrypt(encrypted_similarity)[0]
+
+    expected_similarity = sum(x * y for x, y in zip(source_embedding, target_embedding))
+
+    logger.info(
+        f"ℹ️ expected similarity: {expected_similarity}, got {decrypted_similarity}"
+    )
+
+    assert (
+        abs(expected_similarity - decrypted_similarity) < 0.1
+    ), f"expected {expected_similarity} but got {decrypted_similarity}"
+
+    logger.info("✅ Real world embedding test succeeded")

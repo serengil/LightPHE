@@ -2,6 +2,9 @@
 import json
 from typing import Optional, Union, List
 
+# 3rd party dependencies
+from tqdm import tqdm
+
 # project dependencies
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.models.Ciphertext import Ciphertext
@@ -209,8 +212,22 @@ class LightPHE:
             encrypted tensor (list of encrypted tensor object)
         """
         encrypted_tensor: List[Fraction] = []
-        for m in tensor:
-            if isinstance(m, int):
+
+        encrypted_zero = self.cs.encrypt(plaintext=0)
+
+        divisor = 10**self.precision
+        divisor_encrypted = self.cs.encrypt(plaintext=divisor)
+
+        for m in tqdm(tensor, disable=True if len(tensor) < 100 else False):
+            if m == 0:
+                # this is very common in VGG-Face embeddings
+                c = Fraction(
+                    dividend=encrypted_zero,
+                    divisor=divisor_encrypted,
+                    abs_dividend=encrypted_zero,
+                    sign=0,
+                )
+            elif isinstance(m, int):
                 dividend_encrypted = self.cs.encrypt(
                     plaintext=(m % self.cs.plaintext_modulo) * pow(10, self.precision)
                 )
@@ -218,7 +235,7 @@ class LightPHE:
                     plaintext=(abs(m) % self.cs.plaintext_modulo)
                     * pow(10, self.precision)
                 )
-                divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
+                # divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
                 c = Fraction(
                     dividend=dividend_encrypted,
                     divisor=divisor_encrypted,
@@ -226,7 +243,7 @@ class LightPHE:
                     sign=1 if m >= 0 else -1,
                 )
             elif isinstance(m, float):
-                dividend, divisor = phe_utils.fractionize(
+                dividend, _divisor = phe_utils.fractionize(
                     value=(m % self.cs.plaintext_modulo),
                     modulo=self.cs.plaintext_modulo,
                     precision=self.precision,
@@ -238,7 +255,7 @@ class LightPHE:
                 )
                 dividend_encrypted = self.cs.encrypt(plaintext=dividend)
                 abs_dividend_encrypted = self.cs.encrypt(plaintext=abs_dividend)
-                divisor_encrypted = self.cs.encrypt(plaintext=divisor)
+                # divisor_encrypted = self.cs.encrypt(plaintext=_divisor)
                 c = Fraction(
                     dividend=dividend_encrypted,
                     divisor=divisor_encrypted,
@@ -248,7 +265,11 @@ class LightPHE:
             else:
                 raise ValueError(f"unimplemented type - {type(m)}")
             encrypted_tensor.append(c)
-        return EncryptedTensor(fractions=encrypted_tensor, cs=self.cs)
+        return EncryptedTensor(
+            fractions=encrypted_tensor,
+            cs=self.cs,
+            precision=self.precision,
+        )
 
     def __decrypt_tensors(
         self, encrypted_tensor: EncryptedTensor
