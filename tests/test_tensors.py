@@ -232,6 +232,8 @@ def test_for_integer_tensor():
 def test_real_world_embedding():
     cs = LightPHE(algorithm_name="Paillier")
 
+    # suppose that source and target embeddings are normalized vectors
+
     source_embedding = [float(format(random.uniform(1, 2), ".17f")) for _ in range(128)]
     logger.info(f"source image's embedding found - {len(source_embedding)}D")
 
