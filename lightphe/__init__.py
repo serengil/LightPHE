@@ -1,6 +1,9 @@
 # built-in dependencies
+import time
 import json
 from typing import Optional, Union, List
+import multiprocessing
+from contextlib import closing
 
 # 3rd party dependencies
 from tqdm import tqdm
@@ -214,62 +217,47 @@ class LightPHE:
         encrypted_tensor: List[Fraction] = []
 
         encrypted_zero = self.cs.encrypt(plaintext=0)
+        divisor_encrypted = self.cs.encrypt(plaintext=10**self.precision)
+        is_positive_tensor = all(m >= 0 for m in tensor)
 
-        divisor = 10**self.precision
-        divisor_encrypted = self.cs.encrypt(plaintext=divisor)
+        num_workers = min(len(tensor), 2 * multiprocessing.cpu_count())
+        logger.debug(f"encrypting tensors in {num_workers} parallel")
 
-        for m in tqdm(tensor, disable=True if len(tensor) < 100 else False):
-            if m == 0:
-                # this is very common in VGG-Face embeddings
-                c = Fraction(
-                    dividend=encrypted_zero,
-                    divisor=divisor_encrypted,
-                    abs_dividend=encrypted_zero,
-                    sign=0,
+        with closing(multiprocessing.Pool(num_workers)) as pool:
+            funclist = []
+
+            for m in tensor:
+                f = pool.apply_async(
+                    encrypt_something,
+                    (
+                        m,
+                        divisor_encrypted,
+                        self.cs,
+                        self.precision,
+                        encrypted_zero,
+                        is_positive_tensor,
+                    ),
                 )
-            elif isinstance(m, int):
-                dividend_encrypted = self.cs.encrypt(
-                    plaintext=(m % self.cs.plaintext_modulo) * pow(10, self.precision)
-                )
-                abs_dividend_encrypted = self.cs.encrypt(
-                    plaintext=(abs(m) % self.cs.plaintext_modulo)
-                    * pow(10, self.precision)
-                )
-                # divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
-                c = Fraction(
-                    dividend=dividend_encrypted,
-                    divisor=divisor_encrypted,
-                    abs_dividend=abs_dividend_encrypted,
-                    sign=1 if m >= 0 else -1,
-                )
-            elif isinstance(m, float):
-                dividend, _divisor = phe_utils.fractionize(
-                    value=(m % self.cs.plaintext_modulo),
-                    modulo=self.cs.plaintext_modulo,
-                    precision=self.precision,
-                )
-                abs_dividend, _ = phe_utils.fractionize(
-                    value=(abs(m) % self.cs.plaintext_modulo),
-                    modulo=self.cs.plaintext_modulo,
-                    precision=self.precision,
-                )
-                dividend_encrypted = self.cs.encrypt(plaintext=dividend)
-                abs_dividend_encrypted = self.cs.encrypt(plaintext=abs_dividend)
-                # divisor_encrypted = self.cs.encrypt(plaintext=_divisor)
-                c = Fraction(
-                    dividend=dividend_encrypted,
-                    divisor=divisor_encrypted,
-                    abs_dividend=abs_dividend_encrypted,
-                    sign=1 if m >= 0 else -1,
-                )
-            else:
-                raise ValueError(f"unimplemented type - {type(m)}")
-            encrypted_tensor.append(c)
-        return EncryptedTensor(
-            fractions=encrypted_tensor,
-            cs=self.cs,
-            precision=self.precision,
-        )
+                funclist.append(f)
+
+            tic = time.time()
+            encrypted_tensor = []
+            for f in tqdm(
+                funclist,
+                desc="Encrypting tensors",
+                disable=True if len(tensor) < 100 else False,
+            ):
+                result = f.get(timeout=10)
+                encrypted_tensor.append(result)
+
+            toc = time.time()
+            logger.debug(f"encryption took {toc - tic} seconds")
+
+            return EncryptedTensor(
+                fractions=encrypted_tensor,
+                cs=self.cs,
+                precision=self.precision,
+            )
 
     def __decrypt_tensors(
         self, encrypted_tensor: EncryptedTensor
@@ -375,6 +363,74 @@ class LightPHE:
         return Ciphertext(
             algorithm_name=self.algorithm_name, keys=self.cs.keys, value=ciphertext
         )
+
+
+def encrypt_something(
+    m: Union[int, float],
+    divisor_encrypted,
+    cs: Homomorphic,
+    precision: int,
+    encrypted_zero: int,
+    is_positive_tensor: bool,
+) -> Fraction:
+    if m == 0:
+        # this is very common in VGG-Face embeddings
+        c = Fraction(
+            dividend=encrypted_zero,
+            divisor=divisor_encrypted,
+            abs_dividend=encrypted_zero,
+            sign=0,
+        )
+    elif isinstance(m, int):
+        dividend_encrypted = cs.encrypt(
+            plaintext=(m % cs.plaintext_modulo) * pow(10, precision)
+        )
+        abs_dividend_encrypted = (
+            dividend_encrypted
+            if is_positive_tensor
+            else cs.encrypt(
+                plaintext=(abs(m) % cs.plaintext_modulo) * pow(10, precision)
+            )
+        )
+        # divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
+        c = Fraction(
+            dividend=dividend_encrypted,
+            divisor=divisor_encrypted,
+            abs_dividend=abs_dividend_encrypted,
+            sign=1 if m >= 0 else -1,
+        )
+    elif isinstance(m, float):
+        dividend, _ = phe_utils.fractionize(
+            value=(m % cs.plaintext_modulo),
+            modulo=cs.plaintext_modulo,
+            precision=precision,
+        )
+        abs_dividend = (
+            dividend
+            if is_positive_tensor
+            else phe_utils.fractionize(
+                value=(abs(m) % cs.plaintext_modulo),
+                modulo=cs.plaintext_modulo,
+                precision=precision,
+            )[0]
+        )
+        dividend_encrypted = cs.encrypt(plaintext=dividend)
+        abs_dividend_encrypted = (
+            dividend_encrypted
+            if is_positive_tensor
+            else cs.encrypt(plaintext=abs_dividend)
+        )
+        # divisor_encrypted = self.cs.encrypt(plaintext=_divisor)
+        c = Fraction(
+            dividend=dividend_encrypted,
+            divisor=divisor_encrypted,
+            abs_dividend=abs_dividend_encrypted,
+            sign=1 if m >= 0 else -1,
+        )
+    else:
+        raise ValueError(f"unimplemented type - {type(m)}")
+
+    return c
 
 
 class ECC:

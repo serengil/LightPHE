@@ -77,6 +77,9 @@ class EncryptedTensor:
         return self.__str__()
 
     def __matmul__(self, other: Union["EncryptedTensor", list]):
+        """
+        Perform dot product of two encrypted tensors
+        """
         if not (
             (isinstance(other, EncryptedTensor) and isinstance(self, list))
             or (isinstance(other, list) and isinstance(self, EncryptedTensor))
