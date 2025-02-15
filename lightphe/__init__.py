@@ -155,12 +155,13 @@ class LightPHE:
         return cs
 
     def encrypt(
-        self, plaintext: Union[int, float, list]
+        self, plaintext: Union[int, float, list], silent: bool = False
     ) -> Union[Ciphertext, EncryptedTensor]:
         """
         Encrypt a plaintext with a built cryptosystem
         Args:
             plaintext (int, float or tensor): message
+            silent (bool): set this to True if you do not want to see progress bar
         Returns
             ciphertext (from lightphe.models.Ciphertext import Ciphertext): encrypted message
         """
@@ -169,7 +170,7 @@ class LightPHE:
 
         if isinstance(plaintext, list):
             # then encrypt tensors
-            return self.__encrypt_tensors(tensor=plaintext)
+            return self.__encrypt_tensors(tensor=plaintext, silent=silent)
 
         ciphertext = self.cs.encrypt(
             plaintext=phe_utils.normalize_input(
@@ -206,11 +207,12 @@ class LightPHE:
 
         return self.cs.decrypt(ciphertext=ciphertext.value)
 
-    def __encrypt_tensors(self, tensor: list) -> EncryptedTensor:
+    def __encrypt_tensors(self, tensor: list, silent: bool = False) -> EncryptedTensor:
         """
         Encrypt a given tensor
         Args:
             tensor (list of int or float)
+            silent (bool): set this to True if you do not want to see progress bar
         Returns
             encrypted tensor (list of encrypted tensor object)
         """
@@ -243,7 +245,7 @@ class LightPHE:
             for f in tqdm(
                 funclist,
                 desc="Encrypting tensors",
-                disable=True if len(tensor) < 100 else False,
+                disable=silent,
             ):
                 result = f.get(timeout=10)
                 encrypted_tensor.append(result)

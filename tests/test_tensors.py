@@ -223,9 +223,10 @@ def test_for_integer_tensor():
     encrypted_similarity = enc_a @ b
     decrypted_similarity = cs.decrypt(encrypted_similarity)[0]
 
-    assert (
-        abs(decrypted_similarity - expected_similarity) < 0.1
-    ), f"expected {expected_similarity} but got {decrypted_similarity}"
+    assert abs(decrypted_similarity - expected_similarity) < 0.1, (
+        f"expected {expected_similarity} but got {decrypted_similarity}."
+        f"Diff = {abs(expected_similarity - decrypted_similarity)}"
+    )
 
     logger.info("✅ Integer tensor tests succeeded")
 
@@ -236,7 +237,17 @@ def test_real_world_embedding():
 
     # suppose that source and target embeddings are normalized vectors
 
-    source_embedding = [float(format(random.uniform(1, 2), ".17f")) for _ in range(128)]
+    # 3682
+
+    source_embedding = [
+        float(format(random.uniform(1, 2), ".17f")) for _ in range(4096)
+    ]
+
+    # Randomly choose 3682 indices to set to zero - similar to VGG-Face
+    zero_indices = random.sample(range(4096), 3682)
+    for idx in zero_indices:
+        source_embedding[idx] = 0.0
+
     logger.info(f"🤖 source image's embedding found - {len(source_embedding)}D")
 
     tic = time.time()
@@ -244,7 +255,9 @@ def test_real_world_embedding():
     toc = time.time()
     logger.info(f"👨‍🔬 source embedding encrypted in {toc-tic} seconds")
 
-    target_embedding = [float(format(random.uniform(1, 2), ".17f")) for _ in range(128)]
+    target_embedding = [
+        float(format(random.uniform(1, 2), ".17f")) for _ in range(4096)
+    ]
     logger.info(f"🤖 target image's embedding found - {len(target_embedding)}D")
 
     # dot product to calculate encrypted similarity
@@ -263,7 +276,8 @@ def test_real_world_embedding():
     expected_similarity = sum(x * y for x, y in zip(source_embedding, target_embedding))
 
     logger.info(
-        f"ℹ️ expected similarity: {expected_similarity}, got {decrypted_similarity}"
+        f"ℹ️ expected similarity: {expected_similarity}, got {decrypted_similarity}."
+        f"Difference: {abs(expected_similarity - decrypted_similarity)}."
     )
 
     assert (
