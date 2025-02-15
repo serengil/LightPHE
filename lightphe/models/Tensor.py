@@ -106,8 +106,6 @@ class EncryptedTensor:
             sign=1,
         )
 
-        print("dot product calculated")
-
         return EncryptedTensor(fractions=[fraction], cs=self.cs)
 
     def __mul__(
