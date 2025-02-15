@@ -2,6 +2,11 @@
 from typing import Tuple
 from abc import ABC, abstractmethod
 
+# project dependencies
+from lightphe.commons.logger import Logger
+
+logger = Logger(module="lightphe/models/EllipticCurve.py")
+
 # Signature for elliptic curve
 
 
@@ -158,3 +163,34 @@ class EllipticCurvePoint:
         Check if two points are equal
         """
         return self.x == other.x and self.y == other.y and self.curve == other.curve
+
+    def __truediv__(self, other: "EllipticCurvePoint") -> int:
+        """
+        Resolve ECDLP - this is a hard problem!
+        """
+        # TODO: you may consider to use baby-step-giant-step instead of brute force
+
+        logger.debug(f"Find k from ({self.x}, {self.y}) = k x ({other.x}, {other.y})")
+
+        ox, oy = self.curve.O
+        if self.x == other.x and self.y == other.y:
+            return 1
+        if self.x == ox and self.y == oy:
+            return self.curve.n
+
+        # base point
+        gx, gy = self.curve.G
+
+        k = 2
+        while True:
+            kG = self.curve.double_and_add((gx, gy), k)
+
+            if kG[0] == self.x and kG[1] == self.y:
+                return k
+
+            k = k + 1
+
+            if k > self.curve.n:
+                raise ValueError(
+                    f"Cannot restore scalar from ({self.x}, {self.y}) = k x ({other.x}, {other.y})"
+                )

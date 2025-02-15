@@ -106,6 +106,8 @@ class EncryptedTensor:
             sign=1,
         )
 
+        print("dot product calculated")
+
         return EncryptedTensor(fractions=[fraction], cs=self.cs)
 
     def __mul__(
@@ -154,6 +156,7 @@ class EncryptedTensor:
                 fractions.append(fraction)
 
             return EncryptedTensor(fractions=fractions, cs=self.cs)
+
         elif isinstance(other, list):
             # perform element-wise multiplication of encrypted tensor with plain tensor
             if len(self.fractions) != len(other):

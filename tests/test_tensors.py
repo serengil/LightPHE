@@ -1,4 +1,5 @@
 # built-in dependencies
+import time
 from typing import List
 import random
 
@@ -230,23 +231,34 @@ def test_for_integer_tensor():
 
 
 def test_real_world_embedding():
-    cs = LightPHE(algorithm_name="Paillier")
+    logger.info("🧪 Real world embedding experiment is running")
+    cs = LightPHE(algorithm_name="Paillier", precision=17)
 
     # suppose that source and target embeddings are normalized vectors
 
     source_embedding = [float(format(random.uniform(1, 2), ".17f")) for _ in range(128)]
-    logger.info(f"source image's embedding found - {len(source_embedding)}D")
+    logger.info(f"🤖 source image's embedding found - {len(source_embedding)}D")
 
+    tic = time.time()
     source_embedding_encrypted = cs.encrypt(source_embedding)
-    logger.info("source embedding encrypted")
+    toc = time.time()
+    logger.info(f"👨‍🔬 source embedding encrypted in {toc-tic} seconds")
 
     target_embedding = [float(format(random.uniform(1, 2), ".17f")) for _ in range(128)]
-    logger.info(f"target image's embedding found - {len(target_embedding)}D")
+    logger.info(f"🤖 target image's embedding found - {len(target_embedding)}D")
 
     # dot product to calculate encrypted similarity
+    tic = time.time()
     encrypted_similarity = source_embedding_encrypted @ target_embedding
+    toc = time.time()
 
+    logger.info(f"🧮 encrypted similarity found in {toc - tic} seconds")
+
+    tic = time.time()
     decrypted_similarity = cs.decrypt(encrypted_similarity)[0]
+    toc = time.time()
+
+    logger.info(f"🔑 encrypted similarity decrypted in {toc - tic} seconds")
 
     expected_similarity = sum(x * y for x, y in zip(source_embedding, target_embedding))
 
