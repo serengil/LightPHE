@@ -154,6 +154,7 @@ class EncryptedTensor:
                 fractions.append(fraction)
 
             return EncryptedTensor(fractions=fractions, cs=self.cs)
+
         elif isinstance(other, list):
             # perform element-wise multiplication of encrypted tensor with plain tensor
             if len(self.fractions) != len(other):

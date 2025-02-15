@@ -36,7 +36,7 @@ from lightphe.elliptic_curve_forms.koblitz import Koblitz
 
 logger = Logger(module="lightphe/__init__.py")
 
-VERSION = "0.0.12"
+VERSION = "0.0.13"
 
 
 class LightPHE:
@@ -218,7 +218,6 @@ class LightPHE:
 
         encrypted_zero = self.cs.encrypt(plaintext=0)
         divisor_encrypted = self.cs.encrypt(plaintext=10**self.precision)
-        is_positive_tensor = all(m >= 0 for m in tensor)
 
         num_workers = min(len(tensor), 2 * multiprocessing.cpu_count())
         logger.debug(f"encrypting tensors in {num_workers} parallel")
@@ -228,14 +227,13 @@ class LightPHE:
 
             for m in tensor:
                 f = pool.apply_async(
-                    encrypt_something,
+                    encrypt_float,
                     (
                         m,
                         divisor_encrypted,
                         self.cs,
                         self.precision,
                         encrypted_zero,
-                        is_positive_tensor,
                     ),
                 )
                 funclist.append(f)
@@ -277,7 +275,10 @@ class LightPHE:
             sign = c.sign
             abs_dividend = self.cs.decrypt(ciphertext=c.abs_dividend)
             # dividend = self.cs.decrypt(ciphertext=c.dividend)
+
+            # TODO: do I really need encrypted divisor? cannot I store current_precision
             divisor = self.cs.decrypt(ciphertext=c.divisor)
+
             m = sign * abs_dividend / divisor
 
             plain_tensor.append(m)
@@ -365,21 +366,31 @@ class LightPHE:
         )
 
 
-def encrypt_something(
+def encrypt_float(
     m: Union[int, float],
-    divisor_encrypted,
+    divisor_encrypted: int,
     cs: Homomorphic,
     precision: int,
     encrypted_zero: int,
-    is_positive_tensor: bool,
 ) -> Fraction:
+    """
+    Encrypt a float value
+    Args:
+        m (int or float): message to encrypt
+        divisor_encrypted (int): pre-calculated encrypted divisor
+        cs (Homomorphic): cryptosystem itself
+        precision (int): define how many digits after dot
+        encrypted_zero (int): pre-calculated encrypted value of 0
+    Returns:
+        result (Fraction): encrypted float value
+    """
     if m == 0:
         # this is very common in VGG-Face embeddings
         c = Fraction(
             dividend=encrypted_zero,
             divisor=divisor_encrypted,
             abs_dividend=encrypted_zero,
-            sign=0,
+            sign=1,
         )
     elif isinstance(m, int):
         dividend_encrypted = cs.encrypt(
@@ -387,7 +398,7 @@ def encrypt_something(
         )
         abs_dividend_encrypted = (
             dividend_encrypted
-            if is_positive_tensor
+            if m > 0
             else cs.encrypt(
                 plaintext=(abs(m) % cs.plaintext_modulo) * pow(10, precision)
             )
@@ -407,7 +418,7 @@ def encrypt_something(
         )
         abs_dividend = (
             dividend
-            if is_positive_tensor
+            if m > 0
             else phe_utils.fractionize(
                 value=(abs(m) % cs.plaintext_modulo),
                 modulo=cs.plaintext_modulo,
@@ -416,9 +427,7 @@ def encrypt_something(
         )
         dividend_encrypted = cs.encrypt(plaintext=dividend)
         abs_dividend_encrypted = (
-            dividend_encrypted
-            if is_positive_tensor
-            else cs.encrypt(plaintext=abs_dividend)
+            dividend_encrypted if m > 0 else cs.encrypt(plaintext=abs_dividend)
         )
         # divisor_encrypted = self.cs.encrypt(plaintext=_divisor)
         c = Fraction(

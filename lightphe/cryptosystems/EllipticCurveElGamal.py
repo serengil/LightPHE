@@ -134,20 +134,7 @@ class EllipticCurveElGamal(Homomorphic):
         # we need to find k from known s_prime and G
         # this requires to solve ECDLP
 
-        # base point
-        G = self.ecc.G
-        k = 2
-        while True:
-            G = G + self.ecc.G
-
-            if G == s_prime:
-                return k
-
-            k = k + 1
-            if k > self.ecc.n:
-                raise ValueError(
-                    f"Cannot restore scalar from {s_prime} = k x {self.ecc.G}"
-                )
+        return s_prime / self.ecc.G
 
     def multiply(self, ciphertext1: tuple, ciphertext2: tuple) -> tuple:
         raise ValueError(
