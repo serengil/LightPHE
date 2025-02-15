@@ -1,4 +1,12 @@
+# built-in dependencies
 from typing import Union, List
+import multiprocessing
+from contextlib import closing
+
+# 3rd party dependencies
+from tqdm import tqdm
+
+# project dependencies
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons import phe_utils
 from lightphe.models.Ciphertext import Ciphertext
@@ -90,21 +98,65 @@ class EncryptedTensor:
 
         encrypted_tensor = self.__mul__(other=other)
 
-        sum_dividend = cast_ciphertext(
-            cs=self.cs, value=encrypted_tensor.fractions[0].abs_dividend
-        )
+        if len(encrypted_tensor.fractions) == 0:
+            raise ValueError("Dot product cannot be calculated for empty tensor")
+
         divisor = cast_ciphertext(
             cs=self.cs, value=encrypted_tensor.fractions[0].divisor
         )
-        for fraction in encrypted_tensor.fractions[1:]:
-            sum_dividend += cast_ciphertext(value=fraction.abs_dividend, cs=self.cs)
 
-        fraction = Fraction(
-            dividend=sum_dividend.value,
-            abs_dividend=sum_dividend.value,
-            divisor=divisor.value,
-            sign=1,
-        )
+        if len(encrypted_tensor.fractions) > 10000:
+            # parallelize the sum operation
+            num_workers = min(
+                len(encrypted_tensor.fractions), multiprocessing.cpu_count()
+            )
+
+            chunks = chunkify(encrypted_tensor.fractions, num_workers)
+
+            with closing(multiprocessing.Pool(num_workers)) as pool:
+                funclist = []
+
+                for chunk in chunks:
+                    f = pool.apply_async(sum_fractions_chunk, (chunk, self.cs))
+                    funclist.append(f)
+
+                partial_sums = []
+                for f in tqdm(funclist, desc="Summing up fractions", disable=True):
+                    result = f.get(timeout=10)
+                    partial_sums.append(result)
+
+            # map reduce
+            total_sum = partial_sums[0]
+            for partial in partial_sums[1:]:
+                total_sum += partial
+
+            fraction = Fraction(
+                dividend=total_sum.value,
+                abs_dividend=total_sum.value,
+                divisor=divisor.value,
+                sign=1,
+            )
+        else:
+            # serial implementation
+            sum_dividend = cast_ciphertext(
+                cs=self.cs, value=encrypted_tensor.fractions[0].abs_dividend
+            )
+            divisor = cast_ciphertext(
+                cs=self.cs, value=encrypted_tensor.fractions[0].divisor
+            )
+
+            if len(encrypted_tensor.fractions) > 1:
+                for fraction in encrypted_tensor.fractions[1:]:
+                    sum_dividend += cast_ciphertext(
+                        value=fraction.abs_dividend, cs=self.cs
+                    )
+
+            fraction = Fraction(
+                dividend=sum_dividend.value,
+                abs_dividend=sum_dividend.value,
+                divisor=divisor.value,
+                sign=1,
+            )
 
         return EncryptedTensor(fractions=[fraction], cs=self.cs)
 
@@ -295,6 +347,7 @@ class EncryptedTensor:
 
 
 def cast_ciphertext(cs: Homomorphic, value: int) -> Ciphertext:
+    """Cast an integer value to a Ciphertext object."""
     return Ciphertext(
         algorithm_name=cs.__class__.__name__,
         keys=cs.keys,
@@ -302,3 +355,24 @@ def cast_ciphertext(cs: Homomorphic, value: int) -> Ciphertext:
         form=cs.keys.get("form"),
         curve=cs.keys.get("curve"),
     )
+
+
+def chunkify(lst: list, n: int):
+    """Split list into n approximately equal chunks."""
+    avg = len(lst) // n
+    remainder = len(lst) % n
+    chunks = []
+    start = 0
+    for i in range(n):
+        end = start + avg + (1 if i < remainder else 0)
+        chunks.append(lst[start:end])
+        start = end
+    return chunks
+
+
+def sum_fractions_chunk(fractions_chunk: list, cs: Homomorphic):
+    """Compute the sum of a chunk of fractions in parallel."""
+    result = cast_ciphertext(cs=cs, value=fractions_chunk[0].abs_dividend)
+    for fraction in fractions_chunk[1:]:
+        result += cast_ciphertext(cs=cs, value=fraction.abs_dividend)
+    return result
