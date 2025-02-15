@@ -235,27 +235,6 @@ However, if you tried to multiply ciphertexts with RSA, or xor ciphertexts with 
 
 ECC is a powerful public-key cryptosystem based on the algebraic structure of elliptic curves over finite fields. The library supports 3 elliptic curve forms (weierstrass, edwards and koblitz) and 100+ standard elliptic curve configurations.
 
-Building an elliptic curve with LightPHE is very straightforward. Once the curve is initialized, you can perform operations such as point addition and scalar multiplication.
-
-```python
-from lightphe import ECC
-
-forms = ["weierstrass", "edwards", "koblitz"]
-
-# construct an elliptic curve
-ed = ECC(form_name="edwards")
-
-# Base Point
-G = ed.G
-
-_2G = G + G
-_3G = _2G + G
-_5G = _3G + _2G
-
-_20G = 4 * _5G
-_19G = _20G - G
-```
-
 In LightPHE, the [Elliptic Curve ElGamal](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) scheme is implemented, offering a secure and efficient homomorphic encryption option.
 
 ```python
