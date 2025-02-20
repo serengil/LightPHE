@@ -252,11 +252,108 @@ Each curve in LightPHE has a specific order, which is carefully chosen to balanc
 
 See [`curves`](https://github.com/serengil/LightPHE/tree/master/lightphe/elliptic_curve_forms) page for a list of all supported forms, curves and their details.
 
+### Vector Embeddings and Tensors
+
+LightPHE supports homomorphic encryption on vector embeddings and tensors. This is useful in privacy-preserving machine learning, secure aggregation, and confidential data processing.
+
+```python
+# build a cryptosystem
+cs = LightPHE(algorithm_name="Paillier")
+
+# define plain embedding
+tensor = [1.005, 2.05, 3.005, 4.005, -5.05, 6, 7.003, 7.002]
+
+# encrypt vector embedding
+encrypted_tensors = cs.encrypt(tensor)
+
+# restore embedding
+decrypted_tensors = cs.decrypt(encrypted_tensors)
+
+# proof of work
+assert all(abs(original - decrypted) < 1e-2 for original, decrypted in zip(tensor, decrypted_tensors))
+```
+
+Encrypted embeddings retain their homomorphic properties, enabling secure computations on encrypted data without decryption. For example, two embeddings encrypted using a multiplicatively homomorphic algorithm can be multiplied element-wise.
+
+```python
+# build a multiplicatively homomorphic cryptosystem (e.g. RSA)
+cs = LightPHE("RSA")
+
+# define plain embeddings
+t1 = [1.005, 2.05, -3.5, 3.1, -4]
+t2 = [5, 6.2, -7.002, -7.1, 8.02]
+
+# encrypt embeddings
+c1, c2 = cs.encrypt(t1), cs.encrypt(t2)
+
+# perform element-wise homomorphic multiplication
+c3 = c1 * c2
+
+# proof of work
+assert np.allclose(cs.decrypt(c3), [a * b for a, b in zip(t1, t2)], rtol=1e-2)
+```
+
+Similarly, two embeddings encrypted with an additively homomorphic algorithm can be added. Additionally, an encrypted embedding can be multiplied by a constant or a plain embedding.
+
+```python
+# build an additively homomorphic cryptosystem (e.g. Paillier)
+cs = LightPHE("Paillier")
+
+# define plain embeddings
+t1 = [1.005, 2.05, 3.6, 4, 4.02, 3.5]
+t2 = [5, 6.2, 7.5, 8.02, 8.02, 4.5]
+t3 = [1.03, 2.04, 3.05, 7.02, 2.01, 1.06]
+
+# encrypt embeddings
+c1, c2 = cs.encrypt(t1), cs.encrypt(t2)
+
+# perform addition of two encrypted embeddings
+c4 = c1 + c2
+
+# perform scalar multiplication on an embedding
+c5 = 3 * c1
+
+# perform element-wise multiplication between an encrypted embedding and plain embedding
+c6 = c1 * t3  # Encrypted-plaintext multiplication
+
+# proof of work
+assert np.allclose(cs.decrypt(c4), [a + b for a, b in zip(t1, t2)], rtol=1e-2)
+assert np.allclose(cs.decrypt(c5), [a * 3 for a in t1], rtol=1e-2)
+assert np.allclose(cs.decrypt(c6), [a * b for a, b in zip(t1, t3)], rtol=1e-2)
+```
+
+### Vector Similarity Search with PHE
+
+Many machine learning models rely on a two-tower architecture, including facial recognition, reverse image search, recommendation engines, large language models, and more. In this setup, user and item inputs are separately mapped to vector embeddings.
+
+For example, suppose all facial embeddings in your database are encrypted on-prem in advance. When verifying an identity, the attempted facial embedding is generated on an edge device or in the cloud. You can compute the encrypted similarity by performing a dot product between the encrypted vector and the plain vector, ensuring secure comparison without decrypting sensitive data. Only additively homomorphic cryptosystems offer encrypted similarity calculation.
+
+```python
+# build an additively homomorphic cryptosystem (e.g. Paillier)
+cs = LightPHE("Paillier")
+
+# define plain vectors - suppose those are l2 normalized already
+alpha = [7.1, 5.2, 5.3, 2.4, 3.5, 4.6]  # On-prem vector (user tower)
+beta = [5.6, 3.7, 2.8, 4, 0, 5.9]  # Cloud vector (item tower)
+
+# encrypt embedding
+encrypted_alpha = cs.encrypt(alpha)
+
+# dot product of encrypted embedding and plain embedding
+encrypted_cosine_similarity = encrypted_alpha @ beta
+
+# decrypt similarity
+cosine_similarity = cs.decrypt(encrypted_cosine_similarity)[0]
+
+# proof of work
+assert abs(cosine_similarity - sum(x * y for x, y in zip(alpha, beta))) < 1e-2
+```
+
 # Contributing
 
 All PRs are more than welcome! If you are planning to contribute a large patch, please create an issue first to get any upfront questions or design decisions out of the way first.
 
-You should be able run `make test` and `make lint` commands successfully before committing. Once a PR is created, GitHub test workflow will be run automatically and unit test results will be available in [GitHub actions](https://github.com/serengil/LightPHE/actions/workflows/tests.yml) before approval. Besides, workflow will evaluate the code with pylint as well.
+You should be able run `make test` and `make lint` commands successfully before committing. Once a PR is created, GitHub test workflow will be run automatically and unit test results will be available in [GitHub actions](https://github.com/serengil/LightPHE/actions/workflows/tests.yml) before approval.
 
 # Support
 
