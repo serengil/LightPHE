@@ -4,6 +4,7 @@ import json
 from typing import Optional, Union, List
 import multiprocessing
 from contextlib import closing
+import traceback
 
 # 3rd party dependencies
 from tqdm import tqdm
@@ -386,62 +387,73 @@ def encrypt_float(
     Returns:
         result (Fraction): encrypted float value
     """
-    if m == 0:
-        # this is very common in VGG-Face embeddings
-        c = Fraction(
-            dividend=encrypted_zero,
-            divisor=divisor_encrypted,
-            abs_dividend=encrypted_zero,
-            sign=1,
-        )
-    elif isinstance(m, int):
-        dividend_encrypted = cs.encrypt(
-            plaintext=(m % cs.plaintext_modulo) * pow(10, precision)
-        )
-        abs_dividend_encrypted = (
-            dividend_encrypted
-            if m > 0
-            else cs.encrypt(
-                plaintext=(abs(m) % cs.plaintext_modulo) * pow(10, precision)
+    try:
+        if m == 0:
+            # this is very common in VGG-Face embeddings
+            c = Fraction(
+                dividend=encrypted_zero,
+                divisor=divisor_encrypted,
+                abs_dividend=encrypted_zero,
+                sign=1,
             )
-        )
-        # divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
-        c = Fraction(
-            dividend=dividend_encrypted,
-            divisor=divisor_encrypted,
-            abs_dividend=abs_dividend_encrypted,
-            sign=1 if m >= 0 else -1,
-        )
-    elif isinstance(m, float):
-        dividend, _ = phe_utils.fractionize(
-            value=(m % cs.plaintext_modulo),
-            modulo=cs.plaintext_modulo,
-            precision=precision,
-        )
-        abs_dividend = (
-            dividend
-            if m > 0
-            else phe_utils.fractionize(
-                value=(abs(m) % cs.plaintext_modulo),
+        elif isinstance(m, int):
+            dividend_encrypted = cs.encrypt(
+                plaintext=(m % cs.plaintext_modulo) * pow(10, precision)
+            )
+            abs_dividend_encrypted = (
+                dividend_encrypted
+                if m > 0
+                else cs.encrypt(
+                    plaintext=(abs(m) % cs.plaintext_modulo) * pow(10, precision)
+                )
+            )
+            # divisor_encrypted = self.cs.encrypt(plaintext=pow(10, self.precision))
+            c = Fraction(
+                dividend=dividend_encrypted,
+                divisor=divisor_encrypted,
+                abs_dividend=abs_dividend_encrypted,
+                sign=1 if m >= 0 else -1,
+            )
+        elif isinstance(m, float):
+            # got `int too large to convert float` while m mod plaintext modulo
+            # when security level is set to 128
+            dividend, _ = phe_utils.fractionize(
+                value=(m % cs.plaintext_modulo if m > cs.plaintext_modulo else m),
                 modulo=cs.plaintext_modulo,
                 precision=precision,
-            )[0]
-        )
-        dividend_encrypted = cs.encrypt(plaintext=dividend)
-        abs_dividend_encrypted = (
-            dividend_encrypted if m > 0 else cs.encrypt(plaintext=abs_dividend)
-        )
-        # divisor_encrypted = self.cs.encrypt(plaintext=_divisor)
-        c = Fraction(
-            dividend=dividend_encrypted,
-            divisor=divisor_encrypted,
-            abs_dividend=abs_dividend_encrypted,
-            sign=1 if m >= 0 else -1,
-        )
-    else:
-        raise ValueError(f"unimplemented type - {type(m)}")
+            )
+            abs_dividend = (
+                dividend
+                if m > 0
+                else phe_utils.fractionize(
+                    value=(
+                        abs(m) % cs.plaintext_modulo
+                        if abs(m) > cs.plaintext_modulo
+                        else abs(m)
+                    ),
+                    modulo=cs.plaintext_modulo,
+                    precision=precision,
+                )[0]
+            )
+            dividend_encrypted = cs.encrypt(plaintext=dividend)
+            abs_dividend_encrypted = (
+                dividend_encrypted if m > 0 else cs.encrypt(plaintext=abs_dividend)
+            )
+            # divisor_encrypted = self.cs.encrypt(plaintext=_divisor)
+            c = Fraction(
+                dividend=dividend_encrypted,
+                divisor=divisor_encrypted,
+                abs_dividend=abs_dividend_encrypted,
+                sign=1 if m >= 0 else -1,
+            )
+        else:
+            raise ValueError(f"unimplemented type - {type(m)}")
 
-    return c
+        return c
+    except Exception as err:
+        logger.error(f"Exception while running encrypt_float: {str(err)}")
+        logger.error(traceback.format_exc())
+        raise err
 
 
 class ECC:
