@@ -233,7 +233,7 @@ def test_for_integer_tensor():
 
 def test_real_world_embedding():
     logger.info("🧪 Real world embedding experiment is running")
-    cs = LightPHE(algorithm_name="Paillier", precision=17)
+    cs = LightPHE(algorithm_name="Damgard-Jurik", precision=17)
 
     # suppose that source and target embeddings are normalized vectors
 

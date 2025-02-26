@@ -10,6 +10,7 @@ from tqdm import tqdm
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons import phe_utils
 from lightphe.models.Ciphertext import Ciphertext
+from lightphe.models.Algorithm import Algorithm
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="lightphe/models/Tensor.py")
@@ -226,7 +227,11 @@ class EncryptedTensor:
             divisor = None
             for alpha, beta in zip(self.fractions, other):
                 c_abs_dividend, c_divisor = phe_utils.fractionize(
-                    value=(abs(beta) % self.cs.plaintext_modulo),
+                    value=(
+                        abs(beta) % self.cs.plaintext_modulo
+                        if abs(beta) > self.cs.plaintext_modulo
+                        else abs(beta)
+                    ),
                     modulo=self.cs.plaintext_modulo,
                     precision=self.precision,
                 )
@@ -348,8 +353,14 @@ class EncryptedTensor:
 
 def cast_ciphertext(cs: Homomorphic, value: int) -> Ciphertext:
     """Cast an integer value to a Ciphertext object."""
+
+    class_name = cs.__class__.__name__
+    algorithm_name = getattr(Algorithm, class_name, None)
+
+    assert algorithm_name is not None, f"Algorithm name not found for {class_name}"
+
     return Ciphertext(
-        algorithm_name=cs.__class__.__name__,
+        algorithm_name=algorithm_name,
         keys=cs.keys,
         value=value,
         form=cs.keys.get("form"),
