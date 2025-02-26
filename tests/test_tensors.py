@@ -1,6 +1,5 @@
 # built-in dependencies
 import time
-from typing import List
 import random
 
 # 3rd party dependencies
@@ -35,6 +34,7 @@ def test_tensor_encryption():
     encrypted_tensors = cs.encrypt(tensor)
 
     decrypted_tensors = cs.decrypt(encrypted_tensors)
+    assert isinstance(decrypted_tensors, list)
 
     for i, decrypted_tensor in enumerate(decrypted_tensors):
         expected_tensor = tensor[i]
@@ -49,12 +49,16 @@ def test_homomorphic_multiplication():
     t1 = [1.005, 2.05, -3.5, 3.1, -4]
     t2 = [5, 6.2, -7.002, -7.1, 8.02]
 
-    c1: EncryptedTensor = cs.encrypt(t1)
-    c2: EncryptedTensor = cs.encrypt(t2)
+    c1 = cs.encrypt(t1)
+    c2 = cs.encrypt(t2)
+
+    assert isinstance(c1, EncryptedTensor)
+    assert isinstance(c2, EncryptedTensor)
 
     c3 = c1 * c2
 
     restored_tensors = cs.decrypt(c3)
+    assert isinstance(restored_tensors, list)
 
     for i, restored_tensor in enumerate(restored_tensors):
         assert abs((t1[i] * t2[i]) - restored_tensor) < THRESHOLD
@@ -73,11 +77,12 @@ def test_homomorphic_multiply_by_a_positive_constant():
 
     t1 = [5, 6.2, 7.002, 7.002, 8.02]
     constant = 2
-    c1: EncryptedTensor = cs.encrypt(t1)
+    c1 = cs.encrypt(t1)
 
     c2 = c1 * constant
 
     t2 = cs.decrypt(c2)
+    assert isinstance(t2, list)
 
     for i, restored_tensor in enumerate(t2):
         assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
@@ -90,11 +95,13 @@ def test_homomorphic_multiply_by_a_negative_constant():
 
     t1 = [5, 6.2, 7.002, 7.002, 8.02]
     constant = -2
-    c1: EncryptedTensor = cs.encrypt(t1)
+    c1 = cs.encrypt(t1)
+    assert isinstance(c1, EncryptedTensor)
 
     c2 = c1 * constant
 
     t2 = cs.decrypt(c2)
+    assert isinstance(t2, list)
 
     for i, restored_tensor in enumerate(t2):
         assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
@@ -107,11 +114,13 @@ def test_homomorphic_multiply_with_int_constant():
 
     t1 = [5, 6.2, 7.002, 7.002, 8.02]
     constant = 2
-    c1: EncryptedTensor = cs.encrypt(t1)
+    c1 = cs.encrypt(t1)
+    assert isinstance(c1, EncryptedTensor)
 
     c2 = constant * c1
 
     t2 = cs.decrypt(c2)
+    assert isinstance(t2, list)
 
     for i, restored_tensor in enumerate(t2):
         assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
@@ -126,11 +135,12 @@ def test_homomorphic_multiply_with_positive_float_constant():
 
     t1 = [10000.0, 15000, 20000]
     constant = 1.05
-    c1: EncryptedTensor = cs.encrypt(t1)
+    c1 = cs.encrypt(t1)
 
     c2 = constant * c1
 
     t2 = cs.decrypt(c2)
+    assert isinstance(t2, list)
 
     for i, restored_tensor in enumerate(t2):
         assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
@@ -145,11 +155,12 @@ def test_homomorphic_multiply_with_negative_float_constant():
 
     t1 = [10000.0, 15000, 20000]
     constant = -1.05
-    c1: EncryptedTensor = cs.encrypt(t1)
+    c1 = cs.encrypt(t1)
 
     c2 = constant * c1
 
     t2 = cs.decrypt(c2)
+    assert isinstance(t2, list)
 
     for i, restored_tensor in enumerate(t2):
         assert abs((t1[i] * constant) - restored_tensor) < THRESHOLD
@@ -165,12 +176,15 @@ def test_homomorphic_addition():
     t1 = [1.005, 2.05, 3.6, -4, 4.02, -3.5]
     t2 = [5, 6.2, -7.5, 8.02, -8.02, -4.5]
 
-    c1: EncryptedTensor = cs.encrypt(t1)
-    c2: EncryptedTensor = cs.encrypt(t2)
+    c1 = cs.encrypt(t1)
+    c2 = cs.encrypt(t2)
+    assert isinstance(c1, EncryptedTensor)
+    assert isinstance(c2, EncryptedTensor)
 
     c3 = c1 + c2
 
     restored_tensors = cs.decrypt(c3)
+    assert isinstance(restored_tensors, list)
 
     for i, restored_tensor in enumerate(restored_tensors):
         if (
@@ -193,16 +207,27 @@ def test_homomorphic_addition():
     logger.info("✅ Homomorphic addition tests succeeded")
 
 
-def test_for_integer_tensor():
-    cs = LightPHE(algorithm_name="Paillier")
+@pytest.mark.parametrize(
+    "algorithm_name",
+    [
+        "Paillier",
+        "Damgard-Jurik",
+        "Okamoto-Uchiyama",
+        # "Exponential-ElGamal",
+        # "EllipticCurve-ElGamal",
+    ],
+)
+def test_for_integer_tensor(algorithm_name):
+    cs = LightPHE(algorithm_name=algorithm_name)
 
     # suppose that these are normalized vectors
-    a = [7.1, 5.2, 5.3, 2.4, 3.5, 4.6]
-    b = [5.6, 3.7, 2.8, 4, 0, 5.9]
+    a = [7.11, 5.22, 5.33, 2.44, 3.55, 4.66]
+    b = [5.66, 3.77, 2.88, 4, 0, 5.99]
 
     expected_similarity = sum(x * y for x, y in zip(a, b))
 
-    enc_a = cs.encrypt(a)
+    enc_a = cs.encrypt(a, silent=True)
+    assert isinstance(enc_a, EncryptedTensor)
 
     fractions = enc_a.fractions
 
@@ -213,6 +238,7 @@ def test_for_integer_tensor():
     enc_a_times_b = enc_a * b
 
     a_times_b = cs.decrypt(enc_a_times_b)
+    assert isinstance(a_times_b, list)
 
     for i in range(0, len(a)):
         assert (
@@ -221,30 +247,45 @@ def test_for_integer_tensor():
 
     # dot product
     encrypted_similarity = enc_a @ b
-    decrypted_similarity = cs.decrypt(encrypted_similarity)[0]
+    decrypted_similarities = cs.decrypt(encrypted_similarity)
+    assert isinstance(decrypted_similarities, list)
+    assert len(decrypted_similarities) > 0
+    decrypted_similarity = decrypted_similarities[0]
 
     assert abs(decrypted_similarity - expected_similarity) < 0.1, (
         f"expected {expected_similarity} but got {decrypted_similarity}."
         f"Diff = {abs(expected_similarity - decrypted_similarity)}"
     )
 
-    logger.info("✅ Integer tensor tests succeeded")
+    logger.info(f"✅ Tensor tests succeeded for {algorithm_name}")
 
 
-def test_real_world_embedding():
+@pytest.mark.parametrize(
+    "algorithm_name",
+    [
+        "Paillier",
+        "Damgard-Jurik",
+        "Okamoto-Uchiyama",
+        # "Exponential-ElGamal",
+        # "EllipticCurve-ElGamal",
+    ],
+)
+def test_real_world_embedding(algorithm_name):
     logger.info("🧪 Real world embedding experiment is running")
-    cs = LightPHE(algorithm_name="Paillier", precision=17)
+    cs = LightPHE(algorithm_name=algorithm_name, precision=17)
 
     # suppose that source and target embeddings are normalized vectors
 
-    # 3682
+    global_tic = time.time()
+
+    n_dims = 4096
 
     source_embedding = [
-        float(format(random.uniform(1, 2), ".17f")) for _ in range(4096)
+        float(format(random.uniform(1, 2), ".17f")) for _ in range(n_dims)
     ]
 
     # Randomly choose 3682 indices to set to zero - similar to VGG-Face
-    zero_indices = random.sample(range(4096), 3682)
+    zero_indices = random.sample(range(n_dims), int(n_dims * 0.9))
     for idx in zero_indices:
         source_embedding[idx] = 0.0
 
@@ -252,6 +293,7 @@ def test_real_world_embedding():
 
     tic = time.time()
     source_embedding_encrypted = cs.encrypt(source_embedding)
+    assert isinstance(source_embedding_encrypted, EncryptedTensor)
     toc = time.time()
     logger.info(f"👨‍🔬 source embedding encrypted in {toc-tic} seconds")
 
@@ -268,8 +310,11 @@ def test_real_world_embedding():
     logger.info(f"🧮 encrypted similarity found in {toc - tic} seconds")
 
     tic = time.time()
-    decrypted_similarity = cs.decrypt(encrypted_similarity)[0]
+    decrypted_similarities = cs.decrypt(encrypted_similarity)
     toc = time.time()
+    assert isinstance(decrypted_similarities, list)
+    assert len(decrypted_similarities) > 0
+    decrypted_similarity = decrypted_similarities[0]
 
     logger.info(f"🔑 encrypted similarity decrypted in {toc - tic} seconds")
 
@@ -284,4 +329,9 @@ def test_real_world_embedding():
         abs(expected_similarity - decrypted_similarity) < 0.1
     ), f"expected {expected_similarity} but got {decrypted_similarity}"
 
-    logger.info("✅ Real world embedding test succeeded")
+    global_toc = time.time()
+    duration = global_toc - global_tic
+
+    logger.info(
+        f"✅ Real world embedding test succeeded with {algorithm_name} in {duration} seconds"
+    )
