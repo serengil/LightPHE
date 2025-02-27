@@ -39,26 +39,29 @@ def test_api():
 
     cs = LightPHE(algorithm_name="Goldwasser-Micali")
 
-    m1 = 17
-    m2 = 21
+    # try different bit size messages
+    ms = [(17, 21), (117, 23), (23, 117), (1117, 23), (12, 1118)]
 
-    c1 = cs.encrypt(plaintext=m1)
-    c2 = cs.encrypt(plaintext=m2)
+    for m1, m2 in ms:
+        c1 = cs.encrypt(plaintext=m1)
+        c2 = cs.encrypt(plaintext=m2)
 
-    # homomorphic addition
-    assert cs.decrypt(c1 ^ c2) == m1 ^ m2
+        # homomorphic addition
+        assert cs.decrypt(c1 ^ c2) == m1 ^ m2
 
-    # unsupported homomorphic operations
-    with pytest.raises(ValueError):
-        _ = c1 * c2
+        # unsupported homomorphic operations
+        with pytest.raises(ValueError):
+            _ = c1 * c2
 
-    with pytest.raises(ValueError):
-        _ = c1 + c2
+        with pytest.raises(ValueError):
+            _ = c1 + c2
 
-    with pytest.raises(ValueError):
-        _ = c1 * 5
+        with pytest.raises(ValueError):
+            _ = c1 * 5
 
-    with pytest.raises(ValueError):
-        _ = 5 * c1
+        with pytest.raises(ValueError):
+            _ = 5 * c1
 
-    logger.info("✅ Goldwasser-Micali api test succeeded")
+        logger.info(
+            f"✅ Goldwasser-Micali api test succeeded for {m1.bit_length()}&{m2.bit_length()} bit plaintexts"
+        )

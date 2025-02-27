@@ -1,8 +1,13 @@
+# built-in dependencies
 import random
-from typing import Optional
+from typing import Optional, List
 import math
+
+# 3rd party dependencies
 import sympy
 from sympy import jacobi_symbol
+
+# project dependencies
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
 
@@ -14,7 +19,7 @@ logger = Logger(module="lightphe/cryptosystems/GoldwasserMicali.py")
 class GoldwasserMicali(Homomorphic):
     """
     Goldwasser-Micali algorithm is homomorphic with respect to the Exclusively OR (XOR).
-    Ref: https://sefiks.com/2023/10/27/a-step-by-step-partially-homomorphic-encryption-example-with-goldwasser-micali-in-python/
+    Ref: sefiks.com/2023/10/27/a-step-by-step-partially-homomorphic-encryption-example-with-goldwasser-micali-in-python/
     """
 
     def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None):
@@ -44,9 +49,11 @@ class GoldwasserMicali(Homomorphic):
 
         # picking a prime p
         p = sympy.randprime(200, 2 ** int(key_size / 2) - 1)
+        assert isinstance(p, int)
 
         # picking a prime q
         q = sympy.randprime(200, 2 ** int(key_size / 2) - 1)
+        assert isinstance(q, int)
 
         n = p * q
 
@@ -81,7 +88,7 @@ class GoldwasserMicali(Homomorphic):
                 break
         return r
 
-    def encrypt(self, plaintext: int, random_key: Optional[int] = None) -> list:
+    def encrypt(self, plaintext: int, random_key: Optional[int] = None) -> List[int]:
         """
         Encrypt a given plaintext for optionally given random key with Goldwasser-Micali
         Args:
@@ -116,7 +123,7 @@ class GoldwasserMicali(Homomorphic):
 
         return c
 
-    def decrypt(self, ciphertext: list) -> int:
+    def decrypt(self, ciphertext: List[int]) -> int:
         """
         Decrypt a given ciphertext with Goldwasser-Micali
         Args:
@@ -156,22 +163,28 @@ class GoldwasserMicali(Homomorphic):
             "Goldwasser-Micali is not homomorphic with respect to the multiplication"
         )
 
-    def xor(self, ciphertext1: int, ciphertext2: int) -> list:
+    def xor(self, ciphertext1: List[int], ciphertext2: List[int]) -> List[int]:
         """
         Perform homomorphic xor on encrypted data.
         Result of this must be equal to E(m1 ^ m2) = E(m1) ^ E(m2)
         Encryption calculations are done in module n
         Args:
-            ciphertext1 (int): 1st ciphertext created with Goldwasser-Micali
-            ciphertext2 (int): 2nd ciphertext created with Goldwasser-Micali
+            ciphertext1 (list of int): 1st ciphertext created with Goldwasser-Micali
+            ciphertext2 (list of int): 2nd ciphertext created with Goldwasser-Micali
         Returns:
-            ciphertext3 (int): 3rd ciphertext created with Goldwasser-Micali
+            ciphertext3 (list of int): 3rd ciphertext created with Goldwasser-Micali
         """
-        if len(ciphertext1) != len(ciphertext2):
-            raise ValueError(
-                "Ciphertexts must be of the same length while xoring in Goldwasser-Micali."
-                f"But c1 is length of {len(ciphertext1)} and c2 is length of {len(ciphertext2)}."
-            )
+        if len(ciphertext1) > len(ciphertext2):
+            ciphertext2 = [self.encrypt(0)[0]] * (
+                len(ciphertext1) - len(ciphertext2)
+            ) + ciphertext2
+        elif len(ciphertext2) > len(ciphertext1):
+            ciphertext1 = [self.encrypt(0)[0]] * (
+                len(ciphertext2) - len(ciphertext1)
+            ) + ciphertext1
+
+        assert len(ciphertext1) == len(ciphertext2)
+
         ciphertext3 = []
         for i in range(0, len(ciphertext1)):
             c1 = ciphertext1[i]

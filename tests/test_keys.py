@@ -1,7 +1,4 @@
-import traceback
-
 # 3rd party dependencies
-import pytest
 from lightphe import LightPHE
 
 # project dependencies
@@ -34,7 +31,7 @@ def test_key_restoration():
 
         cloud_cs = LightPHE(algorithm_name=algorithm_name, key_file=public_key_file)
 
-        m1 = 17
+        m1 = 217
         m2 = 23
         k = 3
 
