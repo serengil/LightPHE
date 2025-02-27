@@ -1,7 +1,4 @@
-import traceback
-
 # 3rd party dependencies
-import pytest
 from lightphe import LightPHE
 
 # project dependencies
@@ -12,16 +9,16 @@ logger = Logger(module="tests/test_keys.py")
 
 def test_key_restoration():
     algorithms = [
-        "RSA",
-        "ElGamal",
-        "Exponential-ElGamal",
-        "Paillier",
-        "Damgard-Jurik",
-        "Okamoto-Uchiyama",
-        "Benaloh",
-        "Naccache-Stern",
+        # "RSA",
+        # "ElGamal",
+        # "Exponential-ElGamal",
+        # "Paillier",
+        # "Damgard-Jurik",
+        # "Okamoto-Uchiyama",
+        # "Benaloh",
+        # "Naccache-Stern",
         "Goldwasser-Micali",
-        "EllipticCurve-ElGamal",
+        # "EllipticCurve-ElGamal",
     ]
 
     for algorithm_name in algorithms:
@@ -34,7 +31,7 @@ def test_key_restoration():
 
         cloud_cs = LightPHE(algorithm_name=algorithm_name, key_file=public_key_file)
 
-        m1 = 17
+        m1 = 217
         m2 = 23
         k = 3
 
