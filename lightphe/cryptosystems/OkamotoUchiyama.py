@@ -22,7 +22,7 @@ class OkamotoUchiyama(Homomorphic):
             key_size (int): key size in bits
         """
         self.keys = keys or self.generate_keys(key_size or 1024)
-        self.plaintext_modulo = self.keys["private_key"]["p"]
+        self.plaintext_modulo = self.keys["public_key"]["n"]
         self.ciphertext_modulo = self.keys["public_key"]["n"]
 
     def generate_keys(self, key_size: int) -> dict:
@@ -128,10 +128,14 @@ class OkamotoUchiyama(Homomorphic):
         return (ciphertext1 * ciphertext2) % n
 
     def multiply(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError("Okamoto-Uchiyama is not homomorphic with respect to the multiplication")
+        raise ValueError(
+            "Okamoto-Uchiyama is not homomorphic with respect to the multiplication"
+        )
 
     def xor(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError("Okamoto-Uchiyama is not homomorphic with respect to the exclusive or")
+        raise ValueError(
+            "Okamoto-Uchiyama is not homomorphic with respect to the exclusive or"
+        )
 
     def multiply_by_contant(self, ciphertext: int, constant: int) -> int:
         """
@@ -175,7 +179,9 @@ class OkamotoUchiyama(Homomorphic):
         """
         p = self.keys["private_key"]["p"]
         if x % p != 1:
-            raise ValueError(f"Input passed to lx ({x}) must be identical to 1 in modulo {p}")
+            raise ValueError(
+                f"Input passed to lx ({x}) must be identical to 1 in modulo {p}"
+            )
         if math.gcd(x, p * p) != 1:
             raise ValueError(f"gcd({x}, {p}^2) must be equal to 1")
         y = (x - 1) // p

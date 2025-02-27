@@ -46,8 +46,13 @@ class EllipticCurveElGamal(Homomorphic):
         self.ecc = ECC(form_name=form, curve_name=curve)
 
         self.keys = keys or self.generate_keys(key_size or self.ecc.n.bit_length())
-        self.keys["curve"] = curve
-        self.keys["form"] = form
+
+        if curve is not None:
+            self.keys["curve"] = curve
+
+        if form is not None:
+            self.keys["form"] = form
+
         self.plaintext_modulo = self.ecc.modulo
         self.ciphertext_modulo = self.ecc.modulo
 
@@ -74,7 +79,7 @@ class EllipticCurveElGamal(Homomorphic):
         # public key
         Qa = self.ecc.G * ka
 
-        keys["public_key"]["Qa"] = Qa
+        keys["public_key"]["Qa"] = Qa.get_point()
         keys["private_key"]["ka"] = ka
 
         return keys
@@ -98,7 +103,8 @@ class EllipticCurveElGamal(Homomorphic):
             ciphertext (tuple): c1 and c2
         """
         # public key
-        Qa = self.keys["public_key"]["Qa"]
+        x, y = self.keys["public_key"]["Qa"]
+        Qa = EllipticCurvePoint(x=x, y=y, curve=self.ecc.curve)
 
         # random key
         r = random_key or self.generate_random_key()
