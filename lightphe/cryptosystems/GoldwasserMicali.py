@@ -53,7 +53,11 @@ class GoldwasserMicali(Homomorphic):
         # find non-residue x
         while True:
             x = random.randint(1, n - 1)
-            if math.gcd(x, n) == 1 and jacobi_symbol(x, p) == -1 and jacobi_symbol(x, q) == -1:
+            if (
+                math.gcd(x, n) == 1
+                and jacobi_symbol(x, p) == -1
+                and jacobi_symbol(x, q) == -1
+            ):
                 break
 
         keys["public_key"]["n"] = n
@@ -143,10 +147,14 @@ class GoldwasserMicali(Homomorphic):
         return int(m_binary, 2)
 
     def add(self, ciphertext1: list, ciphertext2: list) -> list:
-        raise ValueError("Goldwasser-Micali is not homomorphic with respect to the addition")
+        raise ValueError(
+            "Goldwasser-Micali is not homomorphic with respect to the addition"
+        )
 
     def multiply(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError("Goldwasser-Micali is not homomorphic with respect to the multiplication")
+        raise ValueError(
+            "Goldwasser-Micali is not homomorphic with respect to the multiplication"
+        )
 
     def xor(self, ciphertext1: int, ciphertext2: int) -> list:
         """
@@ -159,10 +167,16 @@ class GoldwasserMicali(Homomorphic):
         Returns:
             ciphertext3 (int): 3rd ciphertext created with Goldwasser-Micali
         """
+        if len(ciphertext1) != len(ciphertext2):
+            raise ValueError(
+                "Ciphertexts must be of the same length while xoring in Goldwasser-Micali."
+                f"But c1 is length of {len(ciphertext1)} and c2 is length of {len(ciphertext2)}."
+            )
         ciphertext3 = []
         for i in range(0, len(ciphertext1)):
             c1 = ciphertext1[i]
             c2 = ciphertext2[i]
+
             ciphertext3.append((c1 * c2) % self.ciphertext_modulo)
 
         return ciphertext3
