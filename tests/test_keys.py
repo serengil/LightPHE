@@ -9,16 +9,16 @@ logger = Logger(module="tests/test_keys.py")
 
 def test_key_restoration():
     algorithms = [
-        # "RSA",
-        # "ElGamal",
-        # "Exponential-ElGamal",
-        # "Paillier",
-        # "Damgard-Jurik",
-        # "Okamoto-Uchiyama",
-        # "Benaloh",
-        # "Naccache-Stern",
+        "RSA",
+        "ElGamal",
+        "Exponential-ElGamal",
+        "Paillier",
+        "Damgard-Jurik",
+        "Okamoto-Uchiyama",
+        "Benaloh",
+        "Naccache-Stern",
         "Goldwasser-Micali",
-        # "EllipticCurve-ElGamal",
+        "EllipticCurve-ElGamal",
     ]
 
     for algorithm_name in algorithms:
