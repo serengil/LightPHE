@@ -38,7 +38,7 @@ from lightphe.elliptic_curve_forms.koblitz import Koblitz
 
 logger = Logger(module="lightphe/__init__.py")
 
-VERSION = "0.0.13"
+VERSION = "0.0.14"
 
 
 class LightPHE:
