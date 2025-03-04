@@ -5,6 +5,7 @@ from typing import Optional, Union, List
 import multiprocessing
 from contextlib import closing
 import traceback
+import copy
 
 # 3rd party dependencies
 from tqdm import tqdm
@@ -178,9 +179,14 @@ class LightPHE:
                 value=plaintext, modulo=self.cs.plaintext_modulo
             )
         )
+
+        public_keys = self.cs.keys.copy()
+        if public_keys.get("private_key") is not None:
+            del public_keys["private_key"]
+
         return Ciphertext(
             algorithm_name=self.algorithm_name,
-            keys=self.cs.keys,
+            keys=public_keys,
             value=ciphertext,
             form=self.form,
             curve=self.curve,
@@ -254,9 +260,13 @@ class LightPHE:
             toc = time.time()
             logger.debug(f"encryption took {toc - tic} seconds")
 
+            public_cs = copy.deepcopy(self.cs)
+            if public_cs.keys.get("private_key") is not None:
+                del public_cs.keys["private_key"]
+
             return EncryptedTensor(
                 fractions=encrypted_tensor,
-                cs=self.cs,
+                cs=public_cs,
                 precision=self.precision,
             )
 
