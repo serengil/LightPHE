@@ -330,17 +330,17 @@ For example, suppose all facial embeddings in your database are encrypted on-pre
 # build an additively homomorphic cryptosystem (e.g. Paillier)
 cs = LightPHE("Paillier")
 
-# define plain vectors - suppose those are l2 normalized already
+# define plain vectors - suppose those are l2 normalized already and all positive
 alpha = [7.1, 5.2, 5.3, 2.4, 3.5, 4.6]  # On-prem vector (user tower)
 beta = [5.6, 3.7, 2.8, 4, 0, 5.9]  # Cloud vector (item tower)
 
-# encrypt embedding
+# encrypt embedding (on prem)
 encrypted_alpha = cs.encrypt(alpha)
 
-# dot product of encrypted embedding and plain embedding
+# dot product of encrypted embedding and plain embedding (cloud)
 encrypted_cosine_similarity = encrypted_alpha @ beta
 
-# decrypt similarity
+# decrypt similarity (on prem)
 cosine_similarity = cs.decrypt(encrypted_cosine_similarity)[0]
 
 # proof of work
