@@ -332,7 +332,7 @@ alpha = [7.1, 5.2, 5.3, 2.4, 3.5, 4.6]  # On-prem vector (user tower)
 beta = [5.6, 3.7, 2.8, 4, 0, 5.9]  # Cloud vector (item tower)
 expected_similarity = sum(x * y for x, y in zip(alpha, beta))
 
-# build an additively homomorphic cryptosystem (e.g. Paillier)
+# build an additively homomorphic cryptosystem (e.g. Paillier) on-prem
 cs = LightPHE(algorithm_name = "Paillier", precision = 19)
 
 # export keys
@@ -359,10 +359,10 @@ with pytest.raises(ValueError, match="must have private key"):
 cs = LightPHE(algorithm_name = "Paillier", precision = 19, key_file = "secret.txt")
 
 # decrypt similarity (on prem)
-cosine_similarity = cs.decrypt(encrypted_cosine_similarity)[0]
+calculated_similarity = cs.decrypt(encrypted_cosine_similarity)[0]
 
 # proof of work
-assert abs(cosine_similarity - expected_similarity) < 1e-2
+assert abs(calculated_similarity - expected_similarity) < 1e-2
 ```
 
 # Contributing
