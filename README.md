@@ -327,24 +327,46 @@ Many machine learning models rely on a two-tower architecture, including facial 
 For example, suppose all facial embeddings in your database are encrypted on-prem in advance. When verifying an identity, the attempted facial embedding is generated on an edge device or in the cloud. You can compute the encrypted similarity by performing a dot product between the encrypted vector and the plain vector, ensuring secure comparison without decrypting sensitive data. Only additively homomorphic cryptosystems offer encrypted similarity calculation.
 
 ```python
-# build an additively homomorphic cryptosystem (e.g. Paillier)
-cs = LightPHE("Paillier")
-
-# define plain vectors - suppose those are l2 normalized already and all positive
+# define a plain vectors for source and target
 alpha = [7.1, 5.2, 5.3, 2.4, 3.5, 4.6]  # On-prem vector (user tower)
 beta = [5.6, 3.7, 2.8, 4, 0, 5.9]  # Cloud vector (item tower)
+expected_similarity = sum(x * y for x, y in zip(alpha, beta))
 
-# encrypt embedding (on prem)
+# build an additively homomorphic cryptosystem (e.g. Paillier)
+cs = LightPHE(algorithm_name = "Paillier", precision = 19)
+
+# export keys
+cs.export_keys("secret.txt")
+cs.export_keys("public.txt", public=True)
+
+# encrypt source embedding
 encrypted_alpha = cs.encrypt(alpha)
 
-# dot product of encrypted embedding and plain embedding (cloud)
+# remove cryptosystem and plain alpha not to be leaked in cloud
+del cs, alpha
+
+# restore the cryptosystem in cloud with only public key
+cloud_cs = LightPHE(
+    algorithm_name = "Paillier", precision = 19, key_file = "public.txt"
+)
+
+# dot product of encrypted and plain embedding pair
 encrypted_cosine_similarity = encrypted_alpha @ beta
+
+# computed by the cloud but cloud cannot decrypt it
+with pytest.raises(ValueError, match="must have private key"):
+    cloud_cs.decrypt(encrypted_cosine_similarity)
+
+# restore the cryptosystem on-prem with secret key
+cs = LightPHE(
+    algorithm_name = "Paillier", precision = 19, key_file = "secret.txt"
+)
 
 # decrypt similarity (on prem)
 cosine_similarity = cs.decrypt(encrypted_cosine_similarity)[0]
 
 # proof of work
-assert abs(cosine_similarity - sum(x * y for x, y in zip(alpha, beta))) < 1e-2
+assert abs(cosine_similarity - expected_similarity) < 1e-2
 ```
 
 # Contributing
