@@ -346,9 +346,7 @@ encrypted_alpha = cs.encrypt(alpha)
 del cs, alpha
 
 # restore the cryptosystem in cloud with only public key
-cloud_cs = LightPHE(
-    algorithm_name = "Paillier", precision = 19, key_file = "public.txt"
-)
+cloud_cs = LightPHE(algorithm_name = "Paillier", precision = 19, key_file = "public.txt")
 
 # dot product of encrypted and plain embedding pair
 encrypted_cosine_similarity = encrypted_alpha @ beta
@@ -358,9 +356,7 @@ with pytest.raises(ValueError, match="must have private key"):
     cloud_cs.decrypt(encrypted_cosine_similarity)
 
 # restore the cryptosystem on-prem with secret key
-cs = LightPHE(
-    algorithm_name = "Paillier", precision = 19, key_file = "secret.txt"
-)
+cs = LightPHE(algorithm_name = "Paillier", precision = 19, key_file = "secret.txt")
 
 # decrypt similarity (on prem)
 cosine_similarity = cs.decrypt(encrypted_cosine_similarity)[0]
