@@ -193,9 +193,3 @@ class GoldwasserMicali(Homomorphic):
             ciphertext3.append((c1 * c2) % self.ciphertext_modulo)
 
         return ciphertext3
-
-    def multiply_by_contant(self, ciphertext: int, constant: int):
-        raise ValueError("Goldwasser-Micali does not support multiplying with constant")
-
-    def reencrypt(self, ciphertext: int):
-        raise ValueError("Goldwasser-Micali does not support re-encryption")

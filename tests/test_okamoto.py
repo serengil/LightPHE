@@ -18,7 +18,7 @@ def test_okamoto():
     assert cs.decrypt(cs.multiply_by_contant(c1, m2)) == (m1 * m2) % cs.plaintext_modulo
 
     # unsupported operations
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Okamoto-Uchiyama is not homomorphic with respect to the multiplication"):
         cs.multiply(c1, c2)
 
     with pytest.raises(ValueError):

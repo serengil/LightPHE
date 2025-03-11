@@ -257,12 +257,6 @@ class NaccacheStern(Homomorphic):
         """
         return (ciphertext1 * ciphertext2) % self.ciphertext_modulo
 
-    def multiply(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError("Naccache-Stern is not homomorphic with respect to the multiplication")
-
-    def xor(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError("Naccache-Stern is not homomorphic with respect to the exclusive or")
-
     def multiply_by_contant(self, ciphertext: int, constant: int) -> int:
         """
         Multiply a ciphertext with a plain constant.

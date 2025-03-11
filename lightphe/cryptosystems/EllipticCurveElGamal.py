@@ -142,11 +142,6 @@ class EllipticCurveElGamal(Homomorphic):
 
         return s_prime / self.ecc.G
 
-    def multiply(self, ciphertext1: tuple, ciphertext2: tuple) -> tuple:
-        raise ValueError(
-            "Elliptic Curve ElGamal is not homomorphic with respect to the multiplication"
-        )
-
     def add(self, ciphertext1: tuple, ciphertext2: tuple) -> tuple:
         """
         Perform homomorphic addition on encrypted data
@@ -171,10 +166,7 @@ class EllipticCurveElGamal(Homomorphic):
 
         return a.get_point(), b.get_point()
 
-    def xor(self, ciphertext1: tuple, ciphertext2: tuple) -> int:
-        raise ValueError(
-            "Elliptic Curve ElGamal is not homomorphic with respect to the exclusive or"
-        )
+
 
     def multiply_by_contant(self, ciphertext: tuple, constant: int) -> tuple:
         """
@@ -198,8 +190,3 @@ class EllipticCurveElGamal(Homomorphic):
         Q_prime = Q * constant
 
         return P_prime.get_point(), Q_prime.get_point()
-
-    def reencrypt(self, ciphertext: tuple) -> tuple:
-        raise ValueError(
-            "Elliptic Curve ElGamal does not support regeneration of ciphertext"
-        )

@@ -169,9 +169,6 @@ class ElGamal(Homomorphic):
         p = self.keys["public_key"]["p"]
         return (ciphertext1[0] * ciphertext2[0]) % p, (ciphertext1[1] * ciphertext2[1]) % p
 
-    def xor(self, ciphertext1: tuple, ciphertext2: tuple) -> int:
-        raise ValueError("ElGamal is not homomorphic with respect to the exclusive or")
-
     def multiply_by_contant(self, ciphertext: tuple, constant: int) -> tuple:
         if self.exponential is False:
             raise ValueError("ElGamal is not supporting multiplying ciphertext by a known constant")
