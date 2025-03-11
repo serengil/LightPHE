@@ -127,16 +127,6 @@ class OkamotoUchiyama(Homomorphic):
         n = self.keys["public_key"]["n"]
         return (ciphertext1 * ciphertext2) % n
 
-    def multiply(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError(
-            "Okamoto-Uchiyama is not homomorphic with respect to the multiplication"
-        )
-
-    def xor(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError(
-            "Okamoto-Uchiyama is not homomorphic with respect to the exclusive or"
-        )
-
     def multiply_by_contant(self, ciphertext: int, constant: int) -> int:
         """
         Multiply a ciphertext with a plain constant.

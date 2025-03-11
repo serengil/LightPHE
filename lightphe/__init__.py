@@ -94,7 +94,7 @@ class LightPHE:
 
     def __build_cryptosystem(
         self,
-        algorithm_name: str,
+        algorithm_name: str = "Paillier",
         keys: Optional[dict] = None,
         key_size: Optional[int] = None,
         form: Optional[str] = None,
@@ -115,6 +115,7 @@ class LightPHE:
             algorithm_name (str): RSA | ElGamal | Exponential-ElGamal | EllipticCurve-ElGamal
                 | Paillier | Damgard-Jurik | Okamoto-Uchiyama | Benaloh | Naccache-Stern
                 | Goldwasser-Micali | Edwards-ElGamal
+                Default is Paillier.
             keys (dict): optional private-public key pair
             key_file (str): if keys are exported, you can load them into cryptosystem
             key_size (int): key size in bits

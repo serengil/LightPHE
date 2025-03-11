@@ -129,15 +129,3 @@ class RSA(Homomorphic):
         """
         n = self.keys["public_key"]["n"]
         return (ciphertext1 * ciphertext2) % n
-
-    def add(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError("RSA is not homomorphic with respect to the addition")
-
-    def xor(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError("RSA is not homomorphic with respect to the exclusive or")
-
-    def multiply_by_contant(self, ciphertext: int, constant: int) -> int:
-        raise ValueError("RSA is not supporting multiplying ciphertext by a known constant")
-
-    def reencrypt(self, ciphertext: int) -> int:
-        raise ValueError("RSA does not support re-encryption")
