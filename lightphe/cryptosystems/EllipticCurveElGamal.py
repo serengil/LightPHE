@@ -2,9 +2,12 @@
 import random
 from typing import Optional
 
+# 3rd party dependencies
+from lightecc import LightECC as ECC
+from lightecc.interfaces.elliptic_curve import EllipticCurvePoint
+
 # project dependencies
 from lightphe.models.Homomorphic import Homomorphic
-from lightphe.models.EllipticCurve import EllipticCurvePoint
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="lightphe/cryptosystems/EllipticCurveElGamal.py")
@@ -40,9 +43,6 @@ class EllipticCurveElGamal(Homomorphic):
                  - secp256k1 for weierstrass form
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
         """
-        # to avoid circular import, import ECC class here
-        from lightphe import ECC
-
         self.ecc = ECC(form_name=form, curve_name=curve)
 
         self.keys = keys or self.generate_keys(key_size or self.ecc.n.bit_length())
