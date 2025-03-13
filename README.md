@@ -236,11 +236,9 @@ ECC is a powerful public-key cryptosystem based on the algebraic structure of el
 In LightPHE, the [Elliptic Curve ElGamal](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) scheme is implemented, offering a secure and efficient homomorphic encryption option.
 
 ```python
-forms = ["weierstass", "edwards", "koblitz"]
-
 phe = LightPHE(
     algorithm_name="EllipticCurve-ElGamal",
-    form=forms[1],
+    form="edwards", # or weierstrass, koblitz
 )
 ```
 
@@ -248,7 +246,7 @@ One of the crucial factors that define the security level of an elliptic curve c
 
 Each curve in LightPHE has a specific order, which is carefully chosen to balance performance and security. By selecting an elliptic curve with a larger order, you increase the security of your cryptographic system, but this may come with a trade-off in computational efficiency. Therefore, choosing the appropriate curve order is a crucial decision based on your application’s security and performance requirements.
 
-See [`curves`](https://github.com/serengil/LightPHE/tree/master/lightphe/elliptic_curve_forms) page for a list of all supported forms, curves and their details.
+See [`curves`](https://github.com/serengil/LightECC) page for a list of all supported forms, curves and their details.
 
 ### Vector Embeddings and Tensors
 
