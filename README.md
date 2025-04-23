@@ -363,6 +363,12 @@ calculated_similarity = cs.decrypt(encrypted_cosine_similarity)[0]
 assert abs(calculated_similarity - expected_similarity) < 1e-2
 ```
 
+## Security Concerns and Considerations
+
+While LightPHE enables encryption using public keys and supports homomorphic operations on encrypted data, it's important to understand a subtle but critical security implication of this approach. Since the it is homomorphic, the cloud (or any third-party processor) can perform computations without knowing the plaintext. However, a malicious actor can still encrypt arbitrary values and craft valid ciphertexts because encryption depends on your public key and it is publicly known. For example, even if a salary is encrypted, an attacker could encrypt 500 USD using your public key and update the encrypted salary with this forged ciphertext — without needing to know the original value.
+
+To mitigate this, we recommend combining LightPHE with digital signature schemes. By keeping a signed audit trail of update operations in a separate log table, you can detect and reject unauthorized changes, and even restore the original data in case of tampering. We suggest checking out [`LightDSA`](https://github.com/serengil/LightDSA), which provides a lightweight cryptographic interface similar to LightPHE and supports popular digital signature algorithms like RSA, DSA, ECDSA, and EdDSA.
+
 # Contributing
 
 All PRs are more than welcome! If you are planning to contribute a large patch, please create an issue first to get any upfront questions or design decisions out of the way first.
