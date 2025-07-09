@@ -382,11 +382,11 @@ There are many ways to support a project - starring⭐️ the GitHub repo is jus
 You can also support this work on [Patreon](https://www.patreon.com/serengil?repo=lightphe), [GitHub Sponsors](https://github.com/sponsors/serengil) or [Buy Me a Coffee](https://buymeacoffee.com/serengil).
 
 <a href="https://www.patreon.com/serengil?repo=lightphe">
-<img src="https://raw.githubusercontent.com/serengil/LightPHE/master/icons/patreon.png" width="30%" height="30%">
+<img src="https://raw.githubusercontent.com/serengil/LightPHE/master/icons/patreon.png" width="30%">
 </a>
 
 <a href="https://buymeacoffee.com/serengil">
-<img src="https://raw.githubusercontent.com/serengil/LightPHE/master/icons/bmc-button.png" width="25%" height="25%">
+<img src="https://raw.githubusercontent.com/serengil/LightPHE/master/icons/bmc-button.png" width="25%">
 </a>
 
 Also, your company's logo will be shown on README on GitHub if you become sponsor in gold, silver or bronze tiers.
