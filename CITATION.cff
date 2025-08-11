@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "Please cite the following publication if LightPHE helps your research."
+title: "LightPHE: A Lightweight Partially Homomorphic Encryption Library for Python"
+authors:
+  - family-names: Serengil
+    given-names: Sefik Ilkin
+version: 1.0.0
+date-released: 2023-11-19
+doi: 10.48550/arXiv.2408.05219
+url: https://github.com/serengil/LightPHE
+type: software
+preferred-citation:
+  type: article
+  title: "LightPHE: Integrating Partially Homomorphic Encryption into Python with Extensive Cloud Environment Evaluations"
+  authors:
+    - family-names: Serengil
+      given-names: Sefik Ilkin
+    - family-names: Ozpinar
+      given-names: Alper
+  year: 2024
+  doi: 10.48550/arXiv.2408.05219
+  url: https://arxiv.org/abs/2408.05219
+  journal: "arXiv"
+  volume: null
+  issue: null
+  start: null
+  end: null
+  publisher: "arXiv"
