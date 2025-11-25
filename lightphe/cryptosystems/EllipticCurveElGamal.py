@@ -168,7 +168,7 @@ class EllipticCurveElGamal(Homomorphic):
 
 
 
-    def multiply_by_contant(self, ciphertext: tuple, constant: int) -> tuple:
+    def multiply_by_constant(self, ciphertext: tuple, constant: int) -> tuple:
         """
         Multiply a ciphertext with a plain constant.
         Result of this must be equal to k x E(m1) = E(m1 * k)

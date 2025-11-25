@@ -44,7 +44,7 @@ class Homomorphic(ABC):
     def xor(self, ciphertext1: list, ciphertext2: list) -> list:
         raise ValueError(f"{self.get_algorithm_name()} is not homomorphic with respect to the exclusive or")
 
-    def multiply_by_contant(self, ciphertext: Union[int, tuple, list], constant: int) -> int:
+    def multiply_by_constant(self, ciphertext: Union[int, tuple, list], constant: int) -> int:
         raise ValueError(f"{self.get_algorithm_name()} is not supporting multiplying ciphertext by a known constant")
 
     def reencrypt(self, ciphertext: Union[int, tuple, list]) -> Union[int, tuple, list]:

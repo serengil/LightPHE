@@ -73,7 +73,7 @@ def __test_elliptic_curve_elgamal():
 
             # homomorphic operations
             c3 = cs.add(c1, c2)
-            c4 = cs.multiply_by_contant(c1, m2)
+            c4 = cs.multiply_by_constant(c1, m2)
 
             assert cs.decrypt(c3) == m1 + m2
             assert cs.decrypt(c4) == m1 * m2

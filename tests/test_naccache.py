@@ -19,7 +19,7 @@ def test_naccache_on_plaintexts():
 
     # homomorphic operations
     assert cs.decrypt(cs.add(c1, c2)) == (m1 + m2) % cs.plaintext_modulo
-    assert cs.decrypt(cs.multiply_by_contant(c2, m1)) == (m1 * m2) % cs.plaintext_modulo
+    assert cs.decrypt(cs.multiply_by_constant(c2, m1)) == (m1 * m2) % cs.plaintext_modulo
 
     # unsupported operations
     with pytest.raises(ValueError):
@@ -49,7 +49,7 @@ def test_deterministic_version():
 
     # homomorphic operations
     assert cs.decrypt(cs.add(c1, c2)) == (m1 + m2) % cs.plaintext_modulo
-    assert cs.decrypt(cs.multiply_by_contant(c2, m1)) == (m1 * m2) % cs.plaintext_modulo
+    assert cs.decrypt(cs.multiply_by_constant(c2, m1)) == (m1 * m2) % cs.plaintext_modulo
 
     # unsupported operations
     with pytest.raises(ValueError):

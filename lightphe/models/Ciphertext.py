@@ -95,12 +95,12 @@ class Ciphertext:
             # Handle multiplication with another EncryptedObject
             result = self.cs.multiply(ciphertext1=self.value, ciphertext2=other.value)
         elif isinstance(other, int):
-            result = self.cs.multiply_by_contant(ciphertext=self.value, constant=other)
+            result = self.cs.multiply_by_constant(ciphertext=self.value, constant=other)
         elif isinstance(other, float):
             constant = phe_utils.normalize_input(
                 value=other, modulo=self.cs.plaintext_modulo
             )
-            result = self.cs.multiply_by_contant(
+            result = self.cs.multiply_by_constant(
                 ciphertext=self.value, constant=constant
             )
         else:
