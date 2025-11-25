@@ -268,10 +268,10 @@ class EncryptedTensor:
 
             fractions = []
             for alpha_tensor in self.fractions:
-                dividend = self.cs.multiply_by_contant(
+                dividend = self.cs.multiply_by_constant(
                     ciphertext=alpha_tensor.dividend, constant=other
                 )
-                abs_dividend = self.cs.multiply_by_contant(
+                abs_dividend = self.cs.multiply_by_constant(
                     ciphertext=alpha_tensor.abs_dividend, constant=other
                 )
                 # notice that divisor is alpha tensor's divisor instead of addition

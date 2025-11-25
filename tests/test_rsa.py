@@ -28,7 +28,7 @@ def test_rsa():
         rsa.xor(c1, c2)
 
     with pytest.raises(ValueError):
-        rsa.multiply_by_contant(c1, c2)
+        rsa.multiply_by_constant(c1, c2)
 
     with pytest.raises(ValueError):
         rsa.reencrypt(c1)

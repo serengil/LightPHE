@@ -169,7 +169,7 @@ class ElGamal(Homomorphic):
         p = self.keys["public_key"]["p"]
         return (ciphertext1[0] * ciphertext2[0]) % p, (ciphertext1[1] * ciphertext2[1]) % p
 
-    def multiply_by_contant(self, ciphertext: tuple, constant: int) -> tuple:
+    def multiply_by_constant(self, ciphertext: tuple, constant: int) -> tuple:
         if self.exponential is False:
             raise ValueError("ElGamal is not supporting multiplying ciphertext by a known constant")
         p = self.keys["public_key"]["p"]

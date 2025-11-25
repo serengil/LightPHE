@@ -257,7 +257,7 @@ class NaccacheStern(Homomorphic):
         """
         return (ciphertext1 * ciphertext2) % self.ciphertext_modulo
 
-    def multiply_by_contant(self, ciphertext: int, constant: int) -> int:
+    def multiply_by_constant(self, ciphertext: int, constant: int) -> int:
         """
         Multiply a ciphertext with a plain constant.
         Result of this must be equal to E(m1 * constant) where E(m1) = ciphertext

@@ -16,7 +16,7 @@ def test_benaloh():
 
     # supported homomorphic operations
     assert bn.decrypt(bn.add(c1, c2)) == (m1 + m2) % bn.plaintext_modulo
-    assert bn.decrypt(bn.multiply_by_contant(c1, m2)) == (m1 * m2) % bn.plaintext_modulo
+    assert bn.decrypt(bn.multiply_by_constant(c1, m2)) == (m1 * m2) % bn.plaintext_modulo
 
     # unsupported homomorphic operations
     with pytest.raises(ValueError):

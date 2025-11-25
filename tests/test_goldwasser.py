@@ -29,7 +29,7 @@ def test_goldwasser():
         cs.add(c1, c2)
 
     with pytest.raises(ValueError):
-        cs.multiply_by_contant(c1, c2)
+        cs.multiply_by_constant(c1, c2)
 
     logger.info("✅ Goldwasser-Micali test succeeded")
 

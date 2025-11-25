@@ -169,7 +169,7 @@ class Benaloh(Homomorphic):
         n = self.keys["public_key"]["n"]
         return (ciphertext1 * ciphertext2) % n
 
-    def multiply_by_contant(self, ciphertext: int, constant: int) -> int:
+    def multiply_by_constant(self, ciphertext: int, constant: int) -> int:
         """
         Multiply a ciphertext with a plain constant.
         Result of this must be equal to E(m1 * constant) where E(m1) = ciphertext

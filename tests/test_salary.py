@@ -26,7 +26,7 @@ def test_salary():
     ratio = 105 * pow(100, -1, cs.plaintext_modulo)
 
     # final salary should be 11000 x 1.05 = 11500
-    final_salary_encrytped = cs.multiply_by_contant(new_salary_encrypted, ratio)
+    final_salary_encrytped = cs.multiply_by_constant(new_salary_encrypted, ratio)
     assert cs.decrypt(final_salary_encrytped) == 11550
 
     logger.info("✅ Salary test succeeded")

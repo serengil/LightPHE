@@ -26,7 +26,7 @@ def test_elgamal():
         eg.xor(c1, c2)
 
     with pytest.raises(ValueError):
-        eg.multiply_by_contant(c1, m2)
+        eg.multiply_by_constant(c1, m2)
 
     # re-encryption
     c1_prime = eg.reencrypt(c1)
@@ -54,7 +54,7 @@ def test_exponential_elgamal():
     # homomorphic operations
     assert additive_eg.decrypt(c3) == (m1 + m2) % additive_eg.plaintext_modulo
     assert (
-        additive_eg.decrypt(additive_eg.multiply_by_contant(c1, m2))
+        additive_eg.decrypt(additive_eg.multiply_by_constant(c1, m2))
         == (m1 * m2) % additive_eg.plaintext_modulo
     )
 

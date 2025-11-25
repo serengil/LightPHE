@@ -16,7 +16,7 @@ def test_paillier():
 
     # homomorphic operations
     assert pai.decrypt(pai.add(c1, c2)) == (m1 + m2) % pai.plaintext_modulo
-    assert pai.decrypt(pai.multiply_by_contant(c1, m2)) == (m1 * m2) % pai.plaintext_modulo
+    assert pai.decrypt(pai.multiply_by_constant(c1, m2)) == (m1 * m2) % pai.plaintext_modulo
 
     # unsupported homomorphic operations
     with pytest.raises(ValueError):

@@ -16,7 +16,7 @@ def test_damgardjurik():
 
     # homomorphic operations
     assert dg.decrypt(dg.add(c1, c2)) == (m1 + m2) % dg.plaintext_modulo
-    assert dg.decrypt(dg.multiply_by_contant(c1, m2)) == (m1 * m2) % dg.plaintext_modulo
+    assert dg.decrypt(dg.multiply_by_constant(c1, m2)) == (m1 * m2) % dg.plaintext_modulo
 
     # unsupported homomorphic operations
     with pytest.raises(ValueError):

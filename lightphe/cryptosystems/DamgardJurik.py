@@ -125,7 +125,7 @@ class DamgardJurik(Homomorphic):
         modulo = pow(n, s + 1)
         return (ciphertext1 * ciphertext2) % modulo
 
-    def multiply_by_contant(self, ciphertext: int, constant: int) -> int:
+    def multiply_by_constant(self, ciphertext: int, constant: int) -> int:
         """
         Multiply a ciphertext by a known plain constant
         Result of this must be equal to E(m1 * m2), where E(m1) = ciphertext
