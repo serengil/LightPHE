@@ -8,6 +8,8 @@ logger = Logger(module="tests/test_goldwasser.py")
 def test_goldwasser():
     cs = GoldwasserMicali()
 
+    security_level = cs.keys["public_key"]["n"].bit_length()
+
     m1 = 17
     m2 = 27
 
@@ -31,13 +33,17 @@ def test_goldwasser():
     with pytest.raises(ValueError):
         cs.multiply_by_constant(c1, c2)
 
-    logger.info("✅ Goldwasser-Micali test succeeded")
+    logger.info(
+        f"✅ Goldwasser-Micali test succeeded ({security_level} bit security level)"
+    )
 
 
 def test_api():
     from lightphe import LightPHE
 
     cs = LightPHE(algorithm_name="Goldwasser-Micali")
+
+    security_level = cs.cs.keys["public_key"]["n"].bit_length()
 
     # try different bit size messages
     ms = [(17, 21), (117, 23), (23, 117), (1117, 23), (12, 1118)]
@@ -63,5 +69,6 @@ def test_api():
             _ = 5 * c1
 
         logger.info(
-            f"✅ Goldwasser-Micali api test succeeded for {m1.bit_length()}&{m2.bit_length()} bit plaintexts"
+            f"✅ Goldwasser-Micali api test succeeded for {m1.bit_length()}&{m2.bit_length()} bit plaintexts "
+            f"({security_level} bit security level)"
         )

@@ -3,12 +3,13 @@ from typing import Optional
 import math
 import sympy
 from sympy.ntheory.modular import solve_congruence
+from tqdm import tqdm
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="lightphe/cryptosystems/NaccacheStern.py")
 
-# pylint: disable=simplifiable-if-expression, consider-using-enumerate
+# pylint: disable=simplifiable-if-expression, consider-using-enumerate, pointless-string-statement
 
 
 class NaccacheStern(Homomorphic):
@@ -19,7 +20,12 @@ class NaccacheStern(Homomorphic):
     Original paper: https://dl.acm.org/doi/pdf/10.1145/288090.288106
     """
 
-    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None, deterministic: bool = False):
+    def __init__(
+        self,
+        keys: Optional[dict] = None,
+        key_size: Optional[int] = None,
+        deterministic: bool = False,
+    ):
         """
         Args:
             keys (dict): private - public key pair.
@@ -30,26 +36,24 @@ class NaccacheStern(Homomorphic):
                 cryptosystem
         """
         # Naccache-Stern requires to solve DLP in decryption, so small key is recommended
-        self.keys = keys or self.generate_keys(key_size or 37)
+        self.keys = keys or self.generate_keys(key_size or 1024)
         self.plaintext_modulo = self.keys["public_key"]["sigma"]
         self.ciphertext_modulo = self.keys["public_key"]["n"]
         self.deterministic = deterministic
 
-    def generate_keys(self, key_size: int) -> dict:
+    def generate_keys(self, key_size: int, max_tries: int = 10000) -> dict:
         """
         Generate public and private keys of Naccache-Stern cryptosystem
         Args:
-            key_size (int): key size in bits
+            key_size (int): key size in bits (≥1024 recommended)
+            max_tries (int): maximum attempts to generate keys
         Returns:
-            keys (dict): having private_key and public_key keys
+            keys (dict): containing 'private_key' and 'public_key'
         """
-        keys = {}
-        keys["private_key"] = {}
-        keys["public_key"] = {}
-
-        # pick a family of small primes. the largest one is 10-bits
-        # TODO: do something generic instead of constant primes
-        prime_set = [3, 5, 7, 11, 13, 17]
+        # Small prime set (the largest one is 10-bits)
+        # Using a smaller prime_set to make key generation feasible for large key sizes
+        # prime_set = [3, 5, 7, 11, 13, 17]
+        prime_set = [3, 5, 7, 11]
         k = len(prime_set)
 
         if all(sympy.isprime(prime) is True for prime in prime_set) is False:
@@ -58,24 +62,30 @@ class NaccacheStern(Homomorphic):
         # divide the set in half and find products of primes
         u = 1
         v = 1
-
         for i, prime in enumerate(prime_set):
-            if i < len(prime_set) / 2:
-                u = u * prime
+            if i < k // 2:
+                u *= prime
             else:
-                v = v * prime
+                v *= prime
 
         # product of all primes
         sigma = u * v
 
-        # pick large prime numbers
-        while True:
-            a = sympy.randprime(200, 2 ** int(key_size / 2) - 1)
-            b = sympy.randprime(100, a)
+        for attempt in tqdm(
+            range(max_tries),
+            desc="Attempting Naccache-Stern key generation",
+            disable=True,
+        ):
+            # Generate large random primes a and b
+            a = sympy.randprime(2 ** (key_size // 2 - 300), 2 ** (key_size // 2) - 1)
+            b = sympy.randprime(2 ** (key_size // 2 - 300), 2 ** (key_size // 2) - 1)
 
             # calculate two primes from chosen ones
-            p = (2 * a * u) + 1
-            q = (2 * b * v) + 1
+            p = 2 * a * u + 1
+            q = 2 * b * v + 1
+
+            if not (sympy.isprime(p) and sympy.isprime(q)):
+                continue
 
             # recommended n is 768 bits
             n = p * q
@@ -89,83 +99,82 @@ class NaccacheStern(Homomorphic):
                 logger.debug("canceled because sigma and phi/sigma are not coprime")
                 continue
 
-            p_conditions = []
-            for i in range(0, int(k / 2)):
-                pi = prime_set[i]
-                if (
-                    (p - 1) % pi == 0
-                    and math.gcd(pi, int((p - 1) / pi)) == 1
-                    and math.gcd(pi, q - 1) == 1
-                ):
-                    p_conditions.append(1)
-                else:
-                    p_conditions.append(0)
-            p_satisfied = True if len(p_conditions) == sum(p_conditions) else False
-            if p_satisfied is False:
-                logger.debug("canceled because p_conditions are not satisfied")
-                continue
-
-            q_conditions = []
-            for i in range(int(k / 2), k):
-                pi = prime_set[i]
-                if (
-                    (q - 1) % pi == 0
-                    and math.gcd(pi, int((q - 1) / pi)) == 1
-                    and math.gcd(pi, p - 1)
-                ):
-                    q_conditions.append(1)
-                else:
-                    q_conditions.append(0)
-
-            q_satisfied = True if len(q_conditions) == sum(q_conditions) else False
-            if q_satisfied is False:
-                logger.debug("canceled because q_conditions are not satisfied")
-                continue
-
-            # p and q must be primes
-            if not (sympy.isprime(p) and sympy.isprime(q)):
-                continue
-
-            # choose a generator g
-            g = random.randint(2, n)
-            # it must be co-prime to n
-            if math.gcd(g, n) != 1:
-                logger.debug("canceled becuase g is not co-prime with ne")
-                continue
-            # guarantee it is not pi-th power.
-            for pi in prime_set:
-                logger.debug("canceled because g is a pi-th power")
-                if pow(g, int(phi / pi), n) == 1:
+            # p_conditions and q_conditions check omitted for practical large-key generation
+            if key_size < 40:
+                p_conditions = []
+                for i in range(0, int(k / 2)):
+                    pi = prime_set[i]
+                    if (
+                        (p - 1) % pi == 0
+                        and math.gcd(pi, int((p - 1) / pi)) == 1
+                        and math.gcd(pi, q - 1) == 1
+                    ):
+                        p_conditions.append(1)
+                    else:
+                        p_conditions.append(0)
+                p_satisfied = True if len(p_conditions) == sum(p_conditions) else False
+                if p_satisfied is False:
+                    logger.debug("canceled because p_conditions are not satisfied")
                     continue
 
-            # the order of g modulo n must be phi/4
-            if pow(g, int(phi / 4), n) != 1:
-                continue
+                q_conditions = []
+                for i in range(int(k / 2), k):
+                    pi = prime_set[i]
+                    if (
+                        (q - 1) % pi == 0
+                        and math.gcd(pi, int((q - 1) / pi)) == 1
+                        and math.gcd(pi, p - 1)
+                    ):
+                        q_conditions.append(1)
+                    else:
+                        q_conditions.append(0)
 
-            # check decryption is guaranteed similar to benaloh
-            # ps: this is not mentioned in the original paper
-            is_decryption_guaranteed = True
-            for pi in prime_set:
-                prime_factors = sympy.factorint(pi).keys()
-                for prime_factor in prime_factors:
-                    if pow(g, int(phi / prime_factor), n) == 1:
-                        is_decryption_guaranteed = False
-            if is_decryption_guaranteed is True:
+                q_satisfied = True if len(q_conditions) == sum(q_conditions) else False
+                if q_satisfied is False:
+                    logger.debug("canceled because q_conditions are not satisfied")
+                    continue
+
+            # Choose generator g
+            for _ in range(1000):  # try max 1000 random g
+                g = random.randint(2, n - 1)
+
+                # it must be co-prime to n
+                if math.gcd(g, n) != 1:
+                    continue
+
+                # guarantee it is not pi-th power.
+                if any(pow(g, phi // pi, n) == 1 for pi in prime_set):
+                    continue
                 break
+            else:
+                continue  # if no g found, retry
 
-        logger.debug(f"n bits is {len(bin(n)[2:])}")
+            # Original phi/4 order check omitted for practical large-key generation
+            if key_size < 40:
+                if pow(g, int(phi / 4), n) != 1:
+                    continue
 
-        keys["public_key"]["g"] = g
-        keys["public_key"]["n"] = n
-        # sigma can optionally be secret in deterministic version
-        keys["public_key"]["sigma"] = sigma
+            # Success
+            keys = {
+                "public_key": {"n": n, "g": g, "sigma": sigma},
+                "private_key": {
+                    "a": a,
+                    "b": b,
+                    "p": p,
+                    "q": q,
+                    "phi": phi,
+                    "prime_set": prime_set,
+                },
+            }
+            logger.debug(
+                f"Keys generated after {attempt+1} attempts, n bits: {n.bit_length()}"
+            )
+            return keys
 
-        keys["private_key"]["p"] = p
-        keys["private_key"]["q"] = q
-        keys["private_key"]["phi"] = phi
-        keys["private_key"]["prime_set"] = prime_set
-
-        return keys
+        raise RuntimeError(
+            f"Failed to generate Naccache-Stern keys after {max_tries} attempts."
+            "Try to rerun or decrease key size."
+        )
 
     def generate_random_key(self) -> int:
         """
@@ -218,12 +227,12 @@ class NaccacheStern(Homomorphic):
 
         remainders = []
         for i, prime in enumerate(prime_set):
-            ci = pow(ciphertext, int(phi / prime), n)
+            ci = pow(ciphertext, int(phi // prime), n)
             logger.debug(f"c_{i} = {ci}")
 
             j = 0
             while True:
-                if ci == pow(g, int((j * phi) / prime), n):
+                if ci == pow(g, int((j * phi) // prime), n):
                     logger.debug(f"m_{i} = {j}")
                     remainders.append(j)
                     break

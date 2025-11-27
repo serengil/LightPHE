@@ -6,6 +6,7 @@ import math
 # 3rd party dependencies
 import sympy
 from sympy import jacobi_symbol
+from tqdm import tqdm
 
 # project dependencies
 from lightphe.models.Homomorphic import Homomorphic
@@ -29,51 +30,53 @@ class GoldwasserMicali(Homomorphic):
                 set this to None if you want to generate random keys.
             key_size (int): key size in bits
         """
-        # key size should be several hundred bits or more
-        self.keys = keys or self.generate_keys(key_size or 100)
+
+        self.keys = keys or self.generate_keys(key_size or 1024)
         self.ciphertext_modulo = self.keys["public_key"]["n"]
         # TODO: not sure about the plaintext modulo
         self.plaintext_modulo = self.keys["public_key"]["n"]
 
-    def generate_keys(self, key_size: int) -> dict:
+    def generate_keys(self, key_size: int, max_tries: int = 10000) -> dict:
         """
         Generate public and private keys of Goldwasser-Micali cryptosystem
         Args:
             key_size (int): key size in bits
+            max_tries (int): maximum number of tries to generate keys
         Returns:
             keys (dict): having private_key and public_key keys
         """
-        keys = {}
-        keys["private_key"] = {}
-        keys["public_key"] = {}
+        for attempt in tqdm(range(max_tries), disable=True):
+            # pick large random primes p and q
+            p = sympy.randprime(2 ** (key_size // 2 - 100), 2 ** (key_size // 2) - 1)
+            q = sympy.randprime(2 ** (key_size // 2 - 100), 2 ** (key_size // 2) - 1)
 
-        # picking a prime p
-        p = sympy.randprime(200, 2 ** int(key_size / 2) - 1)
-        assert isinstance(p, int)
+            # to prevent factorizatin attacks, it is recommended that n should be
+            # several hundred bits or more
+            n = p * q
 
-        # picking a prime q
-        q = sympy.randprime(200, 2 ** int(key_size / 2) - 1)
-        assert isinstance(q, int)
+            # find quadratic non-residue x
+            for _ in range(1000):  # try max 1000 random x
+                x = random.randint(2, n - 1)
+                if math.gcd(x, n) != 1:
+                    continue
+                if jacobi_symbol(x, p) == -1 and jacobi_symbol(x, q) == -1:
+                    break
+            else:
+                # # If no suitable x is found after 1000 tries, discard the current p–q pair and retry
+                continue
 
-        n = p * q
+            keys = {
+                "public_key": {"n": n, "x": x},
+                "private_key": {"p": p, "q": q},
+            }
 
-        # find non-residue x
-        while True:
-            x = random.randint(1, n - 1)
-            if (
-                math.gcd(x, n) == 1
-                and jacobi_symbol(x, p) == -1
-                and jacobi_symbol(x, q) == -1
-            ):
-                break
+            logger.debug(
+                f"Goldwasser-Micali keys generated after {attempt+1} attempts, n bits: {n.bit_length()}"
+            )
 
-        keys["public_key"]["n"] = n
-        keys["public_key"]["x"] = x
+            return keys
 
-        keys["private_key"]["p"] = p
-        keys["private_key"]["q"] = q
-
-        return keys
+        raise RuntimeError(f"Failed to generate keys after {max_tries} attempts")
 
     def generate_random_key(self) -> int:
         """
