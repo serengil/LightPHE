@@ -24,7 +24,12 @@ def test_key_restoration():
     for algorithm_name in algorithms:
         private_key_file = f"/tmp/{algorithm_name}_secret.json"
         public_key_file = f"/tmp/{algorithm_name}_public.json"
-        onprem_cs = LightPHE(algorithm_name=algorithm_name)
+
+        # unfortunately Naccache-Stern key generation isn't guaranteed to be completed
+        if algorithm_name == "Naccache-Stern":
+            onprem_cs = LightPHE(algorithm_name=algorithm_name, key_size=37)
+        else:
+            onprem_cs = LightPHE(algorithm_name=algorithm_name)
         onprem_cs.export_keys(private_key_file)
         onprem_cs.export_keys(public_key_file, public=True)
         del onprem_cs
@@ -57,4 +62,4 @@ def test_key_restoration():
             assert onprem_cs.decrypt(c3) == m1 + m2
             assert onprem_cs.decrypt(c4) == k * m1
 
-        logger.info(f"✅ Key restoration tesst succeeded for {algorithm_name}")
+        logger.info(f"✅ Key restoration test succeeded for {algorithm_name}")
