@@ -16,7 +16,9 @@ def test_benaloh():
 
     # supported homomorphic operations
     assert bn.decrypt(bn.add(c1, c2)) == (m1 + m2) % bn.plaintext_modulo
-    assert bn.decrypt(bn.multiply_by_constant(c1, m2)) == (m1 * m2) % bn.plaintext_modulo
+    assert (
+        bn.decrypt(bn.multiply_by_constant(c1, m2)) == (m1 * m2) % bn.plaintext_modulo
+    )
 
     # unsupported homomorphic operations
     with pytest.raises(ValueError):
@@ -36,7 +38,11 @@ def test_benaloh():
 def test_api():
     from lightphe import LightPHE
 
-    cs = LightPHE(algorithm_name="Benaloh")
+    cs = LightPHE(algorithm_name="Benaloh")  # , key_size=50)
+
+    n = cs.cs.keys["public_key"]["n"]
+    r = cs.cs.keys["public_key"]["r"]
+    security_level = n.bit_length()
 
     m1 = 17
     m2 = 21
@@ -48,6 +54,7 @@ def test_api():
     assert cs.decrypt(c1 + c2) == m1 + m2
 
     # homomorphic scalar multiplication
+    assert m1 * m2 < r, "Plain multiplication result exceeds plaintext modulo"
     assert cs.decrypt(c1 * m2) == m1 * m2
     assert cs.decrypt(c2 * m1) == m1 * m2
     assert cs.decrypt(m2 * c1) == m1 * m2
@@ -60,4 +67,4 @@ def test_api():
     with pytest.raises(ValueError):
         _ = c1 ^ c2
 
-    logger.info("✅ Benaloh api test succeeded")
+    logger.info(f"✅ Benaloh api test succeeded ({security_level}-bit security level)")

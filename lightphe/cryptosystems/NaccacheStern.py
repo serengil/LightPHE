@@ -173,7 +173,7 @@ class NaccacheStern(Homomorphic):
 
         raise RuntimeError(
             f"Failed to generate Naccache-Stern keys after {max_tries} attempts."
-            "Try to rerun or decrease key size."
+            "Please try to rerun."
         )
 
     def generate_random_key(self) -> int:

@@ -1,7 +1,13 @@
+# built-in dependencies
 import random
 from math import gcd
 from typing import Optional
+
+# 3rd party dependencies
 import sympy
+from tqdm import tqdm
+
+# project dependencies
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
 
@@ -17,11 +23,11 @@ class Benaloh(Homomorphic):
             key_size (int): key size in bits. default is less than other cryptosystems
                 because decryption of Benaloh requires to solve DLP :/
         """
-        self.keys = keys or self.generate_keys(key_size)
+        self.keys = keys or self.generate_keys(key_size or 1024)
         self.plaintext_modulo = self.keys["public_key"]["r"]
         self.ciphertext_modulo = self.keys["public_key"]["n"]
 
-    def generate_keys(self, key_size: int) -> dict:
+    def generate_keys(self, key_size: int, max_tries: int = 10000) -> dict:
         """
         Generate public and private keys of Paillier cryptosystem
         Args:
@@ -34,21 +40,20 @@ class Benaloh(Homomorphic):
         keys["public_key"] = {}
 
         x = 1
-        while x == 1:
+        for _ in tqdm(range(max_tries), disable=True):
             # picking a prime p
-            p = sympy.randprime(200, 2**(key_size or 50))
-            # benaloh requires to solve DLP in decryption, so small key is recommended
-
-            # picking a prime q
-            q = sympy.randprime(100, p)
+            p = sympy.randprime(2 ** (key_size // 2 - 300), 2 ** (key_size // 2) - 1)
+            q = sympy.randprime(2 ** (key_size // 2 - 300), 2 ** (key_size // 2) - 1)
 
             n = p * q
             phi = (p - 1) * (q - 1)
 
-            r = p - 1
-            while gcd(q - 1, r) != 1:
-                r = int(r / gcd(q - 1, r))
+            # generate block size r
+            # TODO: consider to get limit from user
+            r = sympy.randprime(1000, 2000)
+            # plaintexts will be allowed in [0, r-1]
 
+            # block size r checks
             if not (
                 # r should divide p-1 without remainder
                 (p - 1) % r == 0
@@ -68,15 +73,21 @@ class Benaloh(Homomorphic):
             decryption_guaranteed = True
             for prime_factor in prime_factors:
                 # none of r's prime factor should satisfy the condition
-                if pow(y, int(phi / prime_factor), n) == 1:
+                if pow(y, int(phi // prime_factor), n) == 1:
                     decryption_guaranteed = False
 
             if decryption_guaranteed is False:
+                print("decryption not guaranteed, retrying...")
                 continue
 
-            x = pow(y, int(phi / r), n)
+            x = pow(y, int(phi // r), n)
             if x != 1:
                 break
+        else:
+            raise RuntimeError(
+                f"Failed to generate Benaloh keys after {max_tries} attempts."
+                "Please try to rerun."
+            )
 
         keys["public_key"]["y"] = y
         keys["public_key"]["r"] = r
@@ -117,10 +128,11 @@ class Benaloh(Homomorphic):
         u = random_key or self.generate_random_key()
 
         if plaintext > r:
+            plaintext_original = plaintext * 1
             plaintext = plaintext % r
-            logger.debug(
-                f"Benaloh lets you to encrypt messages in [0, {r=}]."
-                f"But your plaintext exceeds this limit."
+            logger.info(
+                f"Benaloh lets you to encrypt messages in [0, {r=})."
+                f"But your plaintext {plaintext_original} exceeds this limit."
                 f"New plaintext is {plaintext}"
             )
 
@@ -144,7 +156,7 @@ class Benaloh(Homomorphic):
         phi = self.keys["private_key"]["phi"]
         x = self.keys["private_key"]["x"]
 
-        a = pow(ciphertext, int(phi / r), n)
+        a = pow(ciphertext, int(phi // r), n)
 
         md = 0
         while True:
@@ -184,7 +196,7 @@ class Benaloh(Homomorphic):
         n = self.keys["public_key"]["n"]
         if constant > self.plaintext_modulo:
             constant = constant % self.plaintext_modulo
-            logger.debug(
+            logger.info(
                 f"Benaloh can encrypt messages [1, {self.plaintext_modulo}]. "
                 f"Seems constant exceeded this limit. New constant is {constant}"
             )
