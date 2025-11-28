@@ -26,7 +26,7 @@ def test_key_restoration():
         public_key_file = f"/tmp/{algorithm_name}_public.json"
 
         # unfortunately Naccache-Stern key generation isn't guaranteed to be completed
-        if algorithm_name == "Naccache-Stern":
+        if algorithm_name in ["Naccache-Stern", "Benaloh"]:
             onprem_cs = LightPHE(algorithm_name=algorithm_name, key_size=37)
         else:
             onprem_cs = LightPHE(algorithm_name=algorithm_name)

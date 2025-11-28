@@ -76,7 +76,10 @@ class GoldwasserMicali(Homomorphic):
 
             return keys
 
-        raise RuntimeError(f"Failed to generate keys after {max_tries} attempts")
+        raise RuntimeError(
+            f"Failed to generate Goldwasser-Micali keys after {max_tries} attempts."
+            "Please try to rerun."
+        )
 
     def generate_random_key(self) -> int:
         """
