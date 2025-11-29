@@ -15,19 +15,33 @@ logger = Logger(module="lightphe/cryptosystems/Benaloh.py")
 
 
 class Benaloh(Homomorphic):
-    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None):
+    def __init__(
+        self,
+        keys: Optional[dict] = None,
+        key_size: Optional[int] = None,
+        plaintext_limit: Optional[int] = None,
+    ):
         """
         Args:
             keys (dict): private - public key pair.
                 set this to None if you want to generate random keys.
-            key_size (int): key size in bits. default is less than other cryptosystems
-                because decryption of Benaloh requires to solve DLP :/
+            key_size (int): key size in bits.
+            plaintext_limit (int, optional): Upper bound for plaintext values.
+                If provided, r is set to the next prime greater than this value;
+                otherwise, r is chosen randomly from a default range.
         """
-        self.keys = keys or self.generate_keys(key_size or 1024)
+        self.keys = keys or self.generate_keys(
+            key_size=key_size or 1024, plaintext_limit=plaintext_limit
+        )
         self.plaintext_modulo = self.keys["public_key"]["r"]
         self.ciphertext_modulo = self.keys["public_key"]["n"]
 
-    def generate_keys(self, key_size: int, max_tries: int = 10000) -> dict:
+    def generate_keys(
+        self,
+        key_size: int,
+        max_tries: int = 10000,
+        plaintext_limit: Optional[int] = None,
+    ) -> dict:
         """
         Generate public and private keys of Paillier cryptosystem
         Args:
@@ -49,8 +63,10 @@ class Benaloh(Homomorphic):
             phi = (p - 1) * (q - 1)
 
             # generate block size r
-            # TODO: consider to get limit from user
-            r = sympy.randprime(1000, 2000)
+            if plaintext_limit is None:
+                r = sympy.randprime(1000, 2000)
+            else:
+                r = sympy.nextprime(plaintext_limit)
             # plaintexts will be allowed in [0, r-1]
 
             # block size r checks
@@ -58,7 +74,7 @@ class Benaloh(Homomorphic):
                 # r should divide p-1 without remainder
                 (p - 1) % r == 0
                 # r and (p - 1) / r must be coprimes
-                and gcd(r, int((p - 1) / r)) == 1
+                and gcd(r, int((p - 1) // r)) == 1
                 # r and q-1 must be coprimes
                 and gcd(r, q - 1) == 1
             ):
@@ -86,7 +102,7 @@ class Benaloh(Homomorphic):
         else:
             raise RuntimeError(
                 f"Failed to generate Benaloh keys after {max_tries} attempts."
-                "Please try to rerun."
+                f"Please try to rerun or consider to decrese {plaintext_limit=}."
             )
 
         keys["public_key"]["y"] = y

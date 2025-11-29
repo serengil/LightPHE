@@ -33,7 +33,11 @@ class GoldwasserMicali(Homomorphic):
 
         self.keys = keys or self.generate_keys(key_size or 1024)
         self.ciphertext_modulo = self.keys["public_key"]["n"]
-        # TODO: not sure about the plaintext modulo
+
+        # Plaintext can be any integer (even larger than n) because it is internally
+        # encrypted bit by bit. Internally, each bit uses modulo 2, but LightPHE expects
+        # integers, not bits. The original integer can be fully restored after decryption
+        # even if it is larger than n.
         self.plaintext_modulo = self.keys["public_key"]["n"]
 
     def generate_keys(self, key_size: int, max_tries: int = 10000) -> dict:

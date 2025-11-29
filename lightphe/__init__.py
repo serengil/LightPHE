@@ -9,10 +9,6 @@ import copy
 
 # 3rd party dependencies
 from tqdm import tqdm
-from lightecc.interfaces.elliptic_curve import EllipticCurvePoint
-from lightecc.forms.weierstrass import Weierstrass
-from lightecc.forms.edwards import TwistedEdwards
-from lightecc.forms.koblitz import Koblitz
 
 # project dependencies
 from lightphe.models.Homomorphic import Homomorphic
@@ -53,6 +49,7 @@ class LightPHE:
         precision: int = 5,
         form: Optional[str] = None,
         curve: Optional[str] = None,
+        plaintext_limit: Optional[int] = None,
     ):
         """
         Build LightPHE class
@@ -61,7 +58,7 @@ class LightPHE:
                 | Paillier | Damgard-Jurik | Okamoto-Uchiyama | Benaloh | Naccache-Stern
                 | Goldwasser-Micali
             keys (dict): optional private-public key pair
-            key_file (str): if keys are exported, you can load them into cryptosystem
+            key_file (str): if keys were exported already, you can load them into cryptosystem
             key_size (int): key size in bits
             precision (int): precision for homomorphic operations on tensors
             form (str): specifies the form of the elliptic curve.
@@ -73,8 +70,10 @@ class LightPHE:
                  - e.g. secp256k1 for weierstrass form
                  - e.g. k-409 for koblitz form
                 List of all available curves:
-                    github.com/serengil/LightPHE/blob/master/lightphe/elliptic_curve_forms/README.md
+                    https://github.com/serengil/LightECC?tab=readme-ov-file#supported-curves
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
+            plaintext_limit (int, optional): Upper bound for plaintext values.
+                This parameter is only used if `algorithm_name` is 'Benaloh'.
         """
         self.algorithm_name = algorithm_name
         self.precision = precision
@@ -90,6 +89,7 @@ class LightPHE:
             key_size=key_size,
             form=form,
             curve=curve,
+            plaintext_limit=plaintext_limit,
         )
 
     def __build_cryptosystem(
@@ -99,6 +99,7 @@ class LightPHE:
         key_size: Optional[int] = None,
         form: Optional[str] = None,
         curve: Optional[str] = None,
+        plaintext_limit: Optional[int] = None,
     ) -> Union[
         RSA,
         ElGamal,
@@ -148,7 +149,7 @@ class LightPHE:
         elif algorithm_name == Algorithm.OkamotoUchiyama:
             cs = OkamotoUchiyama(keys=keys, key_size=key_size)
         elif algorithm_name == Algorithm.Benaloh:
-            cs = Benaloh(keys=keys, key_size=key_size)
+            cs = Benaloh(keys=keys, key_size=key_size, plaintext_limit=plaintext_limit)
         elif algorithm_name == Algorithm.NaccacheStern:
             cs = NaccacheStern(keys=keys, key_size=key_size)
         elif algorithm_name == Algorithm.GoldwasserMicali:
