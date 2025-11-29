@@ -25,6 +25,7 @@ class NaccacheStern(Homomorphic):
         keys: Optional[dict] = None,
         key_size: Optional[int] = None,
         deterministic: bool = False,
+        max_tries: int = 10000,
     ):
         """
         Args:
@@ -34,9 +35,12 @@ class NaccacheStern(Homomorphic):
                 decryption requires to solve DLP.
             deterministic (boolean): deterministic or probabilistic version of
                 cryptosystem
+            max_tries (int): maximum attempts to generate keys
         """
         # Naccache-Stern requires to solve DLP in decryption, so small key is recommended
-        self.keys = keys or self.generate_keys(key_size or 1024)
+        self.keys = keys or self.generate_keys(
+            key_size=key_size or 1024, max_tries=max_tries
+        )
         self.plaintext_modulo = self.keys["public_key"]["sigma"]
         self.ciphertext_modulo = self.keys["public_key"]["n"]
         self.deterministic = deterministic

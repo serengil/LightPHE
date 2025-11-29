@@ -23,15 +23,23 @@ class GoldwasserMicali(Homomorphic):
     Ref: sefiks.com/2023/10/27/a-step-by-step-partially-homomorphic-encryption-example-with-goldwasser-micali-in-python/
     """
 
-    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None):
+    def __init__(
+        self,
+        keys: Optional[dict] = None,
+        key_size: Optional[int] = None,
+        max_tries: int = 10000,
+    ):
         """
         Args:
             keys (dict): private - public key pair.
                 set this to None if you want to generate random keys.
             key_size (int): key size in bits
+            max_tries (int): maximum attempts to generate keys
         """
 
-        self.keys = keys or self.generate_keys(key_size or 1024)
+        self.keys = keys or self.generate_keys(
+            key_size=key_size or 1024, max_tries=max_tries
+        )
         self.ciphertext_modulo = self.keys["public_key"]["n"]
 
         # Plaintext can be any integer (even larger than n) because it is internally

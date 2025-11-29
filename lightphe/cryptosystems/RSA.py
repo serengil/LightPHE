@@ -14,7 +14,13 @@ class RSA(Homomorphic):
     Ref: https://sefiks.com/2023/03/06/a-step-by-step-partially-homomorphic-encryption-example-with-rsa-in-python/
     """
 
-    def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None, encrypt_with_public=True):
+    def __init__(
+        self,
+        keys: Optional[dict] = None,
+        key_size: Optional[int] = None,
+        encrypt_with_public=True,
+        max_tries: int = 10000,
+    ):
         """
         Args:
             keys (dict): private - public key pair.
@@ -26,17 +32,25 @@ class RSA(Homomorphic):
                 one can decrypt it with your public (digital signatures).
                 Set this arg to True if you want to do encryption with public key e,
                 and do decryption with private key d.
+            max_tries (int): maximum attempts to generate keys.
         """
-        self.keys = keys or self.generate_keys(key_size or 1024)
+        self.keys = keys or self.generate_keys(
+            key_size=key_size or 1024, max_tries=max_tries
+        )
         self.plaintext_modulo = self.keys["public_key"]["n"]
         self.ciphertext_modulo = self.keys["public_key"]["n"]
         self.encrypt_with_public = encrypt_with_public
 
-    def generate_keys(self, key_size: int) -> dict:
+    def generate_keys(
+        self,
+        key_size: int,
+        max_tries: int = 10000,
+    ) -> dict:
         """
         Generate public and private keys of RSA cryptosystem
         Args:
             key_size (int): key size in bits
+            max_tries (int): maximum number of tries to generate keys
         Returns:
             keys (dict): having private_key and public_key keys
         """
@@ -44,33 +58,35 @@ class RSA(Homomorphic):
         keys["private_key"] = {}
         keys["public_key"] = {}
 
-        while True:
-            try:
-                # picking a prime modulus p and q
-                p = sympy.randprime(200, 2 ** int(key_size / 2) - 1)
-                q = sympy.randprime(200, 2 ** int(key_size / 2) - 1)
+        for _ in range(max_tries):
+            # picking a prime modulus p and q
+            p = sympy.randprime(2 ** (key_size // 2 - 300), 2 ** (key_size // 2) - 1)
+            q = sympy.randprime(2 ** (key_size // 2 - 300), 2 ** (key_size // 2) - 1)
 
-                n = p * q
-                phi = (p - 1) * (q - 1)
+            if p == q:
+                continue
 
-                # select public exponent e
-                while True:
-                    e = random.randint(1, phi - 1)
-                    if math.gcd(e, n) == 1:
-                        break
+            n = p * q
+            phi = (p - 1) * (q - 1)
 
-                d = pow(e, -1, phi)
-                break
-            except:
-                pass
-
-        keys["public_key"]["n"] = n
-        keys["public_key"]["e"] = e
-        keys["private_key"]["d"] = d
-        return keys
+            # select public exponent e
+            for _ in range(1000):  # try max 1000 random e
+                e = random.randint(2, phi - 1)
+                if math.gcd(e, phi) == 1:
+                    d = pow(e, -1, phi)
+                    return {
+                        "public_key": {"n": n, "e": e},
+                        "private_key": {"d": d},
+                    }
+        raise ValueError(f"Failed to generate RSA keys after {max_tries} tries")
 
     def generate_random_key(self) -> int:
-        pass
+        """
+        RSA does not require random key for encryption, still return one
+        Returns:
+            random key (int): one time random key for encryption
+        """
+        return random.randint(1, self.keys["public_key"]["n"] - 1)
 
     def encrypt(self, plaintext: int) -> int:
         """

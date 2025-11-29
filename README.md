@@ -189,12 +189,16 @@ c4 = c1 + c2
 c5 = 3 * c1
 
 # perform element-wise multiplication between an encrypted embedding and plain embedding
-c6 = c1 * t3  # Encrypted-plaintext multiplication
+c6 = c1 * t3
+
+# encrypted dot product (likewise cosine similarity)
+c7 = c1 @ t3
 
 # proof of work
 assert np.allclose(cs.decrypt(c4), [a + b for a, b in zip(t1, t2)], rtol=1e-2)
 assert np.allclose(cs.decrypt(c5), [a * 3 for a in t1], rtol=1e-2)
 assert np.allclose(cs.decrypt(c6), [a * b for a, b in zip(t1, t3)], rtol=1e-2)
+assert np.allclose(cs.decrypt(c7)[0], sum([a * b for a, b in zip(t1, t3)]), rtol=1e-2)
 ```
 
 # Contributing

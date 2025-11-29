@@ -50,6 +50,7 @@ class LightPHE:
         form: Optional[str] = None,
         curve: Optional[str] = None,
         plaintext_limit: Optional[int] = None,
+        max_tries: int = 10000,
     ):
         """
         Build LightPHE class
@@ -74,6 +75,10 @@ class LightPHE:
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
             plaintext_limit (int, optional): Upper bound for plaintext values.
                 This parameter is only used if `algorithm_name` is 'Benaloh'.
+            max_tries (int): maximum attempts to generate keys. Default is 10000.
+                RSA, Benaloh, Naccache-Stern and Goldwasser-Micali algorithms
+                need multiple attempts to generate valid keys. Will be discarded
+                for other algorithms.
         """
         self.algorithm_name = algorithm_name
         self.precision = precision
@@ -90,6 +95,7 @@ class LightPHE:
             form=form,
             curve=curve,
             plaintext_limit=plaintext_limit,
+            max_tries=max_tries,
         )
 
     def __build_cryptosystem(
@@ -100,6 +106,7 @@ class LightPHE:
         form: Optional[str] = None,
         curve: Optional[str] = None,
         plaintext_limit: Optional[int] = None,
+        max_tries: int = 10000,
     ) -> Union[
         RSA,
         ElGamal,
@@ -128,12 +135,18 @@ class LightPHE:
                  - ed25519, ed448 for edwards form
                  - secp256k1 for weierstrass form
                 This parameter is only used if `algorithm_name` is 'EllipticCurve-ElGamal'.
+            plaintext_limit (int, optional): Upper bound for plaintext values.
+                This parameter is only used if `algorithm_name` is 'Benaloh'.
+            max_tries (int): maximum attempts to generate keys. Default is 10000.
+                RSA, Benaloh, Naccache-Stern and Goldwasser-Micali algorithms
+                need multiple attempts to generate valid keys. Will be discarded
+                for other algorithms.
         Returns
             cryptosystem
         """
         # build cryptosystem
         if algorithm_name == Algorithm.RSA:
-            cs = RSA(keys=keys, key_size=key_size)
+            cs = RSA(keys=keys, key_size=key_size, max_tries=max_tries)
         elif algorithm_name == Algorithm.ElGamal:
             cs = ElGamal(keys=keys, key_size=key_size)
         elif algorithm_name == Algorithm.ExponentialElGamal:
@@ -149,11 +162,16 @@ class LightPHE:
         elif algorithm_name == Algorithm.OkamotoUchiyama:
             cs = OkamotoUchiyama(keys=keys, key_size=key_size)
         elif algorithm_name == Algorithm.Benaloh:
-            cs = Benaloh(keys=keys, key_size=key_size, plaintext_limit=plaintext_limit)
+            cs = Benaloh(
+                keys=keys,
+                key_size=key_size,
+                plaintext_limit=plaintext_limit,
+                max_tries=max_tries,
+            )
         elif algorithm_name == Algorithm.NaccacheStern:
-            cs = NaccacheStern(keys=keys, key_size=key_size)
+            cs = NaccacheStern(keys=keys, key_size=key_size, max_tries=max_tries)
         elif algorithm_name == Algorithm.GoldwasserMicali:
-            cs = GoldwasserMicali(keys=keys, key_size=key_size)
+            cs = GoldwasserMicali(keys=keys, key_size=key_size, max_tries=max_tries)
         else:
             raise ValueError(f"unimplemented algorithm - {algorithm_name}")
         return cs
