@@ -20,6 +20,7 @@ class Benaloh(Homomorphic):
         keys: Optional[dict] = None,
         key_size: Optional[int] = None,
         plaintext_limit: Optional[int] = None,
+        max_tries: int = 10000,
     ):
         """
         Args:
@@ -29,9 +30,12 @@ class Benaloh(Homomorphic):
             plaintext_limit (int, optional): Upper bound for plaintext values.
                 If provided, r is set to the next prime greater than this value;
                 otherwise, r is chosen randomly from a default range.
+            max_tries (int): maximum attempts to generate keys.
         """
         self.keys = keys or self.generate_keys(
-            key_size=key_size or 1024, plaintext_limit=plaintext_limit
+            key_size=key_size or 1024,
+            plaintext_limit=plaintext_limit,
+            max_tries=max_tries,
         )
         self.plaintext_modulo = self.keys["public_key"]["r"]
         self.ciphertext_modulo = self.keys["public_key"]["n"]
