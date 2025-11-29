@@ -15,7 +15,11 @@ class Homomorphic(ABC):
 
     @abstractmethod
     def generate_keys(
-        self, key_size: int, s: Optional[int] = None, max_retries: Optional[int] = None
+        self,
+        key_size: int,
+        s: Optional[int] = None,
+        max_retries: Optional[int] = None,
+        plaintext_limit: Optional[int] = None,
     ) -> dict:
         pass
 
