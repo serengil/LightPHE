@@ -113,7 +113,7 @@ assert cs.decrypt(c3) == m1 + m2
 assert cs.decrypt(c4) == k * m1
 ```
 
-On the other hand, if you adopt a multiplicatively homomorphic cryptosyste (e.g. RSA or ElGamal), you can multiply ciphertexts without revealing the private key or the plaintext.
+On the other hand, if you adopt a multiplicatively homomorphic cryptosystem (e.g. RSA or ElGamal), you can multiply ciphertexts without revealing the private key or the plaintext.
 
 ```python
 # build a multiplicatively homomorphic cryptosystem
@@ -136,7 +136,7 @@ assert cs.decrypt(c3) == m1 * m2
 
 ### Ciphertext Regeneration
 
-Similar to the most of additively homomorphic algorithms, Paillier lets you to regenerate ciphertext while you are not breaking its plaintext restoration. You may consider to do this re-generation many times to have stronger ciphertexts.
+The most of additively homomorphic algorithms allow you to regenerate ciphertext while you are not breaking its plaintext restoration. You may consider to do this re-generation many times to have stronger ciphertexts.
 
 ```python
 c1_prime = cs.regenerate_ciphertext(c1)
@@ -147,7 +147,7 @@ assert cs.decrypt(c1) == m1
 
 ### Elliptic Curve Cryptography
 
-ECC is a powerful public-key cryptosystem based on the algebraic structure of elliptic curves over finite fields. The library supports 3 elliptic curve forms (weierstrass, edwards and koblitz) and 100+ standard elliptic curve configurations.
+ECC is a powerful public-key cryptosystem based on the algebraic structure of elliptic curves over finite fields. The library supports 3 elliptic curve forms (weierstrass (default), edwards and koblitz) and 100+ standard elliptic curve configurations.
 
 In LightPHE, the [Elliptic Curve ElGamal](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) scheme is implemented, offering a secure and efficient homomorphic encryption option.
 
@@ -155,7 +155,8 @@ In LightPHE, the [Elliptic Curve ElGamal](https://sefiks.com/2018/08/21/elliptic
 forms = ["weierstrass", "edwards", "koblitz"]
 phe = LightPHE(
     algorithm_name="EllipticCurve-ElGamal",
-    form=forms[1],
+    form="edwards",
+    # curve="ed448", # optinally you can specify the curve for given form
 )
 ```
 

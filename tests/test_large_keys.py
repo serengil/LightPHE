@@ -22,14 +22,15 @@ def test_large_keys():
     Benaloh | 1024 | 4.91 | 0.00 | 0.00 |0.01
     Benaloh | 2048 | 140.54 | 0.00 | 0.00 |0.03
     Benaloh | 3072 | 439.46 | 0.00 | 0.00 |0.08
+
+    Naccache-Stern | 1024 | 19.97 | 0.00 | 0.00 |0.06
     """
     algorithms = [
-        # "Naccache-Stern",
-        # "Goldwasser-Micali",
+        "Naccache-Stern",
+        "Goldwasser-Micali",
         "Benaloh",
     ]
-    # key_sizes = [1024, 2048, 3072, 7680]
-    key_sizes = [3072, 7680]
+    key_sizes = [1024, 2048, 3072, 7680]
 
     for key_size in key_sizes:
         for algorithm_name in algorithms:

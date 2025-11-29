@@ -34,7 +34,7 @@ from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
 
 logger = Logger(module="lightphe/__init__.py")
 
-VERSION = "0.0.18"
+VERSION = "0.0.19"
 
 
 class LightPHE:
