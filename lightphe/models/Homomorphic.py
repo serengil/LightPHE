@@ -2,8 +2,12 @@
 from typing import Optional, Union
 from abc import ABC, abstractmethod
 
+# 3rd party dependencies
+from lightecc.interfaces.elliptic_curve import EllipticCurvePoint
+
 # project dependencies
 from lightphe.models.Algorithm import Algorithm
+
 
 # Signature for supported cryptosystems
 
@@ -30,40 +34,59 @@ class Homomorphic(ABC):
     @abstractmethod
     def encrypt(
         self, plaintext: int, random_key: Union[Optional[int], Optional[list]] = None
-    ) -> Union[int, tuple, list]:
+    ) -> Union[int, tuple, list, EllipticCurvePoint]:
         pass
 
     @abstractmethod
-    def decrypt(self, ciphertext: Union[int, tuple, list]) -> int:
+    def decrypt(self, ciphertext: Union[int, tuple, list, EllipticCurvePoint]) -> int:
         pass
 
     def add(
-        self, ciphertext1: Union[int, tuple, list], ciphertext2: Union[int, tuple, list]
-    ) -> Union[int, tuple, list]:
+        self,
+        ciphertext1: Union[int, tuple, list, EllipticCurvePoint],
+        ciphertext2: Union[int, tuple, list, EllipticCurvePoint],
+    ) -> Union[int, tuple, list, EllipticCurvePoint]:
         raise ValueError(
             f"{self.get_algorithm_name()} is not homomorphic with respect to the addition"
         )
 
     def multiply(
-        self, ciphertext1: Union[int, tuple, list], ciphertext2: Union[int, tuple, list]
-    ) -> Union[int, tuple]:
+        self,
+        ciphertext1: Union[int, tuple, list, EllipticCurvePoint],
+        ciphertext2: Union[int, tuple, list, EllipticCurvePoint],
+    ) -> Union[int, tuple, list, EllipticCurvePoint]:
         raise ValueError(
             f"{self.get_algorithm_name()} is not homomorphic with respect to the multiplication"
         )
 
-    def xor(self, ciphertext1: list, ciphertext2: list) -> list:
+    def xor(
+        self,
+        ciphertext1: Union[int, tuple, list, EllipticCurvePoint],
+        ciphertext2: Union[int, tuple, list, EllipticCurvePoint],
+    ) -> Union[int, tuple, list, EllipticCurvePoint]:
         raise ValueError(
             f"{self.get_algorithm_name()} is not homomorphic with respect to the exclusive or"
         )
 
+    def homomorphic_and(
+        self,
+        ciphertext1: Union[int, tuple, list, EllipticCurvePoint],
+        ciphertext2: Union[int, tuple, list, EllipticCurvePoint],
+    ) -> Union[int, tuple, list, EllipticCurvePoint]:
+        raise ValueError(
+            f"{self.get_algorithm_name()} is not homomorphic with respect to the bitwise and"
+        )
+
     def multiply_by_constant(
-        self, ciphertext: Union[int, tuple, list], constant: int
-    ) -> int:
+        self, ciphertext: Union[int, tuple, list, EllipticCurvePoint], constant: int
+    ) -> Union[int, tuple, list, EllipticCurvePoint]:
         raise ValueError(
             f"{self.get_algorithm_name()} is not supporting multiplying ciphertext by a known constant"
         )
 
-    def reencrypt(self, ciphertext: Union[int, tuple, list]) -> Union[int, tuple, list]:
+    def reencrypt(
+        self, ciphertext: Union[int, tuple, list, EllipticCurvePoint]
+    ) -> Union[int, tuple, list, EllipticCurvePoint]:
         raise ValueError(f"{self.get_algorithm_name()} does not support re-encryption")
 
     def get_algorithm_name(self) -> str:

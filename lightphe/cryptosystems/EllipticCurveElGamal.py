@@ -166,8 +166,6 @@ class EllipticCurveElGamal(Homomorphic):
 
         return a.get_point(), b.get_point()
 
-
-
     def multiply_by_constant(self, ciphertext: tuple, constant: int) -> tuple:
         """
         Multiply a ciphertext with a plain constant.
@@ -190,3 +188,25 @@ class EllipticCurveElGamal(Homomorphic):
         Q_prime = Q * constant
 
         return P_prime.get_point(), Q_prime.get_point()
+
+    def reencrypt(self, ciphertext: tuple) -> tuple:
+        """
+        Re-encrypt a ciphertext with a new random key
+        Args:
+            ciphertext (tuple): c1 and c2
+        Returns:
+            ciphertext (tuple): new c1 and c2
+        """
+        r_prime = self.generate_random_key()
+
+        x, y = self.keys["public_key"]["Qa"]
+        Qa = EllipticCurvePoint(x=x, y=y, curve=self.ecc.curve)
+
+        # c1 and c2 as tuple of integers
+        c1, c2 = ciphertext
+        c1 = EllipticCurvePoint(x=c1[0], y=c1[1], curve=self.ecc.curve)
+        c2 = EllipticCurvePoint(x=c2[0], y=c2[1], curve=self.ecc.curve)
+
+        c1_prime = c1 + r_prime * self.ecc.G
+        c2_prime = c2 + r_prime * Qa
+        return c1_prime.get_point(), c2_prime.get_point()

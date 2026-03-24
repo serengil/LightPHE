@@ -28,13 +28,15 @@ from lightphe.cryptosystems.Benaloh import Benaloh
 from lightphe.cryptosystems.NaccacheStern import NaccacheStern
 from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
 from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
+from lightphe.cryptosystems.SanderYoungYung import SanderYoungYung
+from lightphe.cryptosystems.BonehGohNissim import BonehGohNissim
 
 
 # pylint: disable=eval-used, simplifiable-if-expression, too-few-public-methods
 
 logger = Logger(module="lightphe/__init__.py")
 
-VERSION = "0.0.20"
+VERSION = "0.0.21"
 
 
 class LightPHE:
@@ -57,7 +59,7 @@ class LightPHE:
         Args:
             algorithm_name (str): RSA | ElGamal | Exponential-ElGamal | EllipticCurve-ElGamal
                 | Paillier | Damgard-Jurik | Okamoto-Uchiyama | Benaloh | Naccache-Stern
-                | Goldwasser-Micali
+                | Goldwasser-Micali | Sander-Young-Yung | Boneh-Goh-Nissim
             keys (dict): optional private-public key pair
             key_file (str): if keys were exported already, you can load them into cryptosystem
             key_size (int): key size in bits
@@ -116,13 +118,15 @@ class LightPHE:
         Benaloh,
         NaccacheStern,
         EllipticCurveElGamal,
+        SanderYoungYung,
+        BonehGohNissim,
     ]:
         """
         Build a cryptosystem among partially homomorphic algorithms
         Args:
             algorithm_name (str): RSA | ElGamal | Exponential-ElGamal | EllipticCurve-ElGamal
                 | Paillier | Damgard-Jurik | Okamoto-Uchiyama | Benaloh | Naccache-Stern
-                | Goldwasser-Micali | Edwards-ElGamal
+                | Goldwasser-Micali | Edwards-ElGamal | Sander-Young-Yung | Boneh-Goh-Nissim
                 Default is Paillier.
             keys (dict): optional private-public key pair
             key_file (str): if keys are exported, you can load them into cryptosystem
@@ -172,6 +176,12 @@ class LightPHE:
             cs = NaccacheStern(keys=keys, key_size=key_size, max_tries=max_tries)
         elif algorithm_name == Algorithm.GoldwasserMicali:
             cs = GoldwasserMicali(keys=keys, key_size=key_size, max_tries=max_tries)
+        elif algorithm_name == Algorithm.SanderYoungYung:
+            cs = SanderYoungYung(
+                keys=keys, key_size=key_size, plaintext_limit=plaintext_limit
+            )
+        elif algorithm_name == Algorithm.BonehGohNissim:
+            cs = BonehGohNissim(keys=keys, key_size=key_size, max_tries=max_tries)
         else:
             raise ValueError(f"unimplemented algorithm - {algorithm_name}")
         return cs
