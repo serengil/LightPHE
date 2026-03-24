@@ -111,6 +111,19 @@ def test_api():
         c1 = cs.encrypt(plaintext=m1)
         c2 = cs.encrypt(plaintext=m2)
 
+        # proof of decryption
+        assert cs.decrypt(c1) == m1
+        assert cs.decrypt(c2) == m2
+
+        # proof of re-randomization
+        c1_prime = cs.cs.reencrypt(c1.value)
+        c2_prime = cs.cs.reencrypt(c2.value)
+
+        # they should have different point values but decrypt to the same plaintext
+        assert c1.value != c1_prime
+        assert cs.cs.decrypt(c1_prime) == m1
+        assert cs.cs.decrypt(c2_prime) == m2
+
         # homomorphic addition
         assert cs.decrypt(c1 + c2) == m1 + m2
         assert cs.decrypt(c1 * m2) == m1 * m2

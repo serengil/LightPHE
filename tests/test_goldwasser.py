@@ -20,6 +20,15 @@ def test_goldwasser():
     assert cs.decrypt(c1) == m1
     assert cs.decrypt(c2) == m2
 
+    # re-randomization
+    c1_prime = cs.reencrypt(c1)
+    c2_prime = cs.reencrypt(c2)
+
+    assert c1 != c1_prime
+    assert c2 != c2_prime
+    assert cs.decrypt(c1_prime) == m1
+    assert cs.decrypt(c2_prime) == m2
+
     # homomorphic operations
     assert cs.decrypt(cs.xor(c1, c2)) == m1 ^ m2
 

@@ -171,16 +171,6 @@ class GoldwasserMicali(Homomorphic):
         m_binary = "".join(m_binaries)
         return int(m_binary, 2)
 
-    def add(self, ciphertext1: list, ciphertext2: list) -> list:
-        raise ValueError(
-            "Goldwasser-Micali is not homomorphic with respect to the addition"
-        )
-
-    def multiply(self, ciphertext1: int, ciphertext2: int) -> int:
-        raise ValueError(
-            "Goldwasser-Micali is not homomorphic with respect to the multiplication"
-        )
-
     def xor(self, ciphertext1: List[int], ciphertext2: List[int]) -> List[int]:
         """
         Perform homomorphic xor on encrypted data.
@@ -211,3 +201,21 @@ class GoldwasserMicali(Homomorphic):
             ciphertext3.append((c1 * c2) % self.ciphertext_modulo)
 
         return ciphertext3
+
+    def reencrypt(self, ciphertext: List[int]) -> List[int]:
+        """
+        Re-encrypt a given ciphertext with Goldwasser-Micali
+        Args:
+            ciphertext (int): encrypted message
+        Returns:
+            ciphertext (int): re-encrypted message
+        """
+        n = self.keys["public_key"]["n"]
+
+        c_reencrypted = []
+        for ci in ciphertext:
+            ri = self.generate_random_key()
+            ci_reencrypted = (pow(ri, 2, n) * ci) % n
+            c_reencrypted.append(ci_reencrypted)
+
+        return c_reencrypted

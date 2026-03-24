@@ -23,6 +23,10 @@ def normalize_input(value: Union[int, float], modulo: Union[int, str]) -> int:
         # elliptic curve elgamal & koblitz curves
         result = value % int(modulo, 2)
     elif isinstance(value, int) and isinstance(modulo, int):
+        if value > modulo:
+            logger.warn(
+                f"Value {value} is greater than modulo {modulo}. Normalizing it to be in the range of modulo."
+            )
         result = value % modulo
     elif isinstance(value, float) and value >= 0:
         dividend, divisor = fractionize(value=value, modulo=modulo)

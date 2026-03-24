@@ -20,7 +20,7 @@
 
 <p align="center"><img src="https://raw.githubusercontent.com/serengil/LightPHE/master/icons/phi.png" width="200" height="240"></p>
 
-LightPHE is a lightweight partially homomorphic encryption library for python. It is a hybrid homomoprhic encryption library wrapping many schemes such as [`RSA`](https://sefiks.com/2023/03/06/a-step-by-step-partially-homomorphic-encryption-example-with-rsa-in-python/), [`ElGamal`](https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/), [`Exponential ElGamal`](https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/), [`Elliptic Curve ElGamal`](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) ([`Weierstrass`](https://sefiks.com/2016/03/13/the-math-behind-elliptic-curve-cryptography/), [`Koblitz`](sefiks.com/2016/03/13/the-math-behind-elliptic-curves-over-binary-field/) and [`Edwards`](https://sefiks.com/2018/12/19/a-gentle-introduction-to-edwards-curves/) forms), [`Paillier`](https://sefiks.com/2023/04/03/a-step-by-step-partially-homomorphic-encryption-example-with-paillier-in-python/), [`Damgard-Jurik`](https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-damgard-jurik-in-python/), [`Okamoto–Uchiyama`](https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-okamoto-uchiyama-in-python/), [`Benaloh`](https://sefiks.com/2023/10/06/a-step-by-step-partially-homomorphic-encryption-example-with-benaloh-in-python-from-scratch/), [`Naccache–Stern`](https://sefiks.com/2023/10/26/a-step-by-step-partially-homomorphic-encryption-example-with-naccache-stern-in-python/), [`Goldwasser–Micali`](https://sefiks.com/2023/10/27/a-step-by-step-partially-homomorphic-encryption-example-with-goldwasser-micali-in-python/).
+LightPHE is a lightweight partially homomorphic encryption library for python. It is a hybrid homomoprhic encryption library wrapping many schemes such as [`RSA`](https://sefiks.com/2023/03/06/a-step-by-step-partially-homomorphic-encryption-example-with-rsa-in-python/), [`ElGamal`](https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/), [`Exponential ElGamal`](https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/), [`Elliptic Curve ElGamal`](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) ([`Weierstrass`](https://sefiks.com/2016/03/13/the-math-behind-elliptic-curve-cryptography/), [`Koblitz`](sefiks.com/2016/03/13/the-math-behind-elliptic-curves-over-binary-field/) and [`Edwards`](https://sefiks.com/2018/12/19/a-gentle-introduction-to-edwards-curves/) forms), [`Paillier`](https://sefiks.com/2023/04/03/a-step-by-step-partially-homomorphic-encryption-example-with-paillier-in-python/), [`Damgard-Jurik`](https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-damgard-jurik-in-python/), [`Okamoto–Uchiyama`](https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-okamoto-uchiyama-in-python/), [`Benaloh`](https://sefiks.com/2023/10/06/a-step-by-step-partially-homomorphic-encryption-example-with-benaloh-in-python-from-scratch/), [`Naccache–Stern`](https://sefiks.com/2023/10/26/a-step-by-step-partially-homomorphic-encryption-example-with-naccache-stern-in-python/), [`Goldwasser–Micali`](https://sefiks.com/2023/10/27/a-step-by-step-partially-homomorphic-encryption-example-with-goldwasser-micali-in-python/), `Sander-Young-Yung`, `Boneh-Goh-Nissim`.
 
 # Partially vs Fully Homomorphic Encryption
 
@@ -51,18 +51,20 @@ from lightphe import LightPHE
 
 In summary, LightPHE is covering following algorithms and these are partially homomorphic with respect to the operations mentioned in the following table.
 
-| Algorithm | Multiplicatively<br>Homomorphic | Additively<br>Homomorphic | Scalar Multiplication | Exclusively<br>Homomorphic | Regeneration<br>of Ciphertext |
-| --- | --- | --- | --- | --- | --- |
-| RSA | ✅ | ❌ | ❌ | ❌ | ❌ |
-| ElGamal | ✅ | ❌ | ❌ | ❌ | ✅ |
-| Exponential ElGamal | ❌ | ✅ | ✅ | ❌ | ✅ |
-| Elliptic Curve ElGamal | ❌ | ✅ | ✅ | ❌ | ❌ |
-| Paillier | ❌ | ✅ | ✅ | ❌ | ✅ |
-| Damgard-Jurik | ❌ | ✅ | ✅ | ❌ | ✅ |
-| Benaloh | ❌ | ✅ | ✅ | ❌ | ✅ |
-| Naccache-Stern | ❌ | ✅ | ✅ | ❌ | ✅ |
-| Okamoto-Uchiyama | ❌ | ✅ | ✅ | ❌ | ✅ |
-| Goldwasser-Micali | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Algorithm | Multiplicatively<br>Homomorphic | Additively<br>Homomorphic | Scalar Multiplication | Bitwise-XOR Homomorphic | Bitwise-AND Homomorphic | Regeneration<br>of Ciphertext |
+| --- | --- | --- | --- | --- | --- | --- |
+| RSA | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| ElGamal | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Exponential ElGamal | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Elliptic Curve ElGamal | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Paillier | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Damgard-Jurik | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Benaloh | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Naccache-Stern | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Okamoto-Uchiyama | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Goldwasser-Micali | ❌ | ❌ | ❌ | ✅ | ❌ | ✅  |
+| Sander-Young-Yung | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Boneh-Goh-Nissim | 1️⃣ | ✅ | ✅ | ❌ | ❌ | ✅ |
 
 # Building cryptosystem
 
@@ -79,7 +81,9 @@ algorithms = [
   "Benaloh",
   "Naccache-Stern",
   "Goldwasser-Micali",
-  "EllipticCurve-ElGamal"
+  "EllipticCurve-ElGamal",
+  "Sander-Young-Yung",
+  "Boneh-Goh-Nissim",
 ]
 
 cs = LightPHE(algorithm_name = algorithms[0])

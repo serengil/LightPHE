@@ -10,6 +10,8 @@ from lightphe.cryptosystems.Benaloh import Benaloh
 from lightphe.cryptosystems.NaccacheStern import NaccacheStern
 from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
 from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
+from lightphe.cryptosystems.SanderYoungYung import SanderYoungYung
+from lightphe.cryptosystems.BonehGohNissim import BonehGohNissim
 from lightphe.commons import phe_utils
 from lightphe.commons.logger import Logger
 
@@ -51,6 +53,10 @@ class Ciphertext:
             cs = NaccacheStern(keys=keys)
         elif algorithm_name == Algorithm.GoldwasserMicali:
             cs = GoldwasserMicali(keys=keys)
+        elif algorithm_name == Algorithm.SanderYoungYung:
+            cs = SanderYoungYung(keys=keys)
+        elif algorithm_name == Algorithm.BonehGohNissim:
+            cs = BonehGohNissim(keys=keys)
         else:
             raise ValueError(f"unimplemented algorithm - {algorithm_name}")
 
@@ -133,6 +139,24 @@ class Ciphertext:
             raise ValueError("You must have public key to perform homomorphic xor")
 
         result = self.cs.xor(ciphertext1=self.value, ciphertext2=other.value)
+        return Ciphertext(
+            algorithm_name=self.algorithm_name, keys=self.keys, value=result
+        )
+
+    def __and__(self, other: "Ciphertext") -> "Ciphertext":
+        """
+        Perform homomorphic and
+        Args:
+            other (| Ciphertext): some other ciphertext
+        Returns
+            homomorphic and of ciphertexts
+        """
+        if self.cs.keys.get("public_key") is None:
+            raise ValueError("You must have public key to perform homomorphic and")
+
+        result = self.cs.homomorphic_and(
+            ciphertext1=self.value, ciphertext2=other.value
+        )
         return Ciphertext(
             algorithm_name=self.algorithm_name, keys=self.keys, value=result
         )

@@ -10,3 +10,5 @@ class Algorithm:
     Benaloh = "Benaloh"
     NaccacheStern = "Naccache-Stern"
     GoldwasserMicali = "Goldwasser-Micali"
+    SanderYoungYung = "Sander-Young-Yung"
+    BonehGohNissim = "Boneh-Goh-Nissim"
