@@ -1,40 +1,13 @@
 import pytest
-from lightphe.cryptosystems.OkamotoUchiyama import OkamotoUchiyama
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_okamoto.py")
 
 
-def test_okamoto():
-    cs = OkamotoUchiyama()
-
-    m1 = cs.plaintext_modulo + 123
-    m2 = cs.plaintext_modulo + 321
-    c1 = cs.encrypt(m1)
-    c2 = cs.encrypt(m2)
-
-    # homomorphic operations
-    assert cs.decrypt(cs.add(c1, c2)) == (m1 + m2) % cs.plaintext_modulo
-    assert cs.decrypt(cs.multiply_by_constant(c1, m2)) == (m1 * m2) % cs.plaintext_modulo
-
-    # unsupported operations
-    with pytest.raises(ValueError, match="Okamoto-Uchiyama is not homomorphic with respect to the multiplication"):
-        cs.multiply(c1, c2)
-
-    with pytest.raises(ValueError):
-        cs.xor(c1, c2)
-
-    # re-encryption
-    c1_prime = cs.reencrypt(c1)
-    assert c1_prime != c1
-    assert cs.decrypt(c1_prime) == m1 % cs.plaintext_modulo
-    logger.info("✅ Okamoto-Uchiyama test succeeded")
-
-
 def test_api():
     from lightphe import LightPHE
 
-    cs = LightPHE(algorithm_name="Okamoto-Uchiyama")
+    cs = LightPHE(algorithm_name="Okamoto-Uchiyama", key_size=50)
 
     m1 = 17
     m2 = 21

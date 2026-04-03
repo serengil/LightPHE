@@ -8,7 +8,7 @@ logger = Logger(module="tests/test_goldwasser.py")
 # pylint: disable=eval-used
 def test_private_available_after_export():
     target_file = "my_public_key.lphe"
-    cs = LightPHE(algorithm_name="RSA")
+    cs = LightPHE(algorithm_name="RSA", key_size=50)
     # we are dropping private key while exporting public key
     cs.export_keys(public=True, target_file=target_file)
     assert cs.cs.keys.get("private_key") is not None

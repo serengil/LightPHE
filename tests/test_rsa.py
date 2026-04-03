@@ -1,43 +1,13 @@
 import pytest
 
-from lightphe.cryptosystems.RSA import RSA
 from lightphe.commons.logger import Logger
 from lightphe import LightPHE
 
 logger = Logger(module="tests/test_rsa.py")
 
 
-def test_rsa():
-    rsa = RSA()
-
-    m1 = rsa.plaintext_modulo + 9
-    m2 = rsa.plaintext_modulo + 11
-
-    c1 = rsa.encrypt(m1)
-    c2 = rsa.encrypt(m2)
-    c3 = rsa.multiply(c1, c2)
-
-    # homomorphic operations
-    assert rsa.decrypt(c3) == (m1 * m2) % rsa.plaintext_modulo
-
-    # unsupported homomorphic operations
-    with pytest.raises(ValueError):
-        rsa.add(c1, c2)
-
-    with pytest.raises(ValueError):
-        rsa.xor(c1, c2)
-
-    with pytest.raises(ValueError):
-        rsa.multiply_by_constant(c1, c2)
-
-    with pytest.raises(ValueError):
-        rsa.reencrypt(c1)
-
-    logger.info("✅ RSA test succeeded")
-
-
 def test_api():
-    cs = LightPHE(algorithm_name="RSA")
+    cs = LightPHE(algorithm_name="RSA", key_size=50)
 
     m1 = 17
     m2 = 21

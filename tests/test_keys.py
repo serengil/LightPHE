@@ -25,11 +25,8 @@ def test_key_restoration():
         private_key_file = f"/tmp/{algorithm_name}_secret.json"
         public_key_file = f"/tmp/{algorithm_name}_public.json"
 
-        # unfortunately Naccache-Stern key generation isn't guaranteed to be completed
-        if algorithm_name in ["Naccache-Stern", "Benaloh"]:
-            onprem_cs = LightPHE(algorithm_name=algorithm_name, key_size=37)
-        else:
-            onprem_cs = LightPHE(algorithm_name=algorithm_name)
+        onprem_cs = LightPHE(algorithm_name=algorithm_name, key_size=37)
+
         onprem_cs.export_keys(private_key_file)
         onprem_cs.export_keys(public_key_file, public=True)
         del onprem_cs

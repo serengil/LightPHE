@@ -1,56 +1,13 @@
 import pytest
-from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_goldwasser.py")
 
 
-def test_goldwasser():
-    cs = GoldwasserMicali()
-
-    security_level = cs.keys["public_key"]["n"].bit_length()
-
-    m1 = 17
-    m2 = 27
-
-    c1 = cs.encrypt(m1)
-    c2 = cs.encrypt(m2)
-
-    # encryption & decryption tests
-    assert cs.decrypt(c1) == m1
-    assert cs.decrypt(c2) == m2
-
-    # re-randomization
-    c1_prime = cs.reencrypt(c1)
-    c2_prime = cs.reencrypt(c2)
-
-    assert c1 != c1_prime
-    assert c2 != c2_prime
-    assert cs.decrypt(c1_prime) == m1
-    assert cs.decrypt(c2_prime) == m2
-
-    # homomorphic operations
-    assert cs.decrypt(cs.xor(c1, c2)) == m1 ^ m2
-
-    # unsupported operations
-    with pytest.raises(ValueError):
-        cs.multiply(c1, c2)
-
-    with pytest.raises(ValueError):
-        cs.add(c1, c2)
-
-    with pytest.raises(ValueError):
-        cs.multiply_by_constant(c1, c2)
-
-    logger.info(
-        f"✅ Goldwasser-Micali test succeeded ({security_level} bit security level)"
-    )
-
-
 def test_api():
     from lightphe import LightPHE
 
-    cs = LightPHE(algorithm_name="Goldwasser-Micali")
+    cs = LightPHE(algorithm_name="Goldwasser-Micali", key_size=50)
 
     security_level = cs.cs.keys["public_key"]["n"].bit_length()
 

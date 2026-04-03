@@ -11,7 +11,8 @@ from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_ellipticcurveelgamal.py")
 
-FORMS = ["weierstrass", "edwards", "koblitz"]
+# koblitz excluded because of longer key generation times in unit tests not to consume ci cd sources.
+FORMS = ["weierstrass", "edwards"]  # and  "koblitz"
 
 
 # pylint: disable=expression-not-assigned

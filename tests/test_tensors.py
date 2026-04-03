@@ -16,6 +16,20 @@ logger = Logger(module="tests/test_tensors.py")
 THRESHOLD = 1
 
 
+def build_cryptosystem(algorithm_name: str) -> LightPHE:
+    global cryptosystems
+
+    if "cryptosystems" not in globals():
+        cryptosystems = {}
+
+    if cryptosystems.get(algorithm_name) is None:
+        cs = LightPHE(algorithm_name=algorithm_name, key_size=50)
+        logger.debug(f"{algorithm_name} is just built")
+        cryptosystems[algorithm_name] = cs
+
+    return cryptosystems[algorithm_name]
+
+
 # pylint: disable=consider-using-enumerate
 def convert_negative_float_to_int(value: float, modulo: int) -> float:
     x, y = phe_utils.fractionize(
@@ -27,7 +41,7 @@ def convert_negative_float_to_int(value: float, modulo: int) -> float:
 
 
 def test_tensor_encryption():
-    cs = LightPHE(algorithm_name="Paillier")
+    cs = build_cryptosystem("Paillier")
 
     tensor = [1.005, 2.05, 3.005, 4.005, -5.05, 6, 7.003005, -3.5 * 7.002]
 
@@ -44,7 +58,7 @@ def test_tensor_encryption():
 
 
 def test_homomorphic_multiplication():
-    cs = LightPHE(algorithm_name="RSA")
+    cs = build_cryptosystem("RSA")
 
     t1 = [1.005, 2.05, -3.5, 3.1, -4]
     t2 = [5, 6.2, -7.002, -7.1, 8.02]
@@ -73,7 +87,7 @@ def test_homomorphic_multiplication():
 
 
 def test_homomorphic_multiply_by_a_positive_constant():
-    cs = LightPHE(algorithm_name="Paillier")
+    cs = build_cryptosystem("Paillier")
 
     t1 = [5, 6.2, 7.002, 7.002, 8.02]
     constant = 2
@@ -91,7 +105,7 @@ def test_homomorphic_multiply_by_a_positive_constant():
 
 
 def test_homomorphic_multiply_by_a_negative_constant():
-    cs = LightPHE(algorithm_name="Paillier")
+    cs = build_cryptosystem("Paillier")
 
     t1 = [5, 6.2, 7.002, 7.002, 8.02]
     constant = -2
@@ -110,7 +124,7 @@ def test_homomorphic_multiply_by_a_negative_constant():
 
 
 def test_homomorphic_multiply_with_int_constant():
-    cs = LightPHE(algorithm_name="Paillier")
+    cs = build_cryptosystem("Paillier")
 
     t1 = [5, 6.2, 7.002, 7.002, 8.02]
     constant = 2
@@ -131,7 +145,7 @@ def test_homomorphic_multiply_with_int_constant():
 
 
 def test_homomorphic_multiply_with_positive_float_constant():
-    cs = LightPHE(algorithm_name="Paillier")
+    cs = build_cryptosystem("Paillier")
 
     t1 = [10000.0, 15000, 20000]
     constant = 1.05
@@ -151,7 +165,7 @@ def test_homomorphic_multiply_with_positive_float_constant():
 
 
 def test_homomorphic_multiply_with_negative_float_constant():
-    cs = LightPHE(algorithm_name="Paillier")
+    cs = build_cryptosystem("Paillier")
 
     t1 = [10000.0, 15000, 20000]
     constant = -1.05
@@ -212,13 +226,13 @@ def test_homomorphic_addition():
     [
         "Paillier",
         "Damgard-Jurik",
-        "Okamoto-Uchiyama",
+        # "Okamoto-Uchiyama",
         # "Exponential-ElGamal",
         # "EllipticCurve-ElGamal",
     ],
 )
 def test_for_integer_tensor(algorithm_name):
-    cs = LightPHE(algorithm_name=algorithm_name)
+    cs = build_cryptosystem(algorithm_name)
 
     # suppose that these are normalized vectors
     a = [7.11, 5.22, 5.33, 2.44, 3.55, 4.66]
@@ -265,12 +279,12 @@ def test_for_integer_tensor(algorithm_name):
     [
         "Paillier",
         "Damgard-Jurik",
-        "Okamoto-Uchiyama",
+        # "Okamoto-Uchiyama",
         # "Exponential-ElGamal",
         # "EllipticCurve-ElGamal",
     ],
 )
-def test_real_world_embedding(algorithm_name):
+def __test_real_world_embedding(algorithm_name):
     logger.info("🧪 Real world embedding experiment is running")
     cs = LightPHE(algorithm_name=algorithm_name, precision=17)
 

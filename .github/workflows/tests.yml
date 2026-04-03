@@ -1,14 +1,17 @@
 name: Tests
 
 on: 
-  push:
-    paths:
-      - '.github/workflows/tests.yml'
-      - 'lightphe/**'  
-      - 'tests/**'
-      - 'requirements.txt'
-      - '.gitignore'
-      - 'setup.py'
+  # i won't allow to push master directly, so this is not necessary
+  # push:
+  #   branches:
+  #     - master
+  #   paths:
+  #     - '.github/workflows/tests.yml'
+  #     - 'lightphe/**'  
+  #     - 'tests/**'
+  #     - 'requirements.txt'
+  #     - '.gitignore'
+  #     - 'setup.py'
   pull_request:
     paths:
       - '.github/workflows/tests.yml'
