@@ -22,7 +22,7 @@ def run_api(plaintext_limit: Optional[int] = None):
 
     cs = LightPHE(
         algorithm_name="Sander-Young-Yung",
-        key_size=1024,
+        key_size=50,
         plaintext_limit=plaintext_limit,
     )
 

@@ -6,10 +6,10 @@ from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_ciphertexts.py")
 
+onprem_cs = LightPHE(algorithm_name="Paillier", key_size=50)
+
 
 def test_private_key_not_available_in_ciphertext():
-    onprem_cs = LightPHE(algorithm_name="Paillier")
-
     m = 17
 
     c = onprem_cs.encrypt(m)
@@ -21,8 +21,6 @@ def test_private_key_not_available_in_ciphertext():
 
 
 def test_private_key_not_available_in_encrypted_tensor():
-    onprem_cs = LightPHE(algorithm_name="Paillier")
-
     t = [1.5, 2.4, 3.3, 4.2, 5.1]
 
     c = onprem_cs.encrypt(t, silent=True)

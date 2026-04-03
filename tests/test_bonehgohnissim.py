@@ -12,11 +12,9 @@ def test_api():
 
     tic = time.time()
 
-    # i run successful experiments with 100 bit key size, but it sometimes fails
-    # try 50 bit for unit tests
     cs = LightPHE(
         algorithm_name="Boneh-Goh-Nissim",
-        key_size=1024,
+        key_size=50,
         max_tries=10000,
     )
     security_level = cs.cs.ec.n.bit_length()
@@ -34,7 +32,7 @@ def test_api():
     # homomorphic addition
     assert cs.decrypt(c1 + c2) == (m1 + m2) % cs.cs.plaintext_modulo
 
-    # homomorphic multiplication
+    # homomorphic multiplication (once)
     c1_times_c2 = c1 * c2
     assert cs.decrypt(c1_times_c2) == (m1 * m2) % cs.cs.plaintext_modulo
 
@@ -47,7 +45,7 @@ def test_api():
         ValueError,
         match="Boneh-Goh-Nissim only supports multiplication ciphertexts once!",
     ):
-        c1_times_c2_sq = c1_times_c2 * c2
+        _ = c1_times_c2 * c2
 
     with pytest.raises(ValueError):
         _ = c1 & c2

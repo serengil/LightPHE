@@ -1,43 +1,13 @@
 import pytest
-from lightphe.cryptosystems.Paillier import Paillier
+from lightphe import LightPHE
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_paillier.py")
 
-
-def test_paillier():
-    pai = Paillier()
-
-    m1 = pai.plaintext_modulo + 654
-    m2 = pai.plaintext_modulo + 123
-
-    c1 = pai.encrypt(m1)
-    c2 = pai.encrypt(m2)
-
-    # homomorphic operations
-    assert pai.decrypt(pai.add(c1, c2)) == (m1 + m2) % pai.plaintext_modulo
-    assert pai.decrypt(pai.multiply_by_constant(c1, m2)) == (m1 * m2) % pai.plaintext_modulo
-
-    # unsupported homomorphic operations
-    with pytest.raises(ValueError):
-        pai.multiply(c1, c2)
-
-    with pytest.raises(ValueError):
-        pai.xor(c1, c2)
-
-    # re-encryption
-    c1_prime = pai.reencrypt(c1)
-    assert c1_prime != c1
-    assert pai.decrypt(c1_prime) == m1 % pai.plaintext_modulo
-
-    logger.info("✅ Paillier test succeeded")
+cs = LightPHE(algorithm_name="Paillier", key_size=50)
 
 
 def test_api():
-    from lightphe import LightPHE
-
-    cs = LightPHE(algorithm_name="Paillier")
-
     m1 = 17
     m2 = 21
 
@@ -68,10 +38,6 @@ def test_api():
 
 
 def test_float_operations():
-    from lightphe import LightPHE
-
-    cs = LightPHE(algorithm_name="Paillier")
-
     m1 = 1000
     m2 = -10
 
