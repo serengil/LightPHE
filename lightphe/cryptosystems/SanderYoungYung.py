@@ -17,8 +17,8 @@ logger = Logger(module="lightphe/cryptosystems/SanderYoungYung.py")
 
 class SanderYoungYung(Homomorphic):
     """
-    Sander-Young-Yung algorithm is homomorphic with respect to the addition.
-    TODO: add a tutorial for this algorithm.
+    Sander-Young-Yung algorithm is homomorphic with respect to bitwise AND.
+        Ref: https://sefiks.com/2026/04/02/a-step-by-step-partially-homomorphic-sander-young-yung-example-in-python/
     """
 
     def __init__(
