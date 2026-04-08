@@ -21,8 +21,8 @@ class BonehGohNissim(Homomorphic):
     """
     Boneh-Goh-Nissim algorithm is homomorphic with respect to the addition.
         It's also somehow homomorphic with respect to the multiplication
-        only for one multiplication per ciphertext
-    TODO: add a tutorial for this algorithm
+        only for one multiplication per ciphertext.
+    Ref: https://sefiks.com/2026/04/02/a-step-by-step-somewhat-homomorphic-encryption-example-with-boneh-goh-nissim-in-python/
     """
 
     def __init__(
@@ -251,8 +251,10 @@ class BonehGohNissim(Homomorphic):
         raise Exception("Decryption of G_T ciphertext failed")
 
     def add(
-        self, ciphertext1: EllipticCurvePoint, ciphertext2: EllipticCurvePoint
-    ) -> EllipticCurvePoint:
+        self,
+        ciphertext1: Union[EllipticCurvePoint, Tuple[int, int]],
+        ciphertext2: Union[EllipticCurvePoint, Tuple[int, int]],
+    ) -> Union[EllipticCurvePoint, Tuple[int, int]]:
         """
         Add two ciphertexts with Boneh-Goh-Nissim
         Args:
@@ -261,7 +263,15 @@ class BonehGohNissim(Homomorphic):
         Returns:
             result (tuple): resulting ciphertext after addition
         """
-        return ciphertext1 + ciphertext2
+        if isinstance(ciphertext1, EllipticCurvePoint) and isinstance(
+            ciphertext2, EllipticCurvePoint
+        ):
+            return ciphertext1 + ciphertext2
+
+        if isinstance(ciphertext1, tuple) and isinstance(ciphertext2, tuple):
+            return _fp2_mul(ciphertext1, ciphertext2, self.ec.modulo)
+
+        raise ValueError("Both ciphertexts must be of the same type for addition.")
 
     def multiply(
         self,
@@ -300,8 +310,8 @@ class BonehGohNissim(Homomorphic):
         return result
 
     def multiply_by_constant(
-        self, ciphertext: EllipticCurvePoint, constant: int
-    ) -> EllipticCurvePoint:
+        self, ciphertext: Union[EllipticCurvePoint, Tuple[int, int]], constant: int
+    ) -> Union[EllipticCurvePoint, Tuple[int, int]]:
         """
         Multiply a ciphertext by a constant with Boneh-Goh-Nissim
         Args:
@@ -310,7 +320,20 @@ class BonehGohNissim(Homomorphic):
         Returns:
             result (tuple): resulting ciphertext after multiplication
         """
-        return ciphertext * constant
+        if isinstance(ciphertext, EllipticCurvePoint):
+            return ciphertext * constant
+        if isinstance(ciphertext, tuple):
+            # For GT elements, we can use exponentiation to achieve scalar multiplication
+            base = ciphertext
+            result = (1, 0)  # identity element in F_{p^2}*
+            for _ in range(constant):
+                result = _fp2_mul(result, base, self.ec.modulo)
+            return result
+
+        raise ValueError(
+            "Ciphertext must be either an EllipticCurvePoint or a tuple "
+            "representing an F_{p^2} element for multiplication by constant."
+        )
 
     def reencrypt(self, ciphertext: EllipticCurvePoint) -> EllipticCurvePoint:
         """
