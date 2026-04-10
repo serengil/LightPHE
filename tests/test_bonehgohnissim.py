@@ -108,6 +108,77 @@ def test_linear_regression():
     )
 
 
+def test_cosine_similarity():
+    tic = time.time()
+    i1 = 5
+    i2 = 2
+    i3 = 8
+
+    # v2 = [1, 1, 2]
+    j1 = 1
+    j2 = 1
+    j3 = 2
+
+    i1_enc = cs.encrypt(i1)
+    i2_enc = cs.encrypt(i2)
+    i3_enc = cs.encrypt(i3)
+
+    j1_enc = cs.encrypt(j1)
+    j2_enc = cs.encrypt(j2)
+    j3_enc = cs.encrypt(j3)
+
+    # homomorphic operation
+    cosine_sim_enc = i1_enc * j1_enc + i2_enc * j2_enc + i3_enc * j3_enc
+
+    # proof of work
+    assert cs.decrypt(cosine_sim_enc) == i1 * j1 + i2 * j2 + i3 * j3
+
+    logger.info(
+        f"✅ Boneh-God-Nissim cosine similarity test succeeded "
+        f"({security_level} bit ECC security level)"
+        f" in {time.time() - tic:.2f} seconds"
+    )
+
+
+def test_euclidean_distance():
+    tic = time.time()
+
+    # v1 = [5, 2, 3]
+    i1 = 5
+    i2 = 2
+    i3 = 8
+
+    # v2 = [1, 1, 2]
+    j1 = 1
+    j2 = 1
+    j3 = 2
+
+    i1_enc = cs.encrypt(i1)
+    i2_enc = cs.encrypt(i2)
+    i3_enc = cs.encrypt(i3)
+
+    j1_enc = cs.encrypt(-j1)
+    j2_enc = cs.encrypt(-j2)
+    j3_enc = cs.encrypt(-j3)
+
+    euclidean_sqrt_enc = (
+        (i1_enc + j1_enc) * (i1_enc + j1_enc)
+        + (i2_enc + j2_enc) * (i2_enc + j2_enc)
+        + (i3_enc + j3_enc) * (i3_enc + j3_enc)
+    )
+
+    assert (
+        cs.decrypt(euclidean_sqrt_enc)
+        == (i1 - j1) ** 2 + (i2 - j2) ** 2 + (i3 - j3) ** 2
+    )
+
+    logger.info(
+        f"✅ Boneh-God-Nissim euclidean distance test succeeded "
+        f"({security_level} bit ECC security level)"
+        f" in {time.time() - tic:.2f} seconds"
+    )
+
+
 def test_api_with_predefined_keys():
     keys = {
         "private_key": {"q1": 1260048562698661, "q2": 1495813357973021},

@@ -54,7 +54,10 @@ class BonehGohNissim(Homomorphic):
             },
         )
 
-        self.plaintext_modulo = self.ec.modulo
+        if "private_key" in self.keys and "q2" in self.keys["private_key"]:
+            self.plaintext_modulo = self.keys["private_key"]["q2"]
+        else:
+            self.plaintext_modulo = self.keys["public_key"]["curve"]["n"]
         self.ciphertext_modulo = self.ec.modulo
 
     def generate_keys(
@@ -160,14 +163,28 @@ class BonehGohNissim(Homomorphic):
 
         raise Exception(f"Failed to find a generator after {max_tries} attempts")
 
+    def _has_private_key(self) -> bool:
+        return "private_key" in self.keys and "q2" in self.keys["private_key"]
+
     def generate_random_key(self) -> int:
         """
         Boneh-Goh-Nissim requires to generate one-time random key per encryption
         Returns:
             random key (int): one time random key for encryption
         """
-        q2 = self.keys["private_key"]["q2"]
-        return random.randint(1, q2 - 1)
+        if self._has_private_key():
+            q2 = self.keys["private_key"]["q2"]
+            return random.randint(1, q2 - 1)
+
+        n = self.keys["public_key"]["curve"]["n"]
+        logger.warn(
+            "Private key is not available. Random key will be bounded by n"
+            " instead of q2. Encryption will work for small plaintexts,"
+            " but negative number encoding via plaintext_modulo will not"
+            " round-trip correctly because plaintext_modulo is set to n"
+            " (public) instead of q2 (private)."
+        )
+        return random.randint(1, n - 1)
 
     def encrypt(
         self, plaintext: int, random_key: Optional[int] = None
@@ -200,23 +217,28 @@ class BonehGohNissim(Homomorphic):
             plaintext (int): restored message
         """
         q1 = self.keys["private_key"]["q1"]
+        q2 = self.keys["private_key"]["q2"]
 
         if isinstance(ciphertext, tuple):
-            return self._decrypt_gt(ciphertext, q1)
+            return self._decrypt_gt(ciphertext, q1, q2)
 
         G = self.ec.G
 
         mP = ciphertext * q1
         P = G * q1
 
-        for i in range(1, q1 + 1):
+        # P has order q2, so DLP result is in [0, q2)
+        if mP == self.ec.O:
+            return 0
+
+        for i in range(1, q2):
             iP = P * i
             if iP == mP:
                 return i
 
         raise Exception("Decryption failed")
 
-    def _decrypt_gt(self, ciphertext: tuple, q1: int) -> int:
+    def _decrypt_gt(self, ciphertext: tuple, q1: int, q2: int) -> int:
         """
         Decrypt a G_T ciphertext (result of homomorphic multiplication).
 
@@ -241,9 +263,12 @@ class BonehGohNissim(Homomorphic):
         base = _fp2_pow(e_gg, q1, p)
         target = _fp2_pow(ciphertext, q1, p)
 
-        # brute-force DLP in G_T
+        # brute-force DLP in G_T — result is in [0, q2)
+        if target == (1, 0):
+            return 0
+
         acc = (1, 0)
-        for i in range(1, q1 + 1):
+        for i in range(1, q2):
             acc = _fp2_mul(acc, base, p)
             if acc == target:
                 return i
