@@ -36,7 +36,7 @@ from lightphe.cryptosystems.BonehGohNissim import BonehGohNissim
 
 logger = Logger(module="lightphe/__init__.py")
 
-VERSION = "0.0.23"
+VERSION = "0.0.24"
 
 
 class LightPHE:
