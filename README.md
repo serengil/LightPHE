@@ -140,7 +140,7 @@ assert cs.decrypt(c3) == m1 * m2
 
 ### Ciphertext Regeneration
 
-The most of additively homomorphic algorithms allow you to regenerate ciphertext while you are not breaking its plaintext restoration. You may consider to do this re-generation many times to have stronger ciphertexts.
+The most of homomorphic algorithms allow you to regenerate ciphertext while you are not breaking its plaintext restoration. You may consider to do this re-generation many times to have stronger ciphertexts.
 
 ```python
 c1_prime = cs.regenerate_ciphertext(c1)

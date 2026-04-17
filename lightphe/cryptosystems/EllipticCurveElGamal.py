@@ -22,6 +22,11 @@ class EllipticCurveElGamal(Homomorphic):
     Ref: https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/
     """
 
+    REQUIRED_KEYS = {
+        "public_key": ["Qa"],
+        "private_key": ["ka"],
+    }
+
     def __init__(
         self,
         keys: Optional[dict] = None,

@@ -17,6 +17,13 @@ class Homomorphic(ABC):
     plaintext_modulo: int
     ciphertext_modulo: int
 
+    # Cryptosystems must define REQUIRED_KEYS as a dict with:
+    #   - "public_key":  list of required sub-fields in keys["public_key"]
+    #   - "private_key": list of required sub-fields in keys["private_key"]
+    #   - "nested" (optional): dict mapping a public_key sub-field that itself
+    #       holds a dict to its required sub-fields.
+    REQUIRED_KEYS: dict
+
     @abstractmethod
     def generate_keys(
         self,

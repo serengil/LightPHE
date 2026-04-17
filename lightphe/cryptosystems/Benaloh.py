@@ -15,6 +15,11 @@ logger = Logger(module="lightphe/cryptosystems/Benaloh.py")
 
 
 class Benaloh(Homomorphic):
+    REQUIRED_KEYS = {
+        "public_key": ["y", "r", "n"],
+        "private_key": ["p", "q", "phi", "x"],
+    }
+
     def __init__(
         self,
         keys: Optional[dict] = None,

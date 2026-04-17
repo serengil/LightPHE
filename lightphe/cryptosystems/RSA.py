@@ -14,6 +14,11 @@ class RSA(Homomorphic):
     Ref: https://sefiks.com/2023/03/06/a-step-by-step-partially-homomorphic-encryption-example-with-rsa-in-python/
     """
 
+    REQUIRED_KEYS = {
+        "public_key": ["n", "e"],
+        "private_key": ["d"],
+    }
+
     def __init__(
         self,
         keys: Optional[dict] = None,
