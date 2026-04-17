@@ -20,6 +20,11 @@ class NaccacheStern(Homomorphic):
     Original paper: https://dl.acm.org/doi/pdf/10.1145/288090.288106
     """
 
+    REQUIRED_KEYS = {
+        "public_key": ["n", "g", "sigma"],
+        "private_key": ["a", "b", "p", "q", "phi", "prime_set"],
+    }
+
     def __init__(
         self,
         keys: Optional[dict] = None,

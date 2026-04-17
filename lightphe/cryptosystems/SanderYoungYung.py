@@ -21,6 +21,11 @@ class SanderYoungYung(Homomorphic):
         Ref: https://sefiks.com/2026/04/02/a-step-by-step-partially-homomorphic-sander-young-yung-example-in-python/
     """
 
+    REQUIRED_KEYS = {
+        "public_key": ["n", "x", "l"],
+        "private_key": ["p", "q"],
+    }
+
     def __init__(
         self,
         keys: Optional[dict] = None,

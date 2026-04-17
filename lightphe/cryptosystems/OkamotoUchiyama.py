@@ -14,6 +14,11 @@ class OkamotoUchiyama(Homomorphic):
     Ref: https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-okamoto-uchiyama-in-python/
     """
 
+    REQUIRED_KEYS = {
+        "public_key": ["n", "g", "h"],
+        "private_key": ["p", "q"],
+    }
+
     def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None):
         """
         Args:

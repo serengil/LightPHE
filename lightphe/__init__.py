@@ -16,6 +16,7 @@ from lightphe.models.Ciphertext import Ciphertext
 from lightphe.models.Algorithm import Algorithm
 from lightphe.models.Tensor import Fraction, EncryptedTensor
 from lightphe.commons import phe_utils
+from lightphe.commons.key_validator import validate_keys
 from lightphe.commons.logger import Logger
 
 # cryptosystems
@@ -89,6 +90,9 @@ class LightPHE:
 
         if key_file is not None:
             keys = self.restore_keys(target_file=key_file)
+
+        if keys is not None:
+            validate_keys(algorithm_name=algorithm_name, keys=keys)
 
         self.cs: Homomorphic = self.__build_cryptosystem(
             algorithm_name=algorithm_name,

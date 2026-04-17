@@ -15,6 +15,11 @@ class DamgardJurik(Homomorphic):
     Ref: https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-damgard-jurik-in-python/
     """
 
+    REQUIRED_KEYS = {
+        "public_key": ["g", "n", "s"],
+        "private_key": ["phi"],
+    }
+
     def __init__(self, s: int = 2, keys: Optional[dict] = None, key_size: Optional[int] = None):
         """
         Args:

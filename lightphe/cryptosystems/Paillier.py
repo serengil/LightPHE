@@ -15,6 +15,11 @@ class Paillier(Homomorphic):
     Ref: https://sefiks.com/2023/04/03/a-step-by-step-partially-homomorphic-encryption-example-with-paillier-in-python/
     """
 
+    REQUIRED_KEYS = {
+        "public_key": ["g", "n"],
+        "private_key": ["phi"],
+    }
+
     def __init__(self, keys: Optional[dict] = None, key_size: Optional[int] = None):
         """
         Args:

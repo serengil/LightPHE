@@ -26,6 +26,12 @@ class BonehGohNissim(Homomorphic):
     Ref: https://sefiks.com/2026/04/02/a-step-by-step-somewhat-homomorphic-encryption-example-with-boneh-goh-nissim-in-python/
     """
 
+    REQUIRED_KEYS = {
+        "public_key": ["curve", "G", "u", "h", "l"],
+        "private_key": ["q1", "q2"],
+        "nested": {"curve": ["a", "b", "p", "G", "n"]},
+    }
+
     def __init__(
         self,
         keys: Optional[dict] = None,

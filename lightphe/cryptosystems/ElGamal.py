@@ -19,6 +19,11 @@ class ElGamal(Homomorphic):
     Ref: https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/
     """
 
+    REQUIRED_KEYS = {
+        "public_key": ["p", "g", "y"],
+        "private_key": ["x"],
+    }
+
     def __init__(self, keys: Optional[dict] = None, exponential=False, key_size: Optional[int] = None):
         """
         Args:

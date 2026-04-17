@@ -23,6 +23,11 @@ class GoldwasserMicali(Homomorphic):
     Ref: sefiks.com/2023/10/27/a-step-by-step-partially-homomorphic-encryption-example-with-goldwasser-micali-in-python/
     """
 
+    REQUIRED_KEYS = {
+        "public_key": ["n", "x"],
+        "private_key": ["p", "q"],
+    }
+
     def __init__(
         self,
         keys: Optional[dict] = None,
