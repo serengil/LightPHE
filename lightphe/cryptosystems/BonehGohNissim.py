@@ -5,6 +5,7 @@ from typing import Optional, Tuple, Union
 
 # third-party dependencies
 from lightecc import LightECC
+from lightecc.commons.errors import InvalidCurveOrder, PointNotOnCurve
 from lightecc.interfaces.elliptic_curve import EllipticCurvePoint
 from lightecc.commons.pairing import _fp2_pow, _fp2_mul
 import sympy
@@ -106,22 +107,21 @@ class BonehGohNissim(Homomorphic):
 
             G = self.__find_generator(p, max_tries=max_tries)
 
-            # order of the curve may not be exactly n, but it should be
-            self.ec = LightECC(
-                form_name="weierstrass",
-                curve_name="custom",
-                config={"a": a, "b": b, "p": p, "G": G, "n": None},
-            )
+            try:
+                self.ec = LightECC(
+                    form_name="weierstrass",
+                    curve_name="custom",
+                    config={"a": a, "b": b, "p": p, "G": G, "n": n},
+                )
+            except (InvalidCurveOrder, PointNotOnCurve):
+                logger.debug(
+                    f"Curve order validation failed for attempt {key_attempt + 1}, retrying"
+                )
+                continue
 
-            nG = n * self.ec.G
-            if (
-                nG == self.ec.O
-            ):  # check if nG is the point at infinity / identity element / neutral element
-                logger.debug("nG is the point at infinity, as expected.")
-                logger.debug(f"q1 = {q1}, q2 = {q2}, n = {n}, p = {p}, l = {l}")
-                break
-
-            logger.debug(f"nG not infinity, retrying (attempt {key_attempt + 1})")
+            logger.debug("Curve order validated by LightECC.")
+            logger.debug(f"q1 = {q1}, q2 = {q2}, n = {n}, p = {p}, l = {l}")
+            break
         else:
             raise Exception(f"Failed to generate keys after {max_tries} attempts")
 
