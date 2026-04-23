@@ -23,7 +23,6 @@ def test_predefined_keys():
             "p": 2435378721695886057509882054966317293278393717736720131443144187793510457493213363945300094351007614623267282257550830261688773235268185768920658432760349591,
             "q": 30909025587173888031151320439694649143770740813345918276468695473548278783448460260839705132326515527669756851362284434022860932531472563869828240743607816519,
             "phi": 75275183223356977395233015128636801841182684353869611205877871399639096259927846711964449336873721703958210179653876541687516247046310691985977881277598653806134265954388527744361895141375770783671899073915178636812972605279037227887538978553609742276161772286758627935090233305041395360684118422229078186256527620,
-            "prime_set": [3, 5, 7, 11, 13, 17],
         },
     }
 
@@ -33,7 +32,7 @@ def test_predefined_keys():
 
     security_level = cs.cs.keys["public_key"]["n"].bit_length()
 
-    logger.info(
+    logger.debug(
         f"Naccache-Stern cs built with {security_level} bits key. Recommended >= 768."
     )
 
@@ -44,13 +43,13 @@ def test_predefined_keys():
     c1 = cs.encrypt(plaintext=m1)
     c2 = cs.encrypt(plaintext=m2)
     toc = time.time()
-    logger.info(f"Naccache-Stern encryption time: {(toc - tic)/2:.4f} seconds")
+    logger.debug(f"Naccache-Stern encryption time: {(toc - tic)/2:.4f} seconds")
 
     # homomorphic addition
     tic = time.time()
     assert cs.decrypt(c1 + c2) == m1 + m2
     toc = time.time()
-    logger.info(f"Naccache-Stern homomorphic addition time: {(toc - tic):.4f} seconds")
+    logger.debug(f"Naccache-Stern homomorphic addition time: {(toc - tic):.4f} seconds")
 
     # homomorphic scalar multiplication
     tic = time.time()
@@ -59,7 +58,7 @@ def test_predefined_keys():
     m2_times_c1 = m2 * c1
     m1_times_c2 = m1 * c2
     toc = time.time()
-    logger.info(
+    logger.debug(
         f"Naccache-Stern homomorphic scalar multiplication time: {(toc - tic)/4:.4f} seconds"
     )
 

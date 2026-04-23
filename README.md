@@ -49,7 +49,7 @@ from lightphe import LightPHE
 
 # Summary of Homomorphic Features of Different Cryptosystems in LightPHE
 
-In summary, LightPHE is covering following algorithms and these are partially homomorphic with respect to the operations mentioned in the following table.
+In summary, LightPHE is covering following algorithms and these are partially homomorphic and somewhat homomorphic with respect to the operations mentioned in the following table.
 
 | Algorithm | Multiplicatively<br>Homomorphic | Additively<br>Homomorphic | Scalar Multiplication | Bitwise-XOR Homomorphic | Bitwise-AND Homomorphic | Regeneration<br>of Ciphertext |
 | --- | --- | --- | --- | --- | --- | --- |

@@ -22,7 +22,7 @@ class NaccacheStern(Homomorphic):
 
     REQUIRED_KEYS = {
         "public_key": ["n", "g", "sigma"],
-        "private_key": ["a", "b", "p", "q", "phi", "prime_set"],
+        "private_key": ["a", "b", "p", "q", "phi"],
     }
 
     def __init__(
@@ -59,10 +59,11 @@ class NaccacheStern(Homomorphic):
         Returns:
             keys (dict): containing 'private_key' and 'public_key'
         """
-        # Small prime set (the largest one is 10-bits)
-        # Using a smaller prime_set to make key generation feasible for large key sizes
-        # prime_set = [3, 5, 7, 11, 13, 17]
-        prime_set = [3, 5, 7, 11]
+        # Small primes are required so DLP remains solvable during decryption.
+        # Picking 4 out of these 8 keeps sigma small (<= ~23^4) and splits
+        # evenly into u and v.
+        small_primes = [3, 5, 7, 11, 13, 17, 19, 23]
+        prime_set = sorted(random.sample(small_primes, 4))
         k = len(prime_set)
 
         if all(sympy.isprime(prime) is True for prime in prime_set) is False:
@@ -172,7 +173,6 @@ class NaccacheStern(Homomorphic):
                     "p": p,
                     "q": q,
                     "phi": phi,
-                    "prime_set": prime_set,
                 },
             }
             logger.debug(
@@ -232,7 +232,9 @@ class NaccacheStern(Homomorphic):
         phi = self.keys["private_key"]["phi"]
         n = self.keys["public_key"]["n"]
         g = self.keys["public_key"]["g"]
-        prime_set = self.keys["private_key"]["prime_set"]
+        sigma = self.keys["public_key"]["sigma"]
+        # sigma is the product of the small primes; recover them by factoring.
+        prime_set = sorted(sympy.factorint(sigma).keys())
 
         remainders = []
         for i, prime in enumerate(prime_set):
