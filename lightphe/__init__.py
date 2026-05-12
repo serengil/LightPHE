@@ -32,12 +32,11 @@ from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
 from lightphe.cryptosystems.SanderYoungYung import SanderYoungYung
 from lightphe.cryptosystems.BonehGohNissim import BonehGohNissim
 
-
 # pylint: disable=eval-used, simplifiable-if-expression, too-few-public-methods
 
 logger = Logger(module="lightphe/__init__.py")
 
-VERSION = "0.0.24"
+VERSION = "0.0.25"
 
 
 class LightPHE:
