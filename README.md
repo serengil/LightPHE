@@ -232,22 +232,17 @@ Also, your company's logo will be shown on README on GitHub if you become sponso
 Please cite LightPHE in your publications if it helps your research. Here is its BibTex entry:
 
 ```BibTeX
-@article{serengil2024lightphe,
-  title={LightPHE: Integrating Partially Homomorphic Encryption into Python with Extensive Cloud Environment Evaluations},
-  author={Serengil, Sefik Ilkin and Ozpinar, Alper},
-  journal={arXiv preprint arXiv:2408.05219},
-  note={doi: 10.48550/arXiv.2408.05219. [Online]. Available: \url{https://arxiv.org/abs/2408.05219}},
-  year={2025}
-}
-```
-
-```BibTeX
-@article{serengil2025vectorsimilarity,
-  title={Encrypted Vector Similarity Computations Using Partially Homomorphic Encryption: Applications and Performance Analysis},
-  author={Serengil, Sefik and Ozpinar, Alper},
-  journal={arXiv preprint arXiv:2503.05850},
-  note={doi: 10.48550/arXiv.2503.05850. [Online]. Available: \url{https://arxiv.org/abs/2503.05850}},
-  year={2025}
+@article{sym18050832,
+  title          = {Sustainable Cryptography: Carbon Asymmetry in Partially Homomorphic Encryption in the Cloud},
+  author         = {Ozpinar, Alper and Serengil, Sefik Ilkin},
+  journal        = {Symmetry},
+  volume         = {18},
+  number         = {5},
+  pages          = {832},
+  url            = {https://www.mdpi.com/2073-8994/18/5/832},
+  doi            = {10.3390/sym18050832},
+  note           = {Special Issue: Symmetry in Cryptography and Cybersecurity},
+  year           = {2026}
 }
 ```
 

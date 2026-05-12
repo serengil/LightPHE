@@ -6,23 +6,23 @@ authors:
     given-names: Sefik Ilkin
 version: 1.0.0
 date-released: 2023-11-19
-doi: 10.48550/arXiv.2408.05219
+doi: 10.3390/sym18050832
 url: https://github.com/serengil/LightPHE
 type: software
 preferred-citation:
   type: article
-  title: "LightPHE: Integrating Partially Homomorphic Encryption into Python with Extensive Cloud Environment Evaluations"
+  title: "Sustainable Cryptography: Carbon Asymmetry in Partially Homomorphic Encryption in the Cloud"
   authors:
-    - family-names: Serengil
-      given-names: Sefik Ilkin
     - family-names: Ozpinar
       given-names: Alper
-  year: 2024
-  doi: 10.48550/arXiv.2408.05219
-  url: https://arxiv.org/abs/2408.05219
-  journal: "arXiv"
-  volume: null
-  issue: null
-  start: null
+    - family-names: Serengil
+      given-names: Sefik Ilkin
+  year: 2026
+  doi: 10.3390/sym18050832
+  url: https://www.mdpi.com/2073-8994/18/5/832
+  journal: "Symmetry"
+  volume: 18
+  issue: 5
+  start: 832
   end: null
-  publisher: "arXiv"
+  publisher: "mdpi"
