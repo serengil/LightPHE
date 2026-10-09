@@ -75,6 +75,21 @@ def fractionize(
     return integer_value, scaling_factor
 
 
+def extended_euclidean(a: int, b: int) -> Tuple[int, int, int]:
+    """
+    Extended euclidean algorithm
+    Returns:
+        (d, u, v) such that u * a + v * b = d = gcd(a, b)
+    """
+    u0, u1, v0, v1 = 1, 0, 0, 1
+    while b != 0:
+        quotient = a // b
+        a, b = b, a - quotient * b
+        u0, u1 = u1, u0 - quotient * u1
+        v0, v1 = v1, v0 - quotient * v1
+    return a, u0, v0
+
+
 def solve_dlp():
     # TODO: implement this later
     pass
