@@ -11,6 +11,7 @@ from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons import phe_utils
 from lightphe.models.Ciphertext import Ciphertext
 from lightphe.models.Algorithm import Algorithm
+from lightphe.cryptosystems.JoyeLibert import FLOAT_NOT_SUPPORTED_MSG
 from lightphe.commons.logger import Logger
 
 logger = Logger(module="lightphe/models/Tensor.py")
@@ -262,6 +263,8 @@ class EncryptedTensor:
             constant_sign = 1 if other >= 0 else -1
             other = abs(other)
             if isinstance(other, float):
+                if self.cs.get_algorithm_name() == Algorithm.JoyeLibert:
+                    raise ValueError(FLOAT_NOT_SUPPORTED_MSG)
                 other = phe_utils.normalize_input(
                     value=other, modulo=self.cs.plaintext_modulo
                 )

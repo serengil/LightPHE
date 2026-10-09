@@ -34,6 +34,12 @@ def test_api():
     with pytest.raises(ValueError):
         _ = c1 ^ c2
 
+    with pytest.raises(ValueError, match="does not support evaluating decision trees"):
+        cs.encrypt_decision_tree_input(bits=[1], depth=1)
+
+    with pytest.raises(ValueError, match="does not support evaluating decision trees"):
+        cs.evaluate_decision_tree(tree=(0, 0, 1), encrypted_input=[[c1.value]])
+
     logger.info("✅ Paillier api test succeeded")
 
 
