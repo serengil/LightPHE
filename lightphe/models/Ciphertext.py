@@ -12,6 +12,9 @@ from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
 from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
 from lightphe.cryptosystems.SanderYoungYung import SanderYoungYung
 from lightphe.cryptosystems.BonehGohNissim import BonehGohNissim
+from lightphe.cryptosystems.JoyeLibert import JoyeLibert, FLOAT_NOT_SUPPORTED_MSG
+from lightphe.cryptosystems.CastagnosLaguillaumie import CastagnosLaguillaumie
+from lightphe.cryptosystems.IshaiPaskin import IshaiPaskin
 from lightphe.commons import phe_utils
 from lightphe.commons.logger import Logger
 
@@ -57,6 +60,12 @@ class Ciphertext:
             cs = SanderYoungYung(keys=keys)
         elif algorithm_name == Algorithm.BonehGohNissim:
             cs = BonehGohNissim(keys=keys)
+        elif algorithm_name == Algorithm.JoyeLibert:
+            cs = JoyeLibert(keys=keys)
+        elif algorithm_name == Algorithm.CastagnosLaguillaumie:
+            cs = CastagnosLaguillaumie(keys=keys)
+        elif algorithm_name == Algorithm.IshaiPaskin:
+            cs = IshaiPaskin(keys=keys)
         else:
             raise ValueError(f"unimplemented algorithm - {algorithm_name}")
 
@@ -103,6 +112,8 @@ class Ciphertext:
         elif isinstance(other, int):
             result = self.cs.multiply_by_constant(ciphertext=self.value, constant=other)
         elif isinstance(other, float):
+            if self.algorithm_name == Algorithm.JoyeLibert:
+                raise ValueError(FLOAT_NOT_SUPPORTED_MSG)
             constant = phe_utils.normalize_input(
                 value=other, modulo=self.cs.plaintext_modulo
             )

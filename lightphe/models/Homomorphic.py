@@ -1,5 +1,5 @@
 # built-in dependencies
-from typing import Optional, Union
+from typing import Optional, Union, List, Tuple
 from abc import ABC, abstractmethod
 
 # 3rd party dependencies
@@ -82,6 +82,18 @@ class Homomorphic(ABC):
     ) -> Union[int, tuple, list, EllipticCurvePoint]:
         raise ValueError(
             f"{self.get_algorithm_name()} is not homomorphic with respect to the bitwise and"
+        )
+
+    def encrypt_decision_tree_input(self, bits: List[int], depth: int) -> List[List[int]]:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support evaluating decision trees"
+        )
+
+    def evaluate_decision_tree(
+        self, tree: Union[int, tuple, list], encrypted_input: List[List[int]]
+    ) -> Tuple[int, int]:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support evaluating decision trees"
         )
 
     def multiply_by_constant(

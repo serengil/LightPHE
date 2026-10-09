@@ -13,6 +13,9 @@ from lightphe.cryptosystems.NaccacheStern import NaccacheStern
 from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
 from lightphe.cryptosystems.SanderYoungYung import SanderYoungYung
 from lightphe.cryptosystems.BonehGohNissim import BonehGohNissim
+from lightphe.cryptosystems.JoyeLibert import JoyeLibert
+from lightphe.cryptosystems.CastagnosLaguillaumie import CastagnosLaguillaumie
+from lightphe.cryptosystems.IshaiPaskin import IshaiPaskin
 
 
 # Map user-facing algorithm names to the class that owns the REQUIRED_KEYS spec.
@@ -31,6 +34,9 @@ _ALGORITHM_TO_CLASS: Dict[str, Type[Homomorphic]] = {
     Algorithm.GoldwasserMicali: GoldwasserMicali,
     Algorithm.SanderYoungYung: SanderYoungYung,
     Algorithm.BonehGohNissim: BonehGohNissim,
+    Algorithm.JoyeLibert: JoyeLibert,
+    Algorithm.CastagnosLaguillaumie: CastagnosLaguillaumie,
+    Algorithm.IshaiPaskin: IshaiPaskin,
 }
 
 

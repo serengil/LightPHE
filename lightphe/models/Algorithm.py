@@ -12,3 +12,6 @@ class Algorithm:
     GoldwasserMicali = "Goldwasser-Micali"
     SanderYoungYung = "Sander-Young-Yung"
     BonehGohNissim = "Boneh-Goh-Nissim"
+    JoyeLibert = "Joye-Libert"
+    CastagnosLaguillaumie = "Castagnos-Laguillaumie"
+    IshaiPaskin = "Ishai-Paskin"

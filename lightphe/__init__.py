@@ -31,6 +31,9 @@ from lightphe.cryptosystems.GoldwasserMicali import GoldwasserMicali
 from lightphe.cryptosystems.EllipticCurveElGamal import EllipticCurveElGamal
 from lightphe.cryptosystems.SanderYoungYung import SanderYoungYung
 from lightphe.cryptosystems.BonehGohNissim import BonehGohNissim
+from lightphe.cryptosystems.JoyeLibert import JoyeLibert, FLOAT_NOT_SUPPORTED_MSG
+from lightphe.cryptosystems.CastagnosLaguillaumie import CastagnosLaguillaumie
+from lightphe.cryptosystems.IshaiPaskin import IshaiPaskin
 
 # pylint: disable=eval-used, simplifiable-if-expression, too-few-public-methods
 
@@ -60,6 +63,7 @@ class LightPHE:
             algorithm_name (str): RSA | ElGamal | Exponential-ElGamal | EllipticCurve-ElGamal
                 | Paillier | Damgard-Jurik | Okamoto-Uchiyama | Benaloh | Naccache-Stern
                 | Goldwasser-Micali | Sander-Young-Yung | Boneh-Goh-Nissim
+                | Joye-Libert | Castagnos-Laguillaumie | Ishai-Paskin
             keys (dict): optional private-public key pair
             key_file (str): if keys were exported already, you can load them into cryptosystem
             key_size (int): key size in bits
@@ -78,8 +82,8 @@ class LightPHE:
             plaintext_limit (int, optional): Upper bound for plaintext values.
                 This parameter is only used if `algorithm_name` is 'Benaloh'.
             max_tries (int): maximum attempts to generate keys. Default is 10000.
-                RSA, Benaloh, Naccache-Stern and Goldwasser-Micali algorithms
-                need multiple attempts to generate valid keys. Will be discarded
+                RSA, Benaloh, Naccache-Stern, Goldwasser-Micali, Boneh-Goh-Nissim,
+                Joye-Libert and Castagnos-Laguillaumie algorithms need multiple attempts to generate valid keys. Will be discarded
                 for other algorithms.
         """
         self.algorithm_name = algorithm_name
@@ -123,6 +127,9 @@ class LightPHE:
         EllipticCurveElGamal,
         SanderYoungYung,
         BonehGohNissim,
+        JoyeLibert,
+        CastagnosLaguillaumie,
+        IshaiPaskin,
     ]:
         """
         Build a cryptosystem among partially homomorphic algorithms
@@ -130,6 +137,7 @@ class LightPHE:
             algorithm_name (str): RSA | ElGamal | Exponential-ElGamal | EllipticCurve-ElGamal
                 | Paillier | Damgard-Jurik | Okamoto-Uchiyama | Benaloh | Naccache-Stern
                 | Goldwasser-Micali | Edwards-ElGamal | Sander-Young-Yung | Boneh-Goh-Nissim
+                | Joye-Libert | Castagnos-Laguillaumie | Ishai-Paskin
                 Default is Paillier.
             keys (dict): optional private-public key pair
             key_file (str): if keys are exported, you can load them into cryptosystem
@@ -145,8 +153,8 @@ class LightPHE:
             plaintext_limit (int, optional): Upper bound for plaintext values.
                 This parameter is only used if `algorithm_name` is 'Benaloh'.
             max_tries (int): maximum attempts to generate keys. Default is 10000.
-                RSA, Benaloh, Naccache-Stern and Goldwasser-Micali algorithms
-                need multiple attempts to generate valid keys. Will be discarded
+                RSA, Benaloh, Naccache-Stern, Goldwasser-Micali, Boneh-Goh-Nissim,
+                Joye-Libert and Castagnos-Laguillaumie algorithms need multiple attempts to generate valid keys. Will be discarded
                 for other algorithms.
         Returns
             cryptosystem
@@ -185,6 +193,14 @@ class LightPHE:
             )
         elif algorithm_name == Algorithm.BonehGohNissim:
             cs = BonehGohNissim(keys=keys, key_size=key_size, max_tries=max_tries)
+        elif algorithm_name == Algorithm.JoyeLibert:
+            cs = JoyeLibert(keys=keys, key_size=key_size, max_tries=max_tries)
+        elif algorithm_name == Algorithm.CastagnosLaguillaumie:
+            cs = CastagnosLaguillaumie(
+                keys=keys, key_size=key_size, max_tries=max_tries
+            )
+        elif algorithm_name == Algorithm.IshaiPaskin:
+            cs = IshaiPaskin(keys=keys, key_size=key_size)
         else:
             raise ValueError(f"unimplemented algorithm - {algorithm_name}")
         return cs
@@ -206,6 +222,9 @@ class LightPHE:
         if isinstance(plaintext, list):
             # then encrypt tensors
             return self.__encrypt_tensors(tensor=plaintext, silent=silent)
+
+        if isinstance(plaintext, float) and self.algorithm_name == Algorithm.JoyeLibert:
+            raise ValueError(FLOAT_NOT_SUPPORTED_MSG)
 
         ciphertext = self.cs.encrypt(
             plaintext=phe_utils.normalize_input(
@@ -329,6 +348,51 @@ class LightPHE:
 
             plain_tensor.append(m)
         return plain_tensor
+
+    def encrypt_decision_tree_input(self, bits: List[int], depth: int) -> List[List[int]]:
+        """
+        Encrypt input bits (answers to the questions) of a decision tree.
+            Only supported by Ishai-Paskin.
+        Args:
+            bits (list of int): input bits x_0, x_1, ... each 0 or 1
+            depth (int): maximum number of decisions on a path of the decision tree
+        Returns:
+            encrypted input (list of list of int): to be sent to the tree owner
+        """
+        if self.cs.keys.get("public_key") is None:
+            raise ValueError("You must have public key to perform encryption")
+
+        return self.cs.encrypt_decision_tree_input(bits=bits, depth=depth)
+
+    def evaluate_decision_tree(
+        self, tree: Union[int, tuple], encrypted_input: List[List[int]]
+    ) -> Ciphertext:
+        """
+        Evaluate a decision tree on encrypted input.
+            Private key is not required. Only supported by Ishai-Paskin.
+        Args:
+            tree (int or tuple): leaf (int) or decision node
+                (variable_index, tree_if_0, tree_if_1)
+            encrypted_input (list of list of int): output of encrypt_decision_tree_input
+        Returns:
+            ciphertext (Ciphertext): encrypted output of the tree
+        """
+        if self.cs.keys.get("public_key") is None:
+            raise ValueError(
+                "You must have public key to perform decision tree evaluation"
+            )
+
+        output = self.cs.evaluate_decision_tree(
+            tree=tree, encrypted_input=encrypted_input
+        )
+
+        public_keys = self.cs.keys.copy()
+        if public_keys.get("private_key") is not None:
+            del public_keys["private_key"]
+
+        return Ciphertext(
+            algorithm_name=self.algorithm_name, keys=public_keys, value=output
+        )
 
     def regenerate_ciphertext(self, ciphertext: Ciphertext) -> Ciphertext:
         """

@@ -11,7 +11,7 @@
 
 <p align="center"><img src="https://raw.githubusercontent.com/serengil/LightPHE/master/icons/phi.png" width="200" height="240"></p>
 
-LightPHE is a lightweight homomorphic encryption library for python supporting various partially and somewhat homomorphic encryptions schemes such as [`RSA`](https://sefiks.com/2023/03/06/a-step-by-step-partially-homomorphic-encryption-example-with-rsa-in-python/), [`ElGamal`](https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/), [`Exponential ElGamal`](https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/), [`Elliptic Curve ElGamal`](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) ([`Weierstrass`](https://sefiks.com/2016/03/13/the-math-behind-elliptic-curve-cryptography/), [`Koblitz`](sefiks.com/2016/03/13/the-math-behind-elliptic-curves-over-binary-field/) and [`Edwards`](https://sefiks.com/2018/12/19/a-gentle-introduction-to-edwards-curves/) forms), [`Paillier`](https://sefiks.com/2023/04/03/a-step-by-step-partially-homomorphic-encryption-example-with-paillier-in-python/), [`Damgard-Jurik`](https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-damgard-jurik-in-python/), [`Okamoto–Uchiyama`](https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-okamoto-uchiyama-in-python/), [`Benaloh`](https://sefiks.com/2023/10/06/a-step-by-step-partially-homomorphic-encryption-example-with-benaloh-in-python-from-scratch/), [`Naccache–Stern`](https://sefiks.com/2023/10/26/a-step-by-step-partially-homomorphic-encryption-example-with-naccache-stern-in-python/), [`Goldwasser–Micali`](https://sefiks.com/2023/10/27/a-step-by-step-partially-homomorphic-encryption-example-with-goldwasser-micali-in-python/), [`Sander-Young-Yung`](https://sefiks.com/2026/04/02/a-step-by-step-partially-homomorphic-sander-young-yung-example-in-python/), [`Boneh-Goh-Nissim`](https://sefiks.com/2026/04/02/a-step-by-step-somewhat-homomorphic-encryption-example-with-boneh-goh-nissim-in-python/).
+LightPHE is a lightweight homomorphic encryption library for python supporting various partially and somewhat homomorphic encryptions schemes such as [`RSA`](https://sefiks.com/2023/03/06/a-step-by-step-partially-homomorphic-encryption-example-with-rsa-in-python/), [`ElGamal`](https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/), [`Exponential ElGamal`](https://sefiks.com/2023/03/27/a-step-by-step-partially-homomorphic-encryption-example-with-elgamal-in-python/), [`Elliptic Curve ElGamal`](https://sefiks.com/2018/08/21/elliptic-curve-elgamal-encryption/) ([`Weierstrass`](https://sefiks.com/2016/03/13/the-math-behind-elliptic-curve-cryptography/), [`Koblitz`](sefiks.com/2016/03/13/the-math-behind-elliptic-curves-over-binary-field/) and [`Edwards`](https://sefiks.com/2018/12/19/a-gentle-introduction-to-edwards-curves/) forms), [`Paillier`](https://sefiks.com/2023/04/03/a-step-by-step-partially-homomorphic-encryption-example-with-paillier-in-python/), [`Damgard-Jurik`](https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-damgard-jurik-in-python/), [`Okamoto–Uchiyama`](https://sefiks.com/2023/10/20/a-step-by-step-partially-homomorphic-encryption-example-with-okamoto-uchiyama-in-python/), [`Benaloh`](https://sefiks.com/2023/10/06/a-step-by-step-partially-homomorphic-encryption-example-with-benaloh-in-python-from-scratch/), [`Naccache–Stern`](https://sefiks.com/2023/10/26/a-step-by-step-partially-homomorphic-encryption-example-with-naccache-stern-in-python/), [`Goldwasser–Micali`](https://sefiks.com/2023/10/27/a-step-by-step-partially-homomorphic-encryption-example-with-goldwasser-micali-in-python/), [`Sander-Young-Yung`](https://sefiks.com/2026/04/02/a-step-by-step-partially-homomorphic-sander-young-yung-example-in-python/), [`Boneh-Goh-Nissim`](https://sefiks.com/2026/04/02/a-step-by-step-somewhat-homomorphic-encryption-example-with-boneh-goh-nissim-in-python/), `Joye-Libert`, `Castagnos-Laguillaumie`, `Ishai-Paskin`.
 
 # Partially vs Fully Homomorphic Encryption
 
@@ -42,20 +42,23 @@ from lightphe import LightPHE
 
 In summary, LightPHE is covering following algorithms and these are partially homomorphic and somewhat homomorphic with respect to the operations mentioned in the following table.
 
-| Algorithm | Multiplicatively<br>Homomorphic | Additively<br>Homomorphic | Scalar Multiplication | Bitwise-XOR Homomorphic | Bitwise-AND Homomorphic | Regeneration<br>of Ciphertext |
-| --- | --- | --- | --- | --- | --- | --- |
-| RSA | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| ElGamal | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Exponential ElGamal | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Elliptic Curve ElGamal | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Paillier | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Damgard-Jurik | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Benaloh | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Naccache-Stern | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Okamoto-Uchiyama | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Goldwasser-Micali | ❌ | ❌ | ❌ | ✅ | ❌ | ✅  |
-| Sander-Young-Yung | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Boneh-Goh-Nissim | 1️⃣ | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Algorithm | Multiplicatively<br>Homomorphic | Additively<br>Homomorphic | Scalar Multiplication | Bitwise-XOR Homomorphic | Bitwise-AND Homomorphic | Regeneration<br>of Ciphertext | Decision Tree<br>Evaluation |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| RSA | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| ElGamal | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Exponential ElGamal | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Elliptic Curve ElGamal | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Paillier | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Damgard-Jurik | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Benaloh | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Naccache-Stern | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Okamoto-Uchiyama | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Joye-Libert | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Castagnos-Laguillaumie | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Ishai-Paskin | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
+| Goldwasser-Micali | ❌ | ❌ | ❌ | ✅ | ❌ | ✅  | ❌ |
+| Sander-Young-Yung | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Boneh-Goh-Nissim | 1️⃣ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
 
 # Building cryptosystem
 
@@ -75,6 +78,9 @@ algorithms = [
   "EllipticCurve-ElGamal",
   "Sander-Young-Yung",
   "Boneh-Goh-Nissim",
+  "Joye-Libert",
+  "Castagnos-Laguillaumie",
+  "Ishai-Paskin",
 ]
 
 cs = LightPHE(algorithm_name = algorithms[0])
@@ -160,6 +166,58 @@ One of the crucial factors that define the security level of an elliptic curve c
 Each curve in LightPHE has a specific order, which is carefully chosen to balance performance and security. By selecting an elliptic curve with a larger order, you increase the security of your cryptographic system, but this may come with a trade-off in computational efficiency. Therefore, choosing the appropriate curve order is a crucial decision based on your application’s security and performance requirements.
 
 See [`curves`](https://github.com/serengil/LightECC#supported-curves) page for a list of all supported forms, curves and their details.
+
+### Decision Trees
+
+Ishai-Paskin solves a different problem than the algorithms above. Suppose a bank has a secret decision tree that decides a customer's credit limit, and a customer has private yes / no answers. The bank does not want to reveal its tree, and the customer does not want to reveal their answers. With Ishai-Paskin, the customer sends encrypted answers, the bank runs its tree on them without seeing them, and only the customer can decrypt the result. The customer learns the credit limit but not the rest of the tree.
+
+Let the bank's tree be the following, where questions are numbered 0, 1 and 2 and leaves are credit limits in thousand dollars.
+
+```
+                  Q0: has stable income?
+                 /no                    \yes
+     Q2: owns a house?              Q1: has existing debt?
+       /no        \yes               /no           \yes
+      0            5               20         Q2: owns a house?
+                                                /no       \yes
+                                               5          10
+```
+
+Each question is written as a tuple of `(question number, what to do if no, what to do if yes)`, and leaves are plain integers. So, the tree above becomes:
+
+```python
+credit_limit_tree = (0, (2, 0, 5), (1, 20, (2, 5, 10)))
+```
+
+Then, the customer and the bank run the following steps.
+
+```python
+# customer builds the cryptosystem and keeps the private key
+customer_cs = LightPHE(algorithm_name = "Ishai-Paskin")
+
+# customer shares only the public key with the bank
+customer_cs.export_keys(target_file = "public.txt", public = True)
+
+# customer's answers: stable income = yes, existing debt = yes, owns a house = no
+answers = [1, 1, 0]
+
+# customer encrypts the answers and sends them to the bank. depth is the maximum
+# number of questions on a path of the tree, the bank should share this value
+encrypted_answers = customer_cs.encrypt_decision_tree_input(bits = answers, depth = 3)
+
+# bank builds its own cryptosystem with the customer's public key
+bank_cs = LightPHE(algorithm_name = "Ishai-Paskin", key_file = "public.txt")
+
+# bank runs its tree on encrypted answers and sends the result back to the customer
+encrypted_limit = bank_cs.evaluate_decision_tree(
+  tree = credit_limit_tree, encrypted_input = encrypted_answers
+)
+
+# customer decrypts the result - only the customer has the private key
+assert customer_cs.decrypt(encrypted_limit) == 5
+```
+
+The size of the result grows with the depth of the tree, not with the number of its nodes. Still, each extra level makes the computation noticeably slower, so this is practical for shallow trees.
 
 ### Vector Embeddings
 
