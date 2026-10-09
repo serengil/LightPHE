@@ -11,7 +11,6 @@ from sympy.ntheory.residue_ntheory import sqrt_mod
 # project dependencies
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
-from lightphe.commons.phe_utils import extended_euclidean
 
 logger = Logger(module="lightphe/cryptosystems/CastagnosLaguillaumie.py")
 
@@ -354,15 +353,19 @@ class CastagnosLaguillaumie(Homomorphic):
             y1 = 0
             d = a1
         else:
-            d, y1, _ = extended_euclidean(a2, a1)
+            # y1 * a2 = d mod a1
+            d = math.gcd(a2, a1)
+            y1 = pow(a2 // d, -1, a1 // d)
 
         if s % d == 0:
             y2 = -1
             x2 = 0
             d1 = d
         else:
-            d1, x2, v = extended_euclidean(s, d)
-            y2 = -v
+            # x2 * s - y2 * d = d1
+            d1 = math.gcd(s, d)
+            x2 = pow(s // d1, -1, d // d1)
+            y2 = (x2 * s - d1) // d
 
         v1 = a1 // d1
         v2 = a2 // d1
