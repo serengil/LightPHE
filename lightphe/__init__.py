@@ -39,7 +39,7 @@ from lightphe.cryptosystems.IshaiPaskin import IshaiPaskin
 
 logger = Logger(module="lightphe/__init__.py")
 
-VERSION = "0.0.25"
+VERSION = "0.0.26"
 
 
 class LightPHE:
@@ -349,7 +349,9 @@ class LightPHE:
             plain_tensor.append(m)
         return plain_tensor
 
-    def encrypt_decision_tree_input(self, bits: List[int], depth: int) -> List[List[int]]:
+    def encrypt_decision_tree_input(
+        self, bits: List[int], depth: int
+    ) -> List[List[int]]:
         """
         Encrypt input bits (answers to the questions) of a decision tree.
             Only supported by Ishai-Paskin.
