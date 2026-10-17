@@ -44,7 +44,10 @@ from lightphe.cryptosystems.DamgardGeislerKroigaard import DamgardGeislerKroigaa
 from lightphe.cryptosystems.BressonCatalanoPointcheval import BressonCatalanoPointcheval
 from lightphe.cryptosystems.CamenischShoup import CamenischShoup
 from lightphe.cryptosystems.EllipticCurvePaillier import EllipticCurvePaillier
-from lightphe.cryptosystems.Regev import Regev, FLOAT_NOT_SUPPORTED_MSG as REGEV_FLOAT_NOT_SUPPORTED_MSG
+from lightphe.cryptosystems.Regev import (
+    Regev,
+    FLOAT_NOT_SUPPORTED_MSG as REGEV_FLOAT_NOT_SUPPORTED_MSG,
+)
 from lightphe.cryptosystems.BrakerskiVaikuntanathan import (
     BrakerskiVaikuntanathan,
     FLOAT_NOT_SUPPORTED_MSG as BV_FLOAT_NOT_SUPPORTED_MSG,
@@ -62,7 +65,7 @@ from lightphe.cryptosystems.GentryHaleviVaikuntanathan import (
 
 logger = Logger(module="lightphe/__init__.py")
 
-VERSION = "0.0.26"
+VERSION = "0.0.27"
 
 
 class LightPHE:
@@ -157,7 +160,9 @@ class LightPHE:
         self.__catalano_fiore: Optional[CatalanoFiore] = None
         if boost is not None:
             if boost != CATALANO_FIORE:
-                raise ValueError(f"Unknown boost {boost}. Options are: {CATALANO_FIORE}")
+                raise ValueError(
+                    f"Unknown boost {boost}. Options are: {CATALANO_FIORE}"
+                )
             self.__catalano_fiore = CatalanoFiore(copy.copy(self))
 
     def __build_cryptosystem(
@@ -329,7 +334,9 @@ class LightPHE:
         if self.__catalano_fiore is not None:
             return self.__catalano_fiore.encrypt(plaintext=plaintext)
 
-        if self.algorithm_name == Algorithm.Regev and isinstance(plaintext, (list, float)):
+        if self.algorithm_name == Algorithm.Regev and isinstance(
+            plaintext, (list, float)
+        ):
             raise ValueError(REGEV_FLOAT_NOT_SUPPORTED_MSG)
 
         if self.algorithm_name == Algorithm.BrakerskiVaikuntanathan and isinstance(
@@ -487,7 +494,9 @@ class LightPHE:
             label=label,
         )
 
-    def decrypt_verifiable_ciphertext(self, verifiable_ciphertext: dict, label: str = "") -> int:
+    def decrypt_verifiable_ciphertext(
+        self, verifiable_ciphertext: dict, label: str = ""
+    ) -> int:
         """
         Restore the secret from a verifiable ciphertext. Runs on the side of the private
             key owner, e.g. a trusted third party, when the conditions in the label are met.
@@ -843,9 +852,7 @@ class LightPHE:
             action (str): description of the action requiring the key
         """
         if self.cs.keys.get(key_type) is None:
-            raise ValueError(
-                f"You must have {key_type.replace('_', ' ')} to {action}"
-            )
+            raise ValueError(f"You must have {key_type.replace('_', ' ')} to {action}")
 
     def regenerate_ciphertext(self, ciphertext: Ciphertext) -> Ciphertext:
         """
