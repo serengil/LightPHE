@@ -93,7 +93,15 @@ class Benaloh(Homomorphic):
             if gcd(y, n) != 1:
                 continue
 
-            # to guarantee correct decryption
+            # to guarantee correct decryption, x = y^(phi/r) must have order exactly r.
+            # Benaloh's original key generation only checks y^(phi/r) != 1 mod n, which is
+            # not enough for a composite r: x may then have a smaller order, so different
+            # messages would map to the same x^m and decryption would be ambiguous.
+            # The corrected condition checks every prime factor of r as below. Since r is
+            # always prime here, both conditions are the same, but this check keeps keys
+            # correct even if r becomes composite in the future.
+            # Ref: Fousse, L., Lafourcade, P., Alnuaimi, M. (2011). Benaloh's Dense
+            #     Probabilistic Encryption Revisited. AFRICACRYPT 2011.
             prime_factors = sympy.factorint(r).keys()
             decryption_guaranteed = True
             for prime_factor in prime_factors:
@@ -102,7 +110,7 @@ class Benaloh(Homomorphic):
                     decryption_guaranteed = False
 
             if decryption_guaranteed is False:
-                print("decryption not guaranteed, retrying...")
+                logger.debug("decryption not guaranteed, retrying...")
                 continue
 
             x = pow(y, int(phi // r), n)
@@ -152,7 +160,7 @@ class Benaloh(Homomorphic):
 
         u = random_key or self.generate_random_key()
 
-        if plaintext > r:
+        if plaintext >= r:
             plaintext_original = plaintext * 1
             plaintext = plaintext % r
             logger.info(
@@ -219,7 +227,7 @@ class Benaloh(Homomorphic):
         """
         # raise ValueError("Benaloh is not supporting multiplying by a constant")
         n = self.keys["public_key"]["n"]
-        if constant > self.plaintext_modulo:
+        if constant >= self.plaintext_modulo:
             constant = constant % self.plaintext_modulo
             logger.info(
                 f"Benaloh can encrypt messages [1, {self.plaintext_modulo}]. "

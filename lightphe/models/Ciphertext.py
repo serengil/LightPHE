@@ -15,6 +15,23 @@ from lightphe.cryptosystems.BonehGohNissim import BonehGohNissim
 from lightphe.cryptosystems.JoyeLibert import JoyeLibert, FLOAT_NOT_SUPPORTED_MSG
 from lightphe.cryptosystems.CastagnosLaguillaumie import CastagnosLaguillaumie
 from lightphe.cryptosystems.IshaiPaskin import IshaiPaskin
+from lightphe.cryptosystems.DamgardGeislerKroigaard import DamgardGeislerKroigaard
+from lightphe.cryptosystems.BressonCatalanoPointcheval import BressonCatalanoPointcheval
+from lightphe.cryptosystems.CamenischShoup import CamenischShoup
+from lightphe.cryptosystems.EllipticCurvePaillier import EllipticCurvePaillier
+from lightphe.cryptosystems.Regev import Regev, FLOAT_NOT_SUPPORTED_MSG as REGEV_FLOAT_NOT_SUPPORTED_MSG
+from lightphe.cryptosystems.BrakerskiVaikuntanathan import (
+    BrakerskiVaikuntanathan,
+    FLOAT_NOT_SUPPORTED_MSG as BV_FLOAT_NOT_SUPPORTED_MSG,
+)
+from lightphe.cryptosystems.FreemanBonehGohNissim import (
+    FreemanBonehGohNissim,
+    FLOAT_NOT_SUPPORTED_MSG as FBGN_FLOAT_NOT_SUPPORTED_MSG,
+)
+from lightphe.cryptosystems.GentryHaleviVaikuntanathan import (
+    GentryHaleviVaikuntanathan,
+    FLOAT_NOT_SUPPORTED_MSG as GHV_FLOAT_NOT_SUPPORTED_MSG,
+)
 from lightphe.commons import phe_utils
 from lightphe.commons.logger import Logger
 
@@ -66,6 +83,22 @@ class Ciphertext:
             cs = CastagnosLaguillaumie(keys=keys)
         elif algorithm_name == Algorithm.IshaiPaskin:
             cs = IshaiPaskin(keys=keys)
+        elif algorithm_name == Algorithm.DamgardGeislerKroigaard:
+            cs = DamgardGeislerKroigaard(keys=keys)
+        elif algorithm_name == Algorithm.BressonCatalanoPointcheval:
+            cs = BressonCatalanoPointcheval(keys=keys)
+        elif algorithm_name == Algorithm.CamenischShoup:
+            cs = CamenischShoup(keys=keys)
+        elif algorithm_name == Algorithm.EllipticCurvePaillier:
+            cs = EllipticCurvePaillier(keys=keys)
+        elif algorithm_name == Algorithm.Regev:
+            cs = Regev(keys=keys)
+        elif algorithm_name == Algorithm.BrakerskiVaikuntanathan:
+            cs = BrakerskiVaikuntanathan(keys=keys)
+        elif algorithm_name == Algorithm.FreemanBonehGohNissim:
+            cs = FreemanBonehGohNissim(keys=keys)
+        elif algorithm_name == Algorithm.GentryHaleviVaikuntanathan:
+            cs = GentryHaleviVaikuntanathan(keys=keys)
         else:
             raise ValueError(f"unimplemented algorithm - {algorithm_name}")
 
@@ -114,6 +147,14 @@ class Ciphertext:
         elif isinstance(other, float):
             if self.algorithm_name == Algorithm.JoyeLibert:
                 raise ValueError(FLOAT_NOT_SUPPORTED_MSG)
+            if self.algorithm_name == Algorithm.Regev:
+                raise ValueError(REGEV_FLOAT_NOT_SUPPORTED_MSG)
+            if self.algorithm_name == Algorithm.BrakerskiVaikuntanathan:
+                raise ValueError(BV_FLOAT_NOT_SUPPORTED_MSG)
+            if self.algorithm_name == Algorithm.FreemanBonehGohNissim:
+                raise ValueError(FBGN_FLOAT_NOT_SUPPORTED_MSG)
+            if self.algorithm_name == Algorithm.GentryHaleviVaikuntanathan:
+                raise ValueError(GHV_FLOAT_NOT_SUPPORTED_MSG)
             constant = phe_utils.normalize_input(
                 value=other, modulo=self.cs.plaintext_modulo
             )
