@@ -78,14 +78,40 @@ def test_encryption_levels():
 
 
 def test_boolean_trees():
+    # xi? asks the i-th input bit. left branch is taken if it is 0, right branch if it is 1.
+
+    #        x0?
+    #      /0   \1
+    #     x1?    1
+    #   /0   \1
+    #  0      1
     x0_or_x1 = (0, (1, 0, 1), 1)
+
+    #     x0?
+    #   /0   \1
+    #  0     x1?
+    #      /0   \1
+    #     0      1
     x0_and_x1 = (0, 0, (1, 0, 1))
+
+    #     x1?
+    #   /0   \1
+    #  1      0
     not_x1 = (1, 1, 0)
     assert_tree(x0_or_x1, num_inputs=2)
     assert_tree(x0_and_x1, num_inputs=2)
     assert_tree(not_x1, num_inputs=2)
 
-    # shared sub trees (DAG) are evaluated once
+    # shared sub trees (DAG) are evaluated once. x2? nodes below are only two objects,
+    # x2_is_1 (0, 1 leaves) and x2_is_0 (1, 0 leaves), each referenced twice.
+    #
+    #                    x0?
+    #           /0                 \1
+    #         x1?                   x1?
+    #       /0     \1             /0     \1
+    #     x2?       x2?         x2?       x2?
+    #    /0  \1    /0  \1      /0  \1    /0  \1
+    #   0     1   1     0     1     0   0     1
     x2_is_0 = (2, 1, 0)
     x2_is_1 = (2, 0, 1)
     x1_xor_x2 = (1, x2_is_1, x2_is_0)
@@ -93,6 +119,15 @@ def test_boolean_trees():
     x0_xor_x1_xor_x2 = (0, x1_xor_x2, x1_xnor_x2)
     assert_tree(x0_xor_x1_xor_x2, num_inputs=3)
 
+    # majority vote of x0, x1 and x2
+    #
+    #                x0?
+    #          /0           \1
+    #        x1?             x1?
+    #      /0   \1         /0   \1
+    #     0     x2?       x2?    1
+    #         /0   \1   /0   \1
+    #        0      1  0      1
     majority = (0, (1, 0, (2, 0, 1)), (1, (2, 0, 1), 1))
     assert_tree(majority, num_inputs=3)
     logger.info("✅ Ishai-Paskin boolean trees test succeeded")
@@ -100,6 +135,14 @@ def test_boolean_trees():
 
 def test_decision_tree_with_non_binary_leaves():
     # leaves at different depths returning class labels
+    #
+    #             x0?
+    #          /0     \1
+    #        x1?       40
+    #      /0   \1
+    #     10    x2?
+    #         /0   \1
+    #        20     30
     decision_tree = (0, (1, 10, (2, 20, 30)), 40)
     assert_tree(decision_tree, num_inputs=3)
 
@@ -112,6 +155,13 @@ def test_decision_tree_with_non_binary_leaves():
 
 
 def test_output_is_rerandomized():
+    # x0 or x1
+    #
+    #        x0?
+    #      /0   \1
+    #     x1?    1
+    #   /0   \1
+    #  0      1
     tree = (0, (1, 0, 1), 1)
     encrypted_input = cs.encrypt_decision_tree_input(bits=[1, 0], depth=2)
     output1 = cs.evaluate_decision_tree(tree=tree, encrypted_input=encrypted_input)
@@ -125,8 +175,15 @@ def test_output_is_rerandomized():
 
 
 def test_credit_limit_example_in_readme(tmp_path):
-    # bank's secret tree: Q0 = has stable income?, Q1 = has existing debt?,
-    # Q2 = owns a house?, leaves are credit limits in thousand dollars
+    # bank's secret tree drawn in the readme. leaves are credit limits in thousand dollars.
+    #
+    #                   Q0: has stable income?
+    #                  /no                    \yes
+    #      Q2: owns a house?              Q1: has existing debt?
+    #        /no        \yes               /no           \yes
+    #       0            5               20         Q2: owns a house?
+    #                                                 /no       \yes
+    #                                                5          10
     credit_limit_tree = (0, (2, 0, 5), (1, 20, (2, 5, 10)))
 
     # customer builds the cryptosystem and keeps the private key
@@ -206,6 +263,7 @@ def test_invalid_inputs():
 def test_large_keys():
     tic = time.time()
     large_cs = LightPHE(algorithm_name="Ishai-Paskin", key_size=1024)
+    # majority vote of x0, x1 and x2, drawn in test_boolean_trees
     majority = (0, (1, 0, (2, 0, 1)), (1, (2, 0, 1), 1))
     for bits in [(1, 0, 1), (0, 1, 0)]:
         encrypted_input = large_cs.encrypt_decision_tree_input(bits=list(bits), depth=3)

@@ -16,6 +16,14 @@ from lightphe.cryptosystems.BonehGohNissim import BonehGohNissim
 from lightphe.cryptosystems.JoyeLibert import JoyeLibert
 from lightphe.cryptosystems.CastagnosLaguillaumie import CastagnosLaguillaumie
 from lightphe.cryptosystems.IshaiPaskin import IshaiPaskin
+from lightphe.cryptosystems.DamgardGeislerKroigaard import DamgardGeislerKroigaard
+from lightphe.cryptosystems.BressonCatalanoPointcheval import BressonCatalanoPointcheval
+from lightphe.cryptosystems.CamenischShoup import CamenischShoup
+from lightphe.cryptosystems.EllipticCurvePaillier import EllipticCurvePaillier
+from lightphe.cryptosystems.Regev import Regev
+from lightphe.cryptosystems.BrakerskiVaikuntanathan import BrakerskiVaikuntanathan
+from lightphe.cryptosystems.FreemanBonehGohNissim import FreemanBonehGohNissim
+from lightphe.cryptosystems.GentryHaleviVaikuntanathan import GentryHaleviVaikuntanathan
 
 
 # Map user-facing algorithm names to the class that owns the REQUIRED_KEYS spec.
@@ -37,6 +45,14 @@ _ALGORITHM_TO_CLASS: Dict[str, Type[Homomorphic]] = {
     Algorithm.JoyeLibert: JoyeLibert,
     Algorithm.CastagnosLaguillaumie: CastagnosLaguillaumie,
     Algorithm.IshaiPaskin: IshaiPaskin,
+    Algorithm.DamgardGeislerKroigaard: DamgardGeislerKroigaard,
+    Algorithm.BressonCatalanoPointcheval: BressonCatalanoPointcheval,
+    Algorithm.CamenischShoup: CamenischShoup,
+    Algorithm.EllipticCurvePaillier: EllipticCurvePaillier,
+    Algorithm.Regev: Regev,
+    Algorithm.BrakerskiVaikuntanathan: BrakerskiVaikuntanathan,
+    Algorithm.FreemanBonehGohNissim: FreemanBonehGohNissim,
+    Algorithm.GentryHaleviVaikuntanathan: GentryHaleviVaikuntanathan,
 }
 
 
@@ -50,7 +66,9 @@ def validate_keys(algorithm_name: str, keys: dict) -> None:
 
     The required-field spec is read from the cryptosystem class's
     `REQUIRED_KEYS` attribute (a dict with "public_key", "private_key", and
-    an optional "nested" entry for dict-valued public_key sub-fields).
+    an optional "nested" entry for dict-valued public_key sub-fields). An
+    optional "alternative_private_key" entry lists another set of fields that
+    is accepted instead of the required private_key fields.
 
     Args:
         algorithm_name (str): user-facing algorithm name (e.g. "RSA")
@@ -80,6 +98,14 @@ def validate_keys(algorithm_name: str, keys: dict) -> None:
                 f"got {type(keys[kind]).__name__}"
             )
         missing = [f for f in spec[kind] if f not in keys[kind]]
+        alternative = spec.get(f"alternative_{kind}")
+        if missing and alternative is not None:
+            if all(f in keys[kind] for f in alternative):
+                continue
+            raise ValueError(
+                f"{algorithm_name} '{kind}' is missing required fields: {missing} "
+                f"(or alternatively {alternative})"
+            )
         if missing:
             raise ValueError(
                 f"{algorithm_name} '{kind}' is missing required fields: {missing}"

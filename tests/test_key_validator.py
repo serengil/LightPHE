@@ -24,6 +24,14 @@ ALGORITHMS = [
     ("Joye-Libert", 50),
     ("Castagnos-Laguillaumie", 50),
     ("Ishai-Paskin", 50),
+    ("Damgard-Geisler-Kroigaard", 50),
+    ("Bresson-Catalano-Pointcheval", 50),
+    ("Camenisch-Shoup", 50),
+    ("EllipticCurve-Paillier", 50),
+    ("Regev", 50),
+    ("Brakerski-Vaikuntanathan", 64),
+    ("Freeman-Boneh-Goh-Nissim", 64),
+    ("Gentry-Halevi-Vaikuntanathan", 2),
 ]
 
 
@@ -46,9 +54,12 @@ def test_missing_public_key_field_is_rejected(algorithm_name, key_size):
 def test_missing_private_key_field_is_rejected(algorithm_name, key_size):
     """Dropping a required private_key sub-field must raise ValueError."""
     cs = LightPHE(algorithm_name=algorithm_name, key_size=key_size, max_tries=10000)
-    field = cs.cs.REQUIRED_KEYS["private_key"][0]
+    required = cs.cs.REQUIRED_KEYS["private_key"]
+    field = required[0]
 
+    # keep required fields only, otherwise alternative fields may satisfy validation
     broken = copy.deepcopy(cs.cs.keys)
+    broken["private_key"] = {f: broken["private_key"][f] for f in required}
     del broken["private_key"][field]
 
     with pytest.raises(ValueError, match=f"missing required fields.*{field}"):
@@ -101,3 +112,17 @@ def test_bgn_nested_curve_field_is_rejected():
         LightPHE(algorithm_name="Boneh-Goh-Nissim", keys=broken)
 
     logger.info(f"✅ BGN: missing public_key.curve.{field} rejected")
+
+
+def test_alternative_private_key_is_accepted():
+    """Bresson-Catalano-Pointcheval accepts a private key having the master trapdoor only."""
+    cs = LightPHE(algorithm_name="Bresson-Catalano-Pointcheval", key_size=50)
+    master_only = copy.deepcopy(cs.cs.keys)
+    del master_only["private_key"]["a"]
+    # should not raise
+    LightPHE(algorithm_name="Bresson-Catalano-Pointcheval", keys=master_only)
+
+    # neither the required nor the alternative fields
+    del master_only["private_key"]["q"]
+    with pytest.raises(ValueError, match=r"missing required fields.*a.*alternatively"):
+        LightPHE(algorithm_name="Bresson-Catalano-Pointcheval", keys=master_only)
