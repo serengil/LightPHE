@@ -156,6 +156,9 @@ class LightPHE:
             max_tries=max_tries,
         )
 
+        # public-key-only cryptosystem shared by ciphertexts, built on first use
+        self.__public_cs: Optional[Homomorphic] = None
+
         # Catalano-Fiore transform wraps a copy of this instance without the transform
         self.__catalano_fiore: Optional[CatalanoFiore] = None
         if boost is not None:
@@ -164,6 +167,37 @@ class LightPHE:
                     f"Unknown boost {boost}. Options are: {CATALANO_FIORE}"
                 )
             self.__catalano_fiore = CatalanoFiore(copy.copy(self))
+
+    def __public_ciphertext(self, value: Union[int, tuple, list]) -> Ciphertext:
+        """
+        Wrap a ciphertext value into a Ciphertext carrying public keys only
+        Args:
+            value (int or tuple or list): ciphertext content
+        Returns:
+            ciphertext (Ciphertext)
+        """
+        if self.__public_cs is None:
+            public_keys = self.cs.keys.copy()
+            if public_keys.get("private_key") is not None:
+                del public_keys["private_key"]
+            ciphertext = Ciphertext(
+                algorithm_name=self.algorithm_name,
+                keys=public_keys,
+                value=value,
+                form=self.form,
+                curve=self.curve,
+            )
+            self.__public_cs = ciphertext.cs
+            return ciphertext
+
+        return Ciphertext(
+            algorithm_name=self.algorithm_name,
+            keys=self.__public_cs.keys,
+            value=value,
+            form=self.form,
+            curve=self.curve,
+            cs=self.__public_cs,
+        )
 
     def __build_cryptosystem(
         self,
@@ -367,17 +401,7 @@ class LightPHE:
             )
         )
 
-        public_keys = self.cs.keys.copy()
-        if public_keys.get("private_key") is not None:
-            del public_keys["private_key"]
-
-        return Ciphertext(
-            algorithm_name=self.algorithm_name,
-            keys=public_keys,
-            value=ciphertext,
-            form=self.form,
-            curve=self.curve,
-        )
+        return self.__public_ciphertext(value=ciphertext)
 
     def decrypt(
         self, ciphertext: Union[Ciphertext, EncryptedTensor, CatalanoFioreCiphertext]
@@ -669,13 +693,7 @@ class LightPHE:
             tree=tree, encrypted_input=encrypted_input
         )
 
-        public_keys = self.cs.keys.copy()
-        if public_keys.get("private_key") is not None:
-            del public_keys["private_key"]
-
-        return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=public_keys, value=output
-        )
+        return self.__public_ciphertext(value=output)
 
     def encrypt_comparison_input(self, value: int, bit_length: int) -> List[int]:
         """
@@ -823,13 +841,7 @@ class LightPHE:
             client=client,
         )
 
-        public_keys = self.cs.keys.copy()
-        if public_keys.get("private_key") is not None:
-            del public_keys["private_key"]
-
-        return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=public_keys, value=output
-        )
+        return self.__public_ciphertext(value=output)
 
     def answer_argmax(self, message: dict) -> List[int]:
         """

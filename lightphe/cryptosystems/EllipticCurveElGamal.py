@@ -138,14 +138,17 @@ class EllipticCurveElGamal(Homomorphic):
         c1 = EllipticCurvePoint(x=c1[0], y=c1[1], curve=self.ecc.curve)
         c2 = EllipticCurvePoint(x=c2[0], y=c2[1], curve=self.ecc.curve)
 
-        s_prime = (-c1 * ka) + c2
+        # TODO: drop identity checks once https://github.com/serengil/LightECC/issues/14 is fixed
+        # -O and k x O raise TypeError in lightecc, whereas -(O x ka) = O
+        s_prime = c2 if self.__is_identity(c1) else (-c1 * ka) + c2
 
         # s_prime is a point on the elliptic curve
         # s_prime = k x G
         # we need to find k from known s_prime and G
         # this requires to solve ECDLP
 
-        return s_prime / self.ecc.G
+        # lightecc returns n instead of 0 for O / G, reduce it to have 0 back
+        return (s_prime / self.ecc.G) % self.ecc.n
 
     def add(self, ciphertext1: tuple, ciphertext2: tuple) -> tuple:
         """
@@ -189,10 +192,23 @@ class EllipticCurveElGamal(Homomorphic):
         P = EllipticCurvePoint(x=P[0], y=P[1], curve=self.ecc.curve)
         Q = EllipticCurvePoint(x=Q[0], y=Q[1], curve=self.ecc.curve)
 
-        P_prime = P * constant
-        Q_prime = Q * constant
+        # TODO: drop identity checks once https://github.com/serengil/LightECC/issues/14 is fixed
+        # k x O raises TypeError in lightecc, whereas it is O itself
+        P_prime = P if self.__is_identity(P) else P * constant
+        Q_prime = Q if self.__is_identity(Q) else Q * constant
 
         return P_prime.get_point(), Q_prime.get_point()
+
+    def __is_identity(self, point: EllipticCurvePoint) -> bool:
+        """
+        Check if a point is the identity element (point at infinity for weierstrass & koblitz)
+        Args:
+            point (EllipticCurvePoint): point on the elliptic curve
+        Returns:
+            is identity (bool)
+        """
+        ox, oy = self.ecc.curve.O
+        return point.x == ox and point.y == oy
 
     def reencrypt(self, ciphertext: tuple) -> tuple:
         """
