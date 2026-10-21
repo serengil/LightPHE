@@ -132,6 +132,15 @@ def test_api():
         assert cs.decrypt(m2 * c1) == m1 * m2
         assert cs.decrypt(m1 * c2) == m1 * m2
 
+        # zero: identity element (point at infinity) cases
+        c0 = cs.encrypt(plaintext=0)
+        assert cs.decrypt(c0) == 0
+        assert cs.decrypt(c1 * 0) == 0
+        assert cs.decrypt((c1 * 0) * m2) == 0
+        assert cs.decrypt(c0 + c2) == m2
+        assert cs.decrypt(c1 * 0 + c2) == m2
+        assert cs.cs.decrypt(cs.cs.reencrypt((c1 * 0).value)) == 0
+
         # unsupported homomorphic operations
         with pytest.raises(ValueError):
             _ = c1 * c2

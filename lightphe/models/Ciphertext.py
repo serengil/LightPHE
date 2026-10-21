@@ -40,6 +40,74 @@ logger = Logger(module="lightphe/models/Ciphertext.py")
 # pylint: disable=too-few-public-methods, no-else-return
 
 
+def build_cryptosystem(
+    algorithm_name: str,
+    keys: dict,
+    form: Optional[str] = None,
+    curve: Optional[str] = None,
+) -> Homomorphic:
+    """
+    Build a cryptosystem instance for the given algorithm and keys
+    Args:
+        algorithm_name (str): name of the algorithm
+        keys (dict): public (and optionally private) keys
+        form (str): elliptic curve form for EC based algorithms
+        curve (str): elliptic curve name for EC based algorithms
+    Returns:
+        cs (Homomorphic): cryptosystem instance
+    """
+    if algorithm_name == Algorithm.RSA:
+        cs = RSA(keys=keys)
+    elif algorithm_name == Algorithm.ElGamal:
+        cs = ElGamal(keys=keys)
+    elif algorithm_name == Algorithm.ExponentialElGamal:
+        cs = ElGamal(keys=keys, exponential=True)
+    elif algorithm_name == Algorithm.EllipticCurveElGamal:
+        cs = EllipticCurveElGamal(keys=keys, form=form, curve=curve)
+    elif algorithm_name == Algorithm.Paillier:
+        cs = Paillier(keys=keys)
+    elif algorithm_name == Algorithm.DamgardJurik:
+        cs = DamgardJurik(keys=keys)
+    elif algorithm_name == Algorithm.OkamotoUchiyama:
+        cs = OkamotoUchiyama(keys=keys)
+    elif algorithm_name == Algorithm.Benaloh:
+        cs = Benaloh(keys=keys)
+    elif algorithm_name == Algorithm.NaccacheStern:
+        cs = NaccacheStern(keys=keys)
+    elif algorithm_name == Algorithm.GoldwasserMicali:
+        cs = GoldwasserMicali(keys=keys)
+    elif algorithm_name == Algorithm.SanderYoungYung:
+        cs = SanderYoungYung(keys=keys)
+    elif algorithm_name == Algorithm.BonehGohNissim:
+        cs = BonehGohNissim(keys=keys)
+    elif algorithm_name == Algorithm.JoyeLibert:
+        cs = JoyeLibert(keys=keys)
+    elif algorithm_name == Algorithm.CastagnosLaguillaumie:
+        cs = CastagnosLaguillaumie(keys=keys)
+    elif algorithm_name == Algorithm.IshaiPaskin:
+        cs = IshaiPaskin(keys=keys)
+    elif algorithm_name == Algorithm.DamgardGeislerKroigaard:
+        cs = DamgardGeislerKroigaard(keys=keys)
+    elif algorithm_name == Algorithm.BressonCatalanoPointcheval:
+        cs = BressonCatalanoPointcheval(keys=keys)
+    elif algorithm_name == Algorithm.CamenischShoup:
+        cs = CamenischShoup(keys=keys)
+    elif algorithm_name == Algorithm.EllipticCurvePaillier:
+        cs = EllipticCurvePaillier(keys=keys)
+    elif algorithm_name == Algorithm.Regev:
+        cs = Regev(keys=keys)
+    elif algorithm_name == Algorithm.BrakerskiVaikuntanathan:
+        cs = BrakerskiVaikuntanathan(keys=keys)
+    elif algorithm_name == Algorithm.FreemanBonehGohNissim:
+        cs = FreemanBonehGohNissim(keys=keys)
+    elif algorithm_name == Algorithm.GentryHaleviVaikuntanathan:
+        cs = GentryHaleviVaikuntanathan(keys=keys)
+    else:
+        raise ValueError(f"unimplemented algorithm - {algorithm_name}")
+
+    return cs
+
+
 class Ciphertext:
     def __init__(
         self,
@@ -48,61 +116,16 @@ class Ciphertext:
         value: Union[int, tuple, list],
         form: Optional[str] = None,
         curve: Optional[str] = None,
+        cs: Optional[Homomorphic] = None,
     ):
         self.algorithm_name = algorithm_name
         self.keys = keys
         self.value = value
 
-        if algorithm_name == Algorithm.RSA:
-            cs = RSA(keys=keys)
-        elif algorithm_name == Algorithm.ElGamal:
-            cs = ElGamal(keys=keys)
-        elif algorithm_name == Algorithm.ExponentialElGamal:
-            cs = ElGamal(keys=keys, exponential=True)
-        elif algorithm_name == Algorithm.EllipticCurveElGamal:
-            cs = EllipticCurveElGamal(keys=keys, form=form, curve=curve)
-        elif algorithm_name == Algorithm.Paillier:
-            cs = Paillier(keys=keys)
-        elif algorithm_name == Algorithm.DamgardJurik:
-            cs = DamgardJurik(keys=keys)
-        elif algorithm_name == Algorithm.OkamotoUchiyama:
-            cs = OkamotoUchiyama(keys=keys)
-        elif algorithm_name == Algorithm.Benaloh:
-            cs = Benaloh(keys=keys)
-        elif algorithm_name == Algorithm.NaccacheStern:
-            cs = NaccacheStern(keys=keys)
-        elif algorithm_name == Algorithm.GoldwasserMicali:
-            cs = GoldwasserMicali(keys=keys)
-        elif algorithm_name == Algorithm.SanderYoungYung:
-            cs = SanderYoungYung(keys=keys)
-        elif algorithm_name == Algorithm.BonehGohNissim:
-            cs = BonehGohNissim(keys=keys)
-        elif algorithm_name == Algorithm.JoyeLibert:
-            cs = JoyeLibert(keys=keys)
-        elif algorithm_name == Algorithm.CastagnosLaguillaumie:
-            cs = CastagnosLaguillaumie(keys=keys)
-        elif algorithm_name == Algorithm.IshaiPaskin:
-            cs = IshaiPaskin(keys=keys)
-        elif algorithm_name == Algorithm.DamgardGeislerKroigaard:
-            cs = DamgardGeislerKroigaard(keys=keys)
-        elif algorithm_name == Algorithm.BressonCatalanoPointcheval:
-            cs = BressonCatalanoPointcheval(keys=keys)
-        elif algorithm_name == Algorithm.CamenischShoup:
-            cs = CamenischShoup(keys=keys)
-        elif algorithm_name == Algorithm.EllipticCurvePaillier:
-            cs = EllipticCurvePaillier(keys=keys)
-        elif algorithm_name == Algorithm.Regev:
-            cs = Regev(keys=keys)
-        elif algorithm_name == Algorithm.BrakerskiVaikuntanathan:
-            cs = BrakerskiVaikuntanathan(keys=keys)
-        elif algorithm_name == Algorithm.FreemanBonehGohNissim:
-            cs = FreemanBonehGohNissim(keys=keys)
-        elif algorithm_name == Algorithm.GentryHaleviVaikuntanathan:
-            cs = GentryHaleviVaikuntanathan(keys=keys)
-        else:
-            raise ValueError(f"unimplemented algorithm - {algorithm_name}")
-
-        self.cs: Homomorphic = cs
+        # reuse an existing cryptosystem if given, constructing one can be expensive
+        self.cs: Homomorphic = cs or build_cryptosystem(
+            algorithm_name=algorithm_name, keys=keys, form=form, curve=curve
+        )
 
     def __str__(self) -> str:
         return f"Ciphertext({self.value})"
@@ -123,7 +146,10 @@ class Ciphertext:
 
         result = self.cs.add(ciphertext1=self.value, ciphertext2=other.value)
         return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=self.keys, value=result
+            algorithm_name=self.algorithm_name,
+            keys=self.keys,
+            value=result,
+            cs=self.cs,
         )
 
     def __mul__(self, other: Union["Ciphertext", int, float]) -> "Ciphertext":
@@ -166,7 +192,10 @@ class Ciphertext:
                 f"A ciphertext can be multiplied by either ciphertext itself or a scalar but it is {type(other)}"
             )
         return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=self.keys, value=result
+            algorithm_name=self.algorithm_name,
+            keys=self.keys,
+            value=result,
+            cs=self.cs,
         )
 
     def __rmul__(self, constant: Union[int, float]) -> "Ciphertext":
@@ -192,7 +221,10 @@ class Ciphertext:
 
         result = self.cs.xor(ciphertext1=self.value, ciphertext2=other.value)
         return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=self.keys, value=result
+            algorithm_name=self.algorithm_name,
+            keys=self.keys,
+            value=result,
+            cs=self.cs,
         )
 
     def __and__(self, other: "Ciphertext") -> "Ciphertext":
@@ -210,5 +242,8 @@ class Ciphertext:
             ciphertext1=self.value, ciphertext2=other.value
         )
         return Ciphertext(
-            algorithm_name=self.algorithm_name, keys=self.keys, value=result
+            algorithm_name=self.algorithm_name,
+            keys=self.keys,
+            value=result,
+            cs=self.cs,
         )
