@@ -5,6 +5,9 @@ from typing import Optional, List
 
 # 3rd party dependencies
 import sympy
+from lightecc import LightECC
+from lightecc.commons.errors import PointNotOnCurve
+from lightecc.interfaces.elliptic_curve import ProjectivePoint
 
 # project dependencies
 from lightphe.models.Homomorphic import Homomorphic
@@ -36,15 +39,11 @@ class EllipticCurvePaillier(Homomorphic):
     the point at infinity, as the order of g is odd and so it has no point of order 2.
     Ciphertexts are 3 times larger than Paillier's, and operations are slower.
 
-    Note: point arithmetic is implemented here instead of LightECC. LightECC supports
-    custom curves, but it works with affine (x, y) points and divides in its addition
-    formulas, which suits curves over prime fields as in Boneh-Goh-Nissim. Z_{n^2} is not
-    a field, and messages live in points reducing to the point at infinity modulo n,
-    such as (mn : 1 : 0). Those points cannot be written as affine points, and reaching
-    them requires dividing by multiples of n. So, decryption with LightECC fails with
-    "base is not invertible" for every non-zero message, and all such points would
-    collapse into its single point at infinity anyway. Projective coordinates with
-    complete formulas never divide and keep those points distinct.
+    Point arithmetic comes from LightECC's projective form instead of its affine forms.
+    Z_{n^2} is not a field, and messages live in points reducing to the point at infinity
+    modulo n, such as (mn : 1 : 0). Those points cannot be written as affine points,
+    whereas projective coordinates with complete formulas never divide and keep them
+    distinct. The curve is built without its order, as the order is the private key.
     Ref: Galbraith, S. D. (2002). Elliptic Curve Paillier Schemes.
         Journal of Cryptology, 15(2), 129-138.
     Ref: Renes, J., Costello, C., Batina, L. (2016). Complete Addition Formulas
@@ -69,6 +68,9 @@ class EllipticCurvePaillier(Homomorphic):
         n = self.keys["public_key"]["n"]
         self.plaintext_modulo = n
         self.ciphertext_modulo = n * n
+        self.ecc = self.__build_curve(
+            n=n, b=self.keys["public_key"]["b"], g=self.keys["public_key"]["g"]
+        )
         self.__g_powers: Optional[List[tuple]] = None
 
     def generate_keys(self, key_size: int) -> dict:
@@ -109,11 +111,15 @@ class EllipticCurvePaillier(Homomorphic):
                 continue
 
             # g has odd order dividing the secret order
-            g = self.__multiply((x, y, 1), n * (exponent // order), b, n_square)
-            if math.gcd(g[2], n) != 1:
+            ecc = self.__build_curve(n=n, b=b, g=(x, y))
+            try:
+                g = ecc.G * (n * (exponent // order))
+            except PointNotOnCurve:
+                # P has a point of order 2 in its multiples, complete formulas fail
                 continue
-            z_inv = pow(g[2], -1, n_square)
-            g = ((g[0] * z_inv) % n_square, (g[1] * z_inv) % n_square)
+            if math.gcd(g.z, n) != 1:
+                continue
+            g = g.to_affine()
             break
 
         keys["public_key"]["n"] = n
@@ -146,7 +152,6 @@ class EllipticCurvePaillier(Homomorphic):
             ciphertext (tuple): projective point m * (n : 1 : 0) + r * g
         """
         n = self.keys["public_key"]["n"]
-        b = self.keys["public_key"]["b"]
         r = random_key or self.generate_random_key()
 
         if plaintext >= n:
@@ -157,8 +162,8 @@ class EllipticCurvePaillier(Homomorphic):
             )
 
         # m * (n : 1 : 0) = (mn : 1 : 0), similar to (1 + n)^m = 1 + mn in Paillier
-        message_point = ((plaintext * n) % (n * n), 1, 0)
-        return self.__add(message_point, self.__multiply_g(r), b, n * n)
+        message_point = ProjectivePoint(plaintext * n, 1, 0, curve=self.ecc.curve)
+        return (message_point + self.__multiply_g(r)).get_point()
 
     def decrypt(self, ciphertext: tuple) -> int:
         """
@@ -169,12 +174,11 @@ class EllipticCurvePaillier(Homomorphic):
             plaintext (int): restored message
         """
         n = self.keys["public_key"]["n"]
-        b = self.keys["public_key"]["b"]
         order = self.keys["private_key"]["order"]
         n_square = n * n
 
         # order * C = (order * m) * (n : 1 : 0) as order * r * g is the point at infinity
-        x, y, z = self.__multiply(tuple(ciphertext), order, b, n_square)
+        x, y, z = (self.__to_point(ciphertext) * order).get_point()
         if x % n != 0 or z % n != 0 or math.gcd(y, n) != 1:
             raise ValueError("Ciphertext is invalid")
 
@@ -192,9 +196,9 @@ class EllipticCurvePaillier(Homomorphic):
         Returns:
             ciphertext3 (tuple): 3rd ciphertext created with Elliptic Curve Paillier
         """
-        n = self.keys["public_key"]["n"]
-        b = self.keys["public_key"]["b"]
-        return self.__add(tuple(ciphertext1), tuple(ciphertext2), b, n * n)
+        c1 = self.__to_point(ciphertext1)
+        c2 = self.__to_point(ciphertext2)
+        return (c1 + c2).get_point()
 
     def multiply_by_constant(self, ciphertext: tuple, constant: int) -> tuple:
         """
@@ -207,7 +211,6 @@ class EllipticCurvePaillier(Homomorphic):
             ciphertext (tuple): new ciphertext created with Elliptic Curve Paillier
         """
         n = self.keys["public_key"]["n"]
-        b = self.keys["public_key"]["b"]
 
         if constant >= self.plaintext_modulo:
             constant = constant % self.plaintext_modulo
@@ -216,7 +219,7 @@ class EllipticCurvePaillier(Homomorphic):
                 f"Seems constant exceeded this limit. New constant is {constant}"
             )
 
-        return self.__multiply(tuple(ciphertext), constant, b, n * n)
+        return (self.__to_point(ciphertext) * constant).get_point()
 
     def reencrypt(self, ciphertext: tuple) -> tuple:
         """
@@ -230,84 +233,50 @@ class EllipticCurvePaillier(Homomorphic):
         neutral_encrypted = self.encrypt(plaintext=neutral_element)
         return self.add(ciphertext1=ciphertext, ciphertext2=neutral_encrypted)
 
-    @staticmethod
-    def __add(point1: tuple, point2: tuple, b: int, mod: int) -> tuple:
-        """
-        Add two projective points on y^2 = x^3 + b over Z_{n^2} with complete formulas
-            (Algorithm 7 of Renes-Costello-Batina for a = 0)
-        Args:
-            point1 (tuple): (X1 : Y1 : Z1)
-            point2 (tuple): (X2 : Y2 : Z2)
-            b (int): curve coefficient
-            mod (int): n^2
-        Returns:
-            sum (tuple): (X3 : Y3 : Z3)
-        """
-        b3 = 3 * b
-        x1, y1, z1 = point1
-        x2, y2, z2 = point2
-
-        t0 = (x1 * x2) % mod
-        t1 = (y1 * y2) % mod
-        t2 = (z1 * z2) % mod
-        t3 = ((x1 + y1) * (x2 + y2) - t0 - t1) % mod
-        t4 = ((y1 + z1) * (y2 + z2) - t1 - t2) % mod
-        y3 = ((x1 + z1) * (x2 + z2) - t0 - t2) % mod
-        t0 = (3 * t0) % mod
-        t2 = (b3 * t2) % mod
-        z3 = (t1 + t2) % mod
-        t1 = (t1 - t2) % mod
-        y3 = (b3 * y3) % mod
-        x3 = (t3 * t1 - t4 * y3) % mod
-        y3 = (t1 * z3 + y3 * t0) % mod
-        z3 = (z3 * t4 + t0 * t3) % mod
-        return x3, y3, z3
-
-    @staticmethod
-    def __multiply(point: tuple, scalar: int, b: int, mod: int) -> tuple:
-        """
-        Multiply a projective point with a scalar with double and add method
-        Args:
-            point (tuple): (X : Y : Z)
-            scalar (int): non-negative integer
-            b (int): curve coefficient
-            mod (int): n^2
-        Returns:
-            scalar * point (tuple)
-        """
-        add = EllipticCurvePaillier.__add
-        result = (0, 1, 0)
-        for bit in bin(scalar)[2:]:
-            result = add(result, result, b, mod)
-            if bit == "1":
-                result = add(result, point, b, mod)
-        return result
-
-    def __multiply_g(self, scalar: int) -> tuple:
+    def __multiply_g(self, scalar: int) -> ProjectivePoint:
         """
         Multiply g with a scalar using precomputed 2^i * g points, which avoids doublings
         Args:
             scalar (int): non-negative integer
         Returns:
-            scalar * g (tuple)
+            scalar * g (ProjectivePoint)
         """
         n = self.keys["public_key"]["n"]
-        b = self.keys["public_key"]["b"]
-        n_square = n * n
+        curve = self.ecc.curve
 
         bits = max(scalar.bit_length(), (n << RANDOM_KEY_EXTRA_BITS).bit_length())
         if self.__g_powers is None or len(self.__g_powers) < bits:
-            x, y = self.keys["public_key"]["g"]
-            powers = [(x, y, 1)]
-            for _ in range(bits - 1):
-                powers.append(self.__add(powers[-1], powers[-1], b, n_square))
-            self.__g_powers = powers
+            self.__g_powers = curve.precompute_powers(self.ecc.G.get_point(), bits)
 
-        result = (0, 1, 0)
-        for i in range(scalar.bit_length()):
-            if (scalar >> i) & 1:
-                result = self.__add(result, self.__g_powers[i], b, n_square)
-        return result
+        x, y, z = curve.multiply_with_powers(self.__g_powers, scalar)
+        return ProjectivePoint(x, y, z, curve=curve)
+
+    def __to_point(self, ciphertext: tuple) -> ProjectivePoint:
+        """
+        Cast a ciphertext to a projective point on the curve
+        Args:
+            ciphertext (tuple): (X : Y : Z), exported ciphertexts store it as a list
+        Returns:
+            point (ProjectivePoint)
+        """
+        x, y, z = ciphertext
+        try:
+            return ProjectivePoint(x, y, z, curve=self.ecc.curve)
+        except PointNotOnCurve as err:
+            raise ValueError("Ciphertext is invalid") from err
+
+    @staticmethod
+    def __build_curve(n: int, b: int, g: tuple) -> LightECC:
+        """
+        Build y^2 = x^3 + b over Z_{n^2} in projective form without its secret order
+        Args:
+            n (int): public modulus
+            b (int): curve coefficient
+            g (tuple): base point
+        Returns:
+            curve (LightECC)
+        """
+        return LightECC(form_name="projective", config={"modulus": n * n, "b": b, "G": g})
 
     @staticmethod
     def __find_prime(bits: int) -> int:
