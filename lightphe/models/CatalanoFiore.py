@@ -37,12 +37,16 @@ UNSUPPORTED_REASONS = {
     Algorithm.OkamotoUchiyama: "its plaintext modulus p is secret, so the encryptor cannot"
     " compute m - b mod p",
     Algorithm.Regev: "multiplying with uniformly random constants exceeds its noise budget",
+    Algorithm.LyubashevskyPeikertRegev: "multiplying with uniformly random constants exceeds"
+    " its noise budget",
+    Algorithm.MLKEM: "it is homomorphic with respect to xor only, without addition",
     Algorithm.GoldwasserMicali: "it encrypts integers bit by bit and supports xor only,"
     " without multiplication with a constant",
     Algorithm.BonehGohNissim: "it already supports one multiplication natively",
     Algorithm.BrakerskiVaikuntanathan: "it already supports one multiplication natively",
     Algorithm.FreemanBonehGohNissim: "it already supports one multiplication natively",
     Algorithm.GentryHaleviVaikuntanathan: "it already supports one multiplication natively",
+    Algorithm.GentrySahaiWaters: "it already supports multiplications of bits natively",
 }
 
 

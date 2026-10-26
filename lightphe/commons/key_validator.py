@@ -24,6 +24,9 @@ from lightphe.cryptosystems.Regev import Regev
 from lightphe.cryptosystems.BrakerskiVaikuntanathan import BrakerskiVaikuntanathan
 from lightphe.cryptosystems.FreemanBonehGohNissim import FreemanBonehGohNissim
 from lightphe.cryptosystems.GentryHaleviVaikuntanathan import GentryHaleviVaikuntanathan
+from lightphe.cryptosystems.LyubashevskyPeikertRegev import LyubashevskyPeikertRegev
+from lightphe.cryptosystems.MLKEM import MLKEM
+from lightphe.cryptosystems.GentrySahaiWaters import GentrySahaiWaters
 
 
 # Map user-facing algorithm names to the class that owns the REQUIRED_KEYS spec.
@@ -53,6 +56,9 @@ _ALGORITHM_TO_CLASS: Dict[str, Type[Homomorphic]] = {
     Algorithm.BrakerskiVaikuntanathan: BrakerskiVaikuntanathan,
     Algorithm.FreemanBonehGohNissim: FreemanBonehGohNissim,
     Algorithm.GentryHaleviVaikuntanathan: GentryHaleviVaikuntanathan,
+    Algorithm.LyubashevskyPeikertRegev: LyubashevskyPeikertRegev,
+    Algorithm.MLKEM: MLKEM,
+    Algorithm.GentrySahaiWaters: GentrySahaiWaters,
 }
 
 

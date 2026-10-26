@@ -23,3 +23,6 @@ class Algorithm:
     BrakerskiVaikuntanathan = "Brakerski-Vaikuntanathan"
     FreemanBonehGohNissim = "Freeman-Boneh-Goh-Nissim"
     GentryHaleviVaikuntanathan = "Gentry-Halevi-Vaikuntanathan"
+    LyubashevskyPeikertRegev = "Lyubashevsky-Peikert-Regev"
+    MLKEM = "ML-KEM"
+    GentrySahaiWaters = "Gentry-Sahai-Waters"

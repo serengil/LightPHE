@@ -32,6 +32,18 @@ from lightphe.cryptosystems.GentryHaleviVaikuntanathan import (
     GentryHaleviVaikuntanathan,
     FLOAT_NOT_SUPPORTED_MSG as GHV_FLOAT_NOT_SUPPORTED_MSG,
 )
+from lightphe.cryptosystems.LyubashevskyPeikertRegev import (
+    LyubashevskyPeikertRegev,
+    FLOAT_NOT_SUPPORTED_MSG as LPR_FLOAT_NOT_SUPPORTED_MSG,
+)
+from lightphe.cryptosystems.MLKEM import (
+    MLKEM,
+    FLOAT_NOT_SUPPORTED_MSG as MLKEM_FLOAT_NOT_SUPPORTED_MSG,
+)
+from lightphe.cryptosystems.GentrySahaiWaters import (
+    GentrySahaiWaters,
+    FLOAT_NOT_SUPPORTED_MSG as GSW_FLOAT_NOT_SUPPORTED_MSG,
+)
 from lightphe.commons import phe_utils
 from lightphe.commons.logger import Logger
 
@@ -102,6 +114,12 @@ def build_cryptosystem(
         cs = FreemanBonehGohNissim(keys=keys)
     elif algorithm_name == Algorithm.GentryHaleviVaikuntanathan:
         cs = GentryHaleviVaikuntanathan(keys=keys)
+    elif algorithm_name == Algorithm.LyubashevskyPeikertRegev:
+        cs = LyubashevskyPeikertRegev(keys=keys)
+    elif algorithm_name == Algorithm.MLKEM:
+        cs = MLKEM(keys=keys)
+    elif algorithm_name == Algorithm.GentrySahaiWaters:
+        cs = GentrySahaiWaters(keys=keys)
     else:
         raise ValueError(f"unimplemented algorithm - {algorithm_name}")
 
@@ -181,6 +199,12 @@ class Ciphertext:
                 raise ValueError(FBGN_FLOAT_NOT_SUPPORTED_MSG)
             if self.algorithm_name == Algorithm.GentryHaleviVaikuntanathan:
                 raise ValueError(GHV_FLOAT_NOT_SUPPORTED_MSG)
+            if self.algorithm_name == Algorithm.LyubashevskyPeikertRegev:
+                raise ValueError(LPR_FLOAT_NOT_SUPPORTED_MSG)
+            if self.algorithm_name == Algorithm.MLKEM:
+                raise ValueError(MLKEM_FLOAT_NOT_SUPPORTED_MSG)
+            if self.algorithm_name == Algorithm.GentrySahaiWaters:
+                raise ValueError(GSW_FLOAT_NOT_SUPPORTED_MSG)
             constant = phe_utils.normalize_input(
                 value=other, modulo=self.cs.plaintext_modulo
             )
