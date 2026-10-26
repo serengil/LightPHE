@@ -9,6 +9,8 @@ from lightphe.commons.logger import Logger
 
 logger = Logger(module="lightphe/cryptosystems/MLKEM.py")
 
+# pylint: disable=too-many-nested-blocks
+
 # floats are scaled by powers of 10, and xor of their encodings is meaningless
 FLOAT_NOT_SUPPORTED_MSG = (
     "ML-KEM does not support float values or tensors, because it is homomorphic with"
@@ -125,7 +127,9 @@ class MLKEM(Homomorphic):
         t = []
         for i in range(k):
             row = [self.__poly_mul(a[i][j], s[j]) for j in range(k)]
-            t.append([(sum(column) + e[i][x]) % Q for x, column in enumerate(zip(*row))])
+            t.append(
+                [(sum(column) + e[i][x]) % Q for x, column in enumerate(zip(*row))]
+            )
 
         keys["public_key"]["parameter_set"] = key_size
         keys["public_key"]["seed"] = seed
@@ -144,7 +148,9 @@ class MLKEM(Homomorphic):
         parameters = PARAMETER_SETS[self.keys["public_key"]["parameter_set"]]
         return [self.__sample_small(parameters["eta1"]) for _ in range(parameters["k"])]
 
-    def encrypt(self, plaintext: int, random_key: Optional[List[List[int]]] = None) -> tuple:
+    def encrypt(
+        self, plaintext: int, random_key: Optional[List[List[int]]] = None
+    ) -> tuple:
         """
         Encrypt a given plaintext for optionally given random key with ML-KEM's K-PKE
         Args:
@@ -176,7 +182,11 @@ class MLKEM(Homomorphic):
         u = []
         for i in range(k):
             row = [self.__poly_mul(self.__a[j][i], r[j]) for j in range(k)]
-            u.append(tuple((sum(column) + e1[i][x]) % Q for x, column in enumerate(zip(*row))))
+            u.append(
+                tuple(
+                    (sum(column) + e1[i][x]) % Q for x, column in enumerate(zip(*row))
+                )
+            )
 
         # v = t^T r + e2 + m q / 2
         products = [self.__poly_mul(t[j], r[j]) for j in range(k)]
@@ -260,7 +270,8 @@ class MLKEM(Homomorphic):
         )
         product = (packed1 * packed2).to_bytes(2 * N * width, "little")
         coefficients = [
-            int.from_bytes(product[i * width : (i + 1) * width], "little") for i in range(2 * N)
+            int.from_bytes(product[i * width : (i + 1) * width], "little")
+            for i in range(2 * N)
         ]
         # x^256 = -1
         return [(coefficients[i] - coefficients[i + N]) % Q for i in range(N)]
