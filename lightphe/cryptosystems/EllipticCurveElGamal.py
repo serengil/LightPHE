@@ -1,6 +1,6 @@
 # built-in dependencies
 import random
-from typing import Optional
+from typing import Any, Optional, List, Tuple
 
 # 3rd party dependencies
 from lightecc import LightECC as ECC
@@ -9,8 +9,15 @@ from lightecc.interfaces.elliptic_curve import EllipticCurvePoint
 # project dependencies
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
+from lightphe.commons import threshold as threshold_utils
+from lightphe.commons import zkp
 
 logger = Logger(module="lightphe/cryptosystems/EllipticCurveElGamal.py")
+
+DECRYPTION_DOMAIN = "lightphe/elliptic-curve-elgamal/decryption"
+PARTIAL_DECRYPTION_DOMAIN = "lightphe/elliptic-curve-elgamal/partial-decryption"
+MEMBERSHIP_DOMAIN = "lightphe/elliptic-curve-elgamal/membership"
+KNOWLEDGE_DOMAIN = "lightphe/elliptic-curve-elgamal/knowledge"
 
 
 class EllipticCurveElGamal(Homomorphic):
@@ -146,6 +153,372 @@ class EllipticCurveElGamal(Homomorphic):
         # this requires to solve ECDLP
 
         return s_prime / self.ecc.G
+
+    def generate_threshold_keys(self, threshold: int, parties: int) -> List[dict]:
+        """
+        Split the private key into shares. Any threshold many shareholders can decrypt
+            a ciphertext together, but fewer shareholders cannot. Verification keys
+            share x G are published to verify partial decryptions.
+        Args:
+            threshold (int): minimum number of shareholders required to decrypt
+            parties (int): total number of shareholders
+        Returns:
+            keys of shareholders (list of dict): public key and share of each shareholder
+        """
+        if parties >= self.ecc.n:
+            raise ValueError(f"Number of parties must be less than the curve order {self.ecc.n}")
+        shares = threshold_utils.split_secret(
+            secret=self.keys["private_key"]["ka"],
+            threshold=threshold,
+            parties=parties,
+            modulo=self.ecc.n,
+        )
+        return threshold_utils.build_share_keys(
+            keys=self.keys,
+            shares=shares,
+            threshold=threshold,
+            parties=parties,
+            verification_keys=[
+                (self.ecc.G * shares[index]).get_point() for index in range(1, parties + 1)
+            ],
+        )
+
+    def partial_decrypt(self, ciphertext: tuple, prove: bool = False) -> dict:
+        """
+        Decrypt a ciphertext partially with the share of a shareholder, and optionally
+            prove that it is computed with the share behind the verification key
+        Args:
+            ciphertext (tuple): c1 and c2
+            prove (bool): set this to True to attach a zero-knowledge proof of
+                correctness. Default is False. Combination with verify=True discards
+                partial decryptions without proofs.
+        Returns:
+            partial decryption (dict): index of the shareholder, share x c1 and proof
+        """
+        threshold_key = threshold_utils.get_threshold_key(self.keys)
+        index = threshold_key["index"]
+        share = threshold_key["share"]
+        c1 = self.__to_point(ciphertext[0])
+        value = c1 * share
+        if prove is False:
+            return {"index": index, "value": value.get_point()}
+        proof = zkp.prove_dleq(
+            group=zkp.EllipticCurveGroup(self.ecc),
+            g1=self.ecc.G,
+            h1=self.ecc.G * share,
+            g2=c1,
+            h2=value,
+            x=share,
+            domain=PARTIAL_DECRYPTION_DOMAIN,
+            context=[self.ecc.n, index],
+        )
+        return {"index": index, "value": value.get_point(), "proof": proof}
+
+    def verify_partial_decryption(self, ciphertext: tuple, partial_decryption: dict) -> bool:
+        """
+        Verify that a partial decryption is computed with the share of its shareholder
+        Args:
+            ciphertext (tuple): c1 and c2
+            partial_decryption (dict): output of partial_decrypt
+        Returns:
+            is valid (bool)
+        """
+        verification_keys = self.keys["public_key"].get("verification_keys")
+        if verification_keys is None:
+            raise ValueError("Public key does not have verification keys of shareholders")
+        try:
+            index = partial_decryption["index"]
+            if not isinstance(index, int) or not 1 <= index <= len(verification_keys):
+                return False
+            return zkp.verify_dleq(
+                group=zkp.EllipticCurveGroup(self.ecc),
+                g1=self.ecc.G,
+                h1=self.__to_point(verification_keys[index - 1]),
+                g2=self.__to_point(ciphertext[0]),
+                h2=self.__to_point(partial_decryption["value"]),
+                proof=partial_decryption["proof"],
+                domain=PARTIAL_DECRYPTION_DOMAIN,
+                context=[self.ecc.n, index],
+            )
+        except Exception:  # pylint: disable=broad-except
+            # malformed points raise errors of the elliptic curve library
+            return False
+
+    def combine_partial_decryptions(
+        self, ciphertext: tuple, partial_decryptions: List[dict], verify: bool = False
+    ) -> int:
+        """
+        Restore plaintext from partial decryptions of threshold many shareholders.
+            If verify is True, partial decryptions with invalid or missing proofs are discarded.
+        Args:
+            ciphertext (tuple): c1 and c2
+            partial_decryptions (list of dict): partial decryptions of shareholders
+            verify (bool): set this to True to check proofs of partial decryptions.
+                Default is False, then a wrong partial decryption of a cheating
+                shareholder causes a wrong plaintext silently.
+        Returns:
+            plaintext (int): restored message
+        """
+        selected = threshold_utils.select_partial_decryptions(
+            keys=self.keys,
+            partial_decryptions=partial_decryptions,
+            verify=(
+                (
+                    lambda partial_decryption: self.verify_partial_decryption(
+                        ciphertext=ciphertext, partial_decryption=partial_decryption
+                    )
+                )
+                if verify is True
+                else None
+            ),
+        )
+        indices = [partial_decryption["index"] for partial_decryption in selected]
+
+        # ka x c1 restored with lagrange interpolation
+        s_prime = self.__to_point(ciphertext[1])
+        for partial_decryption in selected:
+            coefficient = threshold_utils.lagrange_coefficient(
+                index=partial_decryption["index"], indices=indices, modulo=self.ecc.n
+            )
+            point = self.__to_point(partial_decryption["value"])
+            s_prime = (-point * coefficient) + s_prime
+
+        # s_prime = m x G, solve ECDLP
+        return s_prime / self.ecc.G
+
+    def decrypt_with_proof(self, ciphertext: tuple) -> Tuple[int, dict]:
+        """
+        Decrypt a ciphertext and prove that decryption is correct without revealing
+            the private key. Chaum-Pedersen proof shows that log_G(Qa) = log_c1(ka x c1).
+        Args:
+            ciphertext (tuple): c1 and c2
+        Returns:
+            plaintext (int): restored message
+            proof (dict): proof of correct decryption
+        """
+        ka = self.keys["private_key"]["ka"]
+        c1 = self.__to_point(ciphertext[0])
+        c2 = self.__to_point(ciphertext[1])
+        c1_ka = c1 * ka
+        proof = zkp.prove_dleq(
+            group=zkp.EllipticCurveGroup(self.ecc),
+            g1=self.ecc.G,
+            h1=self.__to_point(self.keys["public_key"]["Qa"]),
+            g2=c1,
+            h2=c1_ka,
+            x=ka,
+            domain=DECRYPTION_DOMAIN,
+            context=[self.ecc.n, c2],
+        )
+        return (-c1_ka + c2) / self.ecc.G, proof
+
+    def verify_decryption(self, ciphertext: tuple, plaintext: int, proof: dict) -> bool:
+        """
+        Verify that a ciphertext is decrypted to the given plaintext with public key only
+        Args:
+            ciphertext (tuple): c1 and c2
+            plaintext (int): claimed plaintext, checked in modulo of the curve order
+            proof (dict): output of decrypt_with_proof
+        Returns:
+            is valid (bool)
+        """
+        try:
+            if not isinstance(plaintext, int):
+                return False
+            c1 = self.__to_point(ciphertext[0])
+            c2 = self.__to_point(ciphertext[1])
+
+            # ka x c1 implied by the claimed plaintext
+            m = plaintext % self.ecc.n
+            c1_ka = c2 if m == 0 else c2 - (self.ecc.G * m)
+
+            return zkp.verify_dleq(
+                group=zkp.EllipticCurveGroup(self.ecc),
+                g1=self.ecc.G,
+                h1=self.__to_point(self.keys["public_key"]["Qa"]),
+                g2=c1,
+                h2=c1_ka,
+                proof=proof,
+                domain=DECRYPTION_DOMAIN,
+                context=[self.ecc.n, c2],
+            )
+        except Exception:  # pylint: disable=broad-except
+            # malformed points raise errors of the elliptic curve library
+            return False
+
+    def encrypt_with_proof(
+        self, plaintext: int, values: List[int], context: Any = None
+    ) -> Tuple[tuple, dict]:
+        """
+        Encrypt a plaintext and prove that it is one of the given values without
+            revealing which one, e.g. a vote is 0 or 1. Disjunctive Chaum-Pedersen proof
+            shows that c2 - v x G is r x Qa for one of the values v.
+        Args:
+            plaintext (int): message to encrypt, must be one of values
+            values (list of int): allowed values
+            context (any): public data bound to the proof, e.g. id of the voter
+        Returns:
+            ciphertext (tuple): c1 and c2
+            proof (dict): proof that ciphertext encrypts one of values
+        """
+        r = self.generate_random_key()
+        ciphertext = self.encrypt(plaintext=plaintext, random_key=r)
+        proof = self.prove_membership(
+            ciphertext=ciphertext, plaintext=plaintext, random_key=r, values=values, context=context
+        )
+        return ciphertext, proof
+
+    def prove_membership(
+        self,
+        ciphertext: tuple,
+        plaintext: int,
+        random_key: int,
+        values: List[int],
+        context: Any = None,
+    ) -> dict:
+        """
+        Prove that a ciphertext encrypts one of the given values, without revealing which
+            one. Encryptor of the ciphertext knows its plaintext and random key, e.g. a
+            ciphertext restored homomorphically from ciphertexts encrypted by the prover.
+        Args:
+            ciphertext (tuple): encrypted message
+            plaintext (int): message of the ciphertext, must be one of values
+            random_key (int): random key of the ciphertext
+            values (list of int): allowed values
+            context (any): public data bound to the proof
+        Returns:
+            proof (dict): proof that ciphertext encrypts one of values
+        """
+        return zkp.prove_dleq_or(
+            group=zkp.EllipticCurveGroup(self.ecc),
+            g1=self.ecc.G,
+            h1=self.__to_point(ciphertext[0]),
+            g2=self.__to_point(self.keys["public_key"]["Qa"]),
+            h2s=self.__membership_candidates(ciphertext=ciphertext, values=values),
+            x=random_key,
+            index=values.index(plaintext),
+            domain=MEMBERSHIP_DOMAIN,
+            context=[self.ecc.n, ciphertext[1], values, context],
+        )
+
+    def combine_random_keys(self, random_keys: List[int]) -> int:
+        """
+        Random key of the homomorphic sum of ciphertexts, as c1 = r x G adds
+        Args:
+            random_keys (list of int): random keys of ciphertexts
+        Returns:
+            random key (int): random key of the sum of ciphertexts
+        """
+        return sum(random_keys)
+
+    def verify_ciphertext(
+        self, ciphertext: tuple, proof: dict, values: List[int], context: Any = None
+    ) -> bool:
+        """
+        Verify that a ciphertext encrypts one of the given values with public key only
+        Args:
+            ciphertext (tuple): c1 and c2
+            proof (dict): output of encrypt_with_proof
+            values (list of int): allowed values
+            context (any): public data that the proof is expected to be bound to
+        Returns:
+            is valid (bool)
+        """
+        try:
+            return zkp.verify_dleq_or(
+                group=zkp.EllipticCurveGroup(self.ecc),
+                g1=self.ecc.G,
+                h1=self.__to_point(ciphertext[0]),
+                g2=self.__to_point(self.keys["public_key"]["Qa"]),
+                h2s=self.__membership_candidates(ciphertext=ciphertext, values=values),
+                proof=proof,
+                domain=MEMBERSHIP_DOMAIN,
+                context=[self.ecc.n, ciphertext[1], values, context],
+            )
+        except Exception:  # pylint: disable=broad-except
+            # malformed points raise errors of the elliptic curve library
+            return False
+
+    def __membership_candidates(
+        self, ciphertext: tuple, values: List[int]
+    ) -> List[EllipticCurvePoint]:
+        """
+        Candidates c2 - v x G for each value v. Ciphertext encrypts v if and only if
+            its candidate is r x Qa where c1 = r x G.
+        Args:
+            ciphertext (tuple): c1 and c2
+            values (list of int): allowed values
+        Returns:
+            candidates (list of EllipticCurvePoint)
+        """
+        c2 = self.__to_point(ciphertext[1])
+        candidates = []
+        for value in values:
+            m = value % self.ecc.n
+            candidates.append(c2 if m == 0 else c2 - (self.ecc.G * m))
+        return candidates
+
+    def encrypt_with_proof_of_knowledge(
+        self, plaintext: int, context: Any = None
+    ) -> Tuple[tuple, dict]:
+        """
+        Encrypt a plaintext and prove knowledge of it without revealing it. Schnorr
+            proof shows knowledge of r where c1 = r x G, which reveals the plaintext from c2.
+            It is bound to c2, so a copied, re-randomized or modified ciphertext of
+            someone else cannot be proven.
+        Args:
+            plaintext (int): message to encrypt
+            context (any): public data bound to the proof, e.g. id of the encryptor
+        Returns:
+            ciphertext (tuple): c1 and c2
+            proof (dict): proof of knowledge
+        """
+        r = self.generate_random_key()
+        ciphertext = self.encrypt(plaintext=plaintext, random_key=r)
+        proof = zkp.prove_dlog(
+            group=zkp.EllipticCurveGroup(self.ecc),
+            g=self.ecc.G,
+            h=self.__to_point(ciphertext[0]),
+            x=r,
+            domain=KNOWLEDGE_DOMAIN,
+            context=[self.ecc.n, ciphertext[1], context],
+        )
+        return ciphertext, proof
+
+    def verify_knowledge(self, ciphertext: tuple, proof: dict, context: Any = None) -> bool:
+        """
+        Verify that the encryptor of a ciphertext knows its plaintext with public key only
+        Args:
+            ciphertext (tuple): c1 and c2
+            proof (dict): output of encrypt_with_proof_of_knowledge
+            context (any): public data that the proof is expected to be bound to
+        Returns:
+            is valid (bool)
+        """
+        try:
+            # c2 must be a point on the curve
+            self.__to_point(ciphertext[1])
+            return zkp.verify_dlog(
+                group=zkp.EllipticCurveGroup(self.ecc),
+                g=self.ecc.G,
+                h=self.__to_point(ciphertext[0]),
+                proof=proof,
+                domain=KNOWLEDGE_DOMAIN,
+                context=[self.ecc.n, ciphertext[1], context],
+            )
+        except Exception:  # pylint: disable=broad-except
+            # malformed points raise errors of the elliptic curve library
+            return False
+
+    def __to_point(self, point: tuple) -> EllipticCurvePoint:
+        """
+        Cast a tuple of coordinates into a point on the curve
+        Args:
+            point (tuple): x and y
+        Returns:
+            point (EllipticCurvePoint)
+        """
+        return EllipticCurvePoint(x=point[0], y=point[1], curve=self.ecc.curve)
 
     def add(self, ciphertext1: tuple, ciphertext2: tuple) -> tuple:
         """
