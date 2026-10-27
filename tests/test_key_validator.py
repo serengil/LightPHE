@@ -32,6 +32,9 @@ ALGORITHMS = [
     ("Brakerski-Vaikuntanathan", 64),
     ("Freeman-Boneh-Goh-Nissim", 64),
     ("Gentry-Halevi-Vaikuntanathan", 2),
+    ("Lyubashevsky-Peikert-Regev", 64),
+    ("ML-KEM", 512),
+    ("Gentry-Sahai-Waters", 16),
 ]
 
 

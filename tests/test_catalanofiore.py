@@ -156,14 +156,21 @@ def test_invalid_inputs():
         ("EllipticCurve-ElGamal", "discrete logarithm"),
         ("Okamoto-Uchiyama", "plaintext modulus p is secret"),
         ("Regev", "noise budget"),
+        ("Lyubashevsky-Peikert-Regev", "noise budget"),
         ("Goldwasser-Micali", "xor only"),
+        ("ML-KEM", "xor only"),
+        ("Gentry-Sahai-Waters", "multiplications of bits"),
         ("Boneh-Goh-Nissim", "already supports one multiplication"),
         ("RSA", "not additively homomorphic"),
         ("ElGamal", "not additively homomorphic"),
     ],
 )
 def test_unsupported_algorithms(algorithm_name, reason):
-    key_size = 64 if algorithm_name != "Regev" else 16
+    key_size = 16 if algorithm_name in ["Regev", "Lyubashevsky-Peikert-Regev"] else 64
+    if algorithm_name == "ML-KEM":
+        key_size = 512
+    if algorithm_name == "Gentry-Sahai-Waters":
+        key_size = 16
     with pytest.raises(ValueError, match=f"does not support {algorithm_name} because .*{reason}"):
         LightPHE(algorithm_name=algorithm_name, key_size=key_size, boost="Catalano-Fiore")
 
