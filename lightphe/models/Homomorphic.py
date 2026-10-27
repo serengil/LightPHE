@@ -1,5 +1,5 @@
 # built-in dependencies
-from typing import Optional, Union, List, Tuple, Callable
+from typing import Any, Optional, Union, List, Tuple, Callable
 from abc import ABC, abstractmethod
 
 # 3rd party dependencies
@@ -182,6 +182,99 @@ class Homomorphic(ABC):
 
     def decrypt_verifiable_ciphertext(self, verifiable_ciphertext: dict, label: str = "") -> int:
         raise ValueError(f"{self.get_algorithm_name()} does not support verifiable encryption")
+
+    def generate_threshold_keys(self, threshold: int, parties: int) -> List[dict]:
+        raise ValueError(f"{self.get_algorithm_name()} does not support threshold decryption")
+
+    def partial_decrypt(
+        self, ciphertext: Union[int, tuple, list, EllipticCurvePoint], prove: bool = False
+    ) -> dict:
+        raise ValueError(f"{self.get_algorithm_name()} does not support threshold decryption")
+
+    def combine_partial_decryptions(
+        self,
+        ciphertext: Union[int, tuple, list, EllipticCurvePoint],
+        partial_decryptions: List[dict],
+        verify: bool = False,
+    ) -> int:
+        raise ValueError(f"{self.get_algorithm_name()} does not support threshold decryption")
+
+    def verify_partial_decryption(
+        self, ciphertext: Union[int, tuple, list, EllipticCurvePoint], partial_decryption: dict
+    ) -> bool:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support verifying partial decryptions"
+        )
+
+    def decrypt_with_proof(
+        self, ciphertext: Union[int, tuple, list, EllipticCurvePoint]
+    ) -> Tuple[int, dict]:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support proofs of correct decryption"
+        )
+
+    def verify_decryption(
+        self, ciphertext: Union[int, tuple, list, EllipticCurvePoint], plaintext: int, proof: dict
+    ) -> bool:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support proofs of correct decryption"
+        )
+
+    def encrypt_with_proof(
+        self, plaintext: int, values: List[int], context: Any = None
+    ) -> Tuple[Union[int, tuple, list, EllipticCurvePoint], dict]:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support proving that a ciphertext"
+            " encrypts one of given values"
+        )
+
+    def verify_ciphertext(
+        self,
+        ciphertext: Union[int, tuple, list, EllipticCurvePoint],
+        proof: dict,
+        values: List[int],
+        context: Any = None,
+    ) -> bool:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support proving that a ciphertext"
+            " encrypts one of given values"
+        )
+
+    def prove_membership(
+        self,
+        ciphertext: Union[int, tuple, list, EllipticCurvePoint],
+        plaintext: int,
+        random_key: int,
+        values: List[int],
+        context: Any = None,
+    ) -> dict:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support proving that a ciphertext"
+            " encrypts one of given values"
+        )
+
+    def combine_random_keys(self, random_keys: List[int]) -> int:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support proving that a ciphertext"
+            " encrypts one of given values"
+        )
+
+    def encrypt_with_proof_of_knowledge(
+        self, plaintext: int, context: Any = None
+    ) -> Tuple[Union[int, tuple, list, EllipticCurvePoint], dict]:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support proofs of knowledge of plaintext"
+        )
+
+    def verify_knowledge(
+        self,
+        ciphertext: Union[int, tuple, list, EllipticCurvePoint],
+        proof: dict,
+        context: Any = None,
+    ) -> bool:
+        raise ValueError(
+            f"{self.get_algorithm_name()} does not support proofs of knowledge of plaintext"
+        )
 
     def multiply_by_constant(
         self, ciphertext: Union[int, tuple, list, EllipticCurvePoint], constant: int

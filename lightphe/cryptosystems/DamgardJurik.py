@@ -1,11 +1,17 @@
 import random
 import math
-from typing import Optional
+from typing import Any, Optional, List, Tuple
 import sympy
 from lightphe.models.Homomorphic import Homomorphic
 from lightphe.commons.logger import Logger
+from lightphe.commons import threshold as threshold_utils
+from lightphe.commons import zkp
 
 logger = Logger(module="lightphe/cryptosystems/DamgardJurik.py")
+
+MEMBERSHIP_DOMAIN = "lightphe/damgard-jurik/membership"
+KNOWLEDGE_DOMAIN = "lightphe/damgard-jurik/knowledge"
+PARTIAL_DECRYPTION_DOMAIN = "lightphe/damgard-jurik/partial-decryption"
 
 
 class DamgardJurik(Homomorphic):
@@ -113,6 +119,272 @@ class DamgardJurik(Homomorphic):
         mu = pow(phi, -1, n)
         modulo = pow(n, s + 1)
         return (self.lx(pow(ciphertext, phi, modulo)) * mu) % (n)
+
+    def generate_threshold_keys(self, threshold: int, parties: int) -> List[dict]:
+        """
+        Split the private key into shares. Any threshold many shareholders can decrypt
+            a ciphertext together, but fewer shareholders cannot. If keys are generated
+            with safe primes, verification keys are published to verify partial decryptions.
+        Args:
+            threshold (int): minimum number of shareholders required to decrypt
+            parties (int): total number of shareholders
+        Returns:
+            keys of shareholders (list of dict): public key and share of each shareholder
+        """
+        return threshold_utils.generate_paillier_threshold_keys(
+            keys=self.keys,
+            s=self.keys["public_key"]["s"],
+            modulo=self.ciphertext_modulo,
+            threshold=threshold,
+            parties=parties,
+        )
+
+    def partial_decrypt(self, ciphertext: int, prove: bool = False) -> dict:
+        """
+        Decrypt a ciphertext partially with the share of a shareholder, and optionally
+            prove that it is computed with the share behind the verification key
+        Args:
+            ciphertext (int): encrypted message
+            prove (bool): set this to True to attach a zero-knowledge proof of
+                correctness. Default is False. Keys must be generated with safe primes.
+        Returns:
+            partial decryption (dict): index of the shareholder, value and optional proof
+        """
+        return threshold_utils.paillier_partial_decrypt(
+            keys=self.keys,
+            ciphertext=ciphertext,
+            modulo=self.ciphertext_modulo,
+            prove=prove,
+            domain=PARTIAL_DECRYPTION_DOMAIN,
+        )
+
+    def verify_partial_decryption(self, ciphertext: int, partial_decryption: dict) -> bool:
+        """
+        Verify that a partial decryption is computed with the share of its shareholder
+        Args:
+            ciphertext (int): encrypted message
+            partial_decryption (dict): output of partial_decrypt with prove=True
+        Returns:
+            is valid (bool)
+        """
+        return threshold_utils.verify_paillier_partial_decryption(
+            keys=self.keys,
+            ciphertext=ciphertext,
+            partial_decryption=partial_decryption,
+            modulo=self.ciphertext_modulo,
+            domain=PARTIAL_DECRYPTION_DOMAIN,
+        )
+
+    def combine_partial_decryptions(
+        self, ciphertext: int, partial_decryptions: List[dict], verify: bool = False
+    ) -> int:
+        """
+        Restore plaintext from partial decryptions of threshold many shareholders.
+            If verify is True, partial decryptions with invalid or missing proofs are discarded.
+        Args:
+            ciphertext (int): encrypted message
+            partial_decryptions (list of dict): partial decryptions of shareholders
+            verify (bool): set this to True to check proofs of partial decryptions.
+                Default is False, then a wrong partial decryption of a cheating
+                shareholder causes a wrong plaintext silently. Keys must be generated
+                with safe primes.
+        Returns:
+            plaintext (int): restored message
+        """
+        return threshold_utils.combine_paillier_partial_decryptions(
+            keys=self.keys,
+            ciphertext=ciphertext,
+            partial_decryptions=partial_decryptions,
+            modulo=self.ciphertext_modulo,
+            verify=verify,
+            domain=PARTIAL_DECRYPTION_DOMAIN,
+        )
+
+    def decrypt_with_proof(self, ciphertext: int) -> Tuple[int, dict]:
+        """
+        Decrypt a ciphertext and prove that decryption is correct. Randomness of the
+            ciphertext is the proof, and anyone having public key can check it.
+        Args:
+            ciphertext (int): encrypted message
+        Returns:
+            plaintext (int): restored message
+            proof (dict): randomness of the ciphertext
+        """
+        plaintext = self.decrypt(ciphertext)
+        proof = zkp.prove_paillier_decryption(
+            ciphertext=ciphertext,
+            plaintext=plaintext,
+            n=self.keys["public_key"]["n"],
+            phi=self.keys["private_key"]["phi"],
+        )
+        return plaintext, proof
+
+    def verify_decryption(self, ciphertext: int, plaintext: int, proof: dict) -> bool:
+        """
+        Verify that a ciphertext is decrypted to the given plaintext with public key only
+        Args:
+            ciphertext (int): encrypted message
+            plaintext (int): claimed plaintext
+            proof (dict): output of decrypt_with_proof
+        Returns:
+            is valid (bool)
+        """
+        return zkp.verify_paillier_decryption(
+            ciphertext=ciphertext,
+            plaintext=plaintext,
+            proof=proof,
+            n=self.keys["public_key"]["n"],
+        )
+
+    def encrypt_with_proof(
+        self, plaintext: int, values: List[int], context: Any = None
+    ) -> Tuple[int, dict]:
+        """
+        Encrypt a plaintext and prove that it is one of the given values without
+            revealing which one, e.g. a vote is 0 or 1. 1-out-of-k proof of Damgard and
+            Jurik shows that c * g^-v is an n-th power for one of the values v.
+        Args:
+            plaintext (int): message to encrypt, must be one of values
+            values (list of int): allowed values
+            context (any): public data bound to the proof, e.g. id of the voter
+        Returns:
+            ciphertext (int): encrypted message
+            proof (dict): proof that ciphertext encrypts one of values
+        """
+        r = self.generate_random_key()
+        ciphertext = self.encrypt(plaintext=plaintext, random_key=r)
+        proof = self.prove_membership(
+            ciphertext=ciphertext, plaintext=plaintext, random_key=r, values=values, context=context
+        )
+        return ciphertext, proof
+
+    def prove_membership(
+        self,
+        ciphertext: int,
+        plaintext: int,
+        random_key: int,
+        values: List[int],
+        context: Any = None,
+    ) -> dict:
+        """
+        Prove that a ciphertext encrypts one of the given values, without revealing which
+            one. Encryptor of the ciphertext knows its plaintext and random key, e.g. a
+            ciphertext restored homomorphically from ciphertexts encrypted by the prover.
+        Args:
+            ciphertext (int): encrypted message
+            plaintext (int): message of the ciphertext, must be one of values
+            random_key (int): random key of the ciphertext
+            values (list of int): allowed values
+            context (any): public data bound to the proof
+        Returns:
+            proof (dict): proof that ciphertext encrypts one of values
+        """
+        n = self.keys["public_key"]["n"]
+        modulo = pow(n, self.keys["public_key"]["s"] + 1)
+        return zkp.prove_nth_power_or(
+            n=n,
+            modulo=modulo,
+            us=zkp.paillier_membership_candidates(
+                ciphertext=ciphertext, values=values, n=n, modulo=modulo
+            ),
+            r=random_key,
+            index=values.index(plaintext),
+            domain=MEMBERSHIP_DOMAIN,
+            context=[values, context],
+        )
+
+    def combine_random_keys(self, random_keys: List[int]) -> int:
+        """
+        Random key of the homomorphic sum of ciphertexts, as r^n multiplies
+        Args:
+            random_keys (list of int): random keys of ciphertexts
+        Returns:
+            random key (int): random key of the sum of ciphertexts
+        """
+        n = self.keys["public_key"]["n"]
+        modulo = pow(n, self.keys["public_key"]["s"] + 1)
+        combined = 1
+        for random_key in random_keys:
+            combined = (combined * random_key) % modulo
+        return combined
+
+    def verify_ciphertext(
+        self, ciphertext: int, proof: dict, values: List[int], context: Any = None
+    ) -> bool:
+        """
+        Verify that a ciphertext encrypts one of the given values with public key only
+        Args:
+            ciphertext (int): encrypted message
+            proof (dict): output of encrypt_with_proof
+            values (list of int): allowed values
+            context (any): public data that the proof is expected to be bound to
+        Returns:
+            is valid (bool)
+        """
+        if not isinstance(ciphertext, int):
+            return False
+        n = self.keys["public_key"]["n"]
+        modulo = pow(n, self.keys["public_key"]["s"] + 1)
+        if not 0 < ciphertext < modulo or math.gcd(ciphertext, n) != 1:
+            return False
+        return zkp.verify_nth_power_or(
+            n=n,
+            modulo=modulo,
+            us=zkp.paillier_membership_candidates(
+                ciphertext=ciphertext, values=values, n=n, modulo=modulo
+            ),
+            proof=proof,
+            domain=MEMBERSHIP_DOMAIN,
+            context=[values, context],
+        )
+
+    def encrypt_with_proof_of_knowledge(
+        self, plaintext: int, context: Any = None
+    ) -> Tuple[int, dict]:
+        """
+        Encrypt a plaintext and prove knowledge of the plaintext and randomness
+            without revealing them. So, a copied, re-randomized or modified ciphertext
+            of someone else cannot be proven.
+        Args:
+            plaintext (int): message to encrypt
+            context (any): public data bound to the proof, e.g. id of the encryptor
+        Returns:
+            ciphertext (int): encrypted message
+            proof (dict): proof of knowledge
+        """
+        n = self.keys["public_key"]["n"]
+        r = self.generate_random_key()
+        ciphertext = self.encrypt(plaintext=plaintext, random_key=r)
+        proof = zkp.prove_paillier_knowledge(
+            ciphertext=ciphertext,
+            plaintext=plaintext,
+            r=r,
+            n=n,
+            modulo=pow(n, self.keys["public_key"]["s"] + 1),
+            domain=KNOWLEDGE_DOMAIN,
+            context=context,
+        )
+        return ciphertext, proof
+
+    def verify_knowledge(self, ciphertext: int, proof: dict, context: Any = None) -> bool:
+        """
+        Verify that the encryptor of a ciphertext knows its plaintext with public key only
+        Args:
+            ciphertext (int): encrypted message
+            proof (dict): output of encrypt_with_proof_of_knowledge
+            context (any): public data that the proof is expected to be bound to
+        Returns:
+            is valid (bool)
+        """
+        n = self.keys["public_key"]["n"]
+        return zkp.verify_paillier_knowledge(
+            ciphertext=ciphertext,
+            proof=proof,
+            n=n,
+            modulo=pow(n, self.keys["public_key"]["s"] + 1),
+            domain=KNOWLEDGE_DOMAIN,
+            context=context,
+        )
 
     def add(self, ciphertext1: int, ciphertext2: int) -> int:
         """
