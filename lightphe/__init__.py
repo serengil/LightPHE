@@ -10,6 +10,7 @@ import copy
 # 3rd party dependencies
 from tqdm import tqdm
 from lightecc.interfaces.elliptic_curve import EllipticCurvePoint
+from lightecc.commons.errors import PointNotOnCurve
 
 # project dependencies
 from lightphe.models.Homomorphic import Homomorphic
@@ -27,6 +28,7 @@ from lightphe.commons import zkp
 from lightphe.commons import nearest_neighbors
 from lightphe.commons import secure_aggregation
 from lightphe.commons import classifiers
+from lightphe.commons import serialization
 from lightphe.commons.key_validator import validate_keys
 from lightphe.commons.logger import Logger
 
@@ -78,7 +80,7 @@ from lightphe.cryptosystems.GentrySahaiWaters import (
     FLOAT_NOT_SUPPORTED_MSG as GSW_FLOAT_NOT_SUPPORTED_MSG,
 )
 
-# pylint: disable=eval-used, simplifiable-if-expression, too-few-public-methods, too-many-public-methods
+# pylint: disable=too-many-instance-attributes, simplifiable-if-expression, too-few-public-methods, too-many-public-methods
 
 logger = Logger(module="lightphe/__init__.py")
 
@@ -202,6 +204,9 @@ class LightPHE:
 
         # Catalano-Fiore transform wraps a copy of this instance without the transform
         self.__catalano_fiore: Optional[CatalanoFiore] = None
+
+        # Catalano-Fiore transform restoring deserialized ciphertexts, built on first use
+        self.__deserialization_catalano_fiore: Optional[CatalanoFiore] = None
         if boost is not None:
             if boost != CATALANO_FIORE:
                 raise ValueError(
@@ -1954,7 +1959,13 @@ class LightPHE:
         with open(target_file, "r", encoding="UTF-8") as file:
             dict_str = file.read()
 
-        keys = eval(dict_str)
+        try:
+            keys = json.loads(dict_str)
+        except json.JSONDecodeError as err:
+            raise ValueError(
+                f"The content of the file {target_file} is not a valid json."
+            ) from err
+
         if not isinstance(keys, dict):
             raise ValueError(
                 f"The content of the file {target_file} does not represent a valid dictionary."
@@ -1967,6 +1978,112 @@ class LightPHE:
         else:
             raise ValueError(f"File {target_file} must have public_key key")
         return keys
+
+    def serialize(self, item: Any) -> str:
+        """
+        Serialize ciphertexts, proofs or messages of interactive protocols into json
+            to send them to another party. Keys are never serialized, receiver restores
+            ciphertexts with its own keys.
+        Args:
+            item (any): Ciphertext, CatalanoFioreCiphertext, EncryptedTensor, or int, float,
+                str, bool, None, tuple, list and dict of them, e.g. outputs of
+                encrypt_with_proof, encrypt_knn_query, encrypt_update or partial_decrypt,
+                and messages sent to the client callable of evaluate_argmax or evaluate_knn
+        Returns:
+            serialized item (str)
+        """
+        return json.dumps(serialization.encode(item))
+
+    def deserialize(self, data: str) -> Any:
+        """
+        Restore ciphertexts, proofs or messages of interactive protocols serialized by
+            another party. Ciphertexts are restored with the public key of this cryptosystem.
+        Args:
+            data (str): output of serialize
+        Returns:
+            restored item
+        """
+        try:
+            item = json.loads(data)
+        except json.JSONDecodeError as err:
+            raise ValueError("Serialized data is not a valid json") from err
+        return self.from_dict(item)
+
+    def from_dict(self, data: Any) -> Any:
+        """
+        Restore ciphertexts from their dict forms created by to_dict, or any json
+            serializable form created by serialize. Ciphertexts are restored with
+            the public key of this cryptosystem.
+        Args:
+            data (dict): output of to_dict of Ciphertext, CatalanoFioreCiphertext
+                or EncryptedTensor
+        Returns:
+            restored item
+        """
+        return serialization.decode(data, self.__restore_serialized)
+
+    def __restore_serialized(self, kind: str, fields: dict) -> Any:
+        """
+        Build a deserialized object with the keys of this cryptosystem
+        Args:
+            kind (str): kind of the object
+            fields (dict): decoded fields of the object
+        Returns:
+            restored object
+        """
+        if kind == serialization.POINT:
+            ec = getattr(self.cs, "ec", None)
+            if ec is None:
+                raise ValueError(f"{self.algorithm_name} ciphertexts are not elliptic curve points")
+            if any(
+                isinstance(c, bool) or not isinstance(c, (int, float)) for c in fields.values()
+            ):
+                raise ValueError("Coordinates of an elliptic curve point must be integers")
+            try:
+                return EllipticCurvePoint(x=fields["x"], y=fields["y"], curve=ec.curve)
+            except PointNotOnCurve as err:
+                raise ValueError("Serialized point is not on the curve") from err
+
+        algorithm_name = (
+            self.cs.get_algorithm_name() if kind == serialization.TENSOR else self.algorithm_name
+        )
+        if fields["algorithm_name"] != algorithm_name:
+            raise ValueError(
+                f"Serialized {kind} belongs to {fields['algorithm_name']},"
+                f" but this cryptosystem is {algorithm_name}"
+            )
+
+        if kind == serialization.CIPHERTEXT:
+            return self.__public_ciphertext(value=fields["value"])
+
+        if kind == serialization.TENSOR:
+            return EncryptedTensor(
+                fractions=fields["fractions"],
+                # builds the public-key-only cryptosystem on first use
+                cs=self.__public_ciphertext(value=0).cs,
+                precision=fields["precision"],
+            )
+
+        # Catalano-Fiore ciphertext
+        if self.__deserialization_catalano_fiore is None:
+            self.__deserialization_catalano_fiore = self.__catalano_fiore or CatalanoFiore(
+                copy.copy(self)
+            )
+        cf = self.__deserialization_catalano_fiore.public
+        a, beta, alpha, pairs = fields["a"], fields["beta"], fields["alpha"], fields["pairs"]
+
+        if alpha is None:
+            if isinstance(a, bool) or not isinstance(a, int) or not 0 <= a < cf.plaintext_modulo:
+                raise ValueError(f"a of a Catalano-Fiore ciphertext must be in [0, {cf.plaintext_modulo})")
+            if not isinstance(beta, Ciphertext) or pairs:
+                raise ValueError("Non-multiplied Catalano-Fiore ciphertext must have a and beta only")
+            return CatalanoFioreCiphertext(cf=cf, a=a, beta=beta)
+
+        if a is not None or beta is not None or not isinstance(alpha, Ciphertext):
+            raise ValueError("Multiplied Catalano-Fiore ciphertext must have alpha and pairs only")
+        if any(not isinstance(c, Ciphertext) for pair in pairs for c in pair):
+            raise ValueError("Pairs of a Catalano-Fiore ciphertext must have ciphertexts")
+        return CatalanoFioreCiphertext(cf=cf, alpha=alpha, pairs=pairs)
 
     def create_ciphertext_obj(self, ciphertext: Union[int, tuple, list]) -> Ciphertext:
         """

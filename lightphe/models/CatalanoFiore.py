@@ -178,6 +178,18 @@ class CatalanoFioreCiphertext:
         self.pairs = pairs if pairs is not None else []
         self.is_multiplied = alpha is not None
 
+    def to_dict(self) -> dict:
+        """
+        Convert the ciphertext into a json serializable dict to send it to another party.
+            Keys are not included, receiver restores it with from_dict of its LightPHE.
+        Returns:
+            serialized ciphertext (dict)
+        """
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from lightphe.commons import serialization
+
+        return serialization.encode(self)
+
     def __repr__(self) -> str:
         if self.is_multiplied:
             return f"CatalanoFioreCiphertext(multiplied, {len(self.pairs)} pairs)"

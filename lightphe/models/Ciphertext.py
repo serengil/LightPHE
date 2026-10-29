@@ -145,6 +145,18 @@ class Ciphertext:
             algorithm_name=algorithm_name, keys=keys, form=form, curve=curve
         )
 
+    def to_dict(self) -> dict:
+        """
+        Convert the ciphertext into a json serializable dict to send it to another party.
+            Keys are not included, receiver restores it with from_dict of its LightPHE.
+        Returns:
+            serialized ciphertext (dict)
+        """
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from lightphe.commons import serialization
+
+        return serialization.encode(self)
+
     def __str__(self) -> str:
         return f"Ciphertext({self.value})"
 
