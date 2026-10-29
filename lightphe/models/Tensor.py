@@ -71,6 +71,18 @@ class EncryptedTensor:
         self.cs = cs
         self.precision = precision
 
+    def to_dict(self) -> dict:
+        """
+        Convert the encrypted tensor into a json serializable dict to send it to another party.
+            Keys are not included, receiver restores it with from_dict of its LightPHE.
+        Returns:
+            serialized encrypted tensor (dict)
+        """
+        # pylint: disable=import-outside-toplevel, cyclic-import
+        from lightphe.commons import serialization
+
+        return serialization.encode(self)
+
     def __str__(self):
         """
         Print encrypted tensor object

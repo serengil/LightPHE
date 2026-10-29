@@ -168,6 +168,39 @@ assert cs.decrypt(c1_prime) == m1
 assert cs.decrypt(c1) == m1
 ```
 
+### Sending Ciphertexts over Network
+
+Ciphertexts, proofs and messages of interactive protocols can be serialized into json to be sent to another party. Keys are never serialized, the receiver restores ciphertexts with its own public key. `serialize` handles ciphertexts nested in lists, tuples and dicts, e.g. a ciphertext with its proof, an encrypted update for secure aggregation, or a message sent to the `client` callable of encrypted argmax and nearest neighbor search.
+
+```python
+# client encrypts its value and sends it to the server
+client_cs = LightPHE(algorithm_name = "Paillier")
+data = client_cs.serialize(client_cs.encrypt(17))
+
+# server restores the ciphertext with the client's public key only, and computes on it
+server_cs = LightPHE(algorithm_name = "Paillier", keys = {"public_key": client_cs.cs.keys["public_key"]})
+c = server_cs.deserialize(data)
+response = server_cs.serialize(c + server_cs.encrypt(25))
+
+# client decrypts the response
+assert client_cs.decrypt(client_cs.deserialize(response)) == 42
+
+# a single ciphertext can be converted into a dict as well
+assert client_cs.decrypt(client_cs.from_dict(c.to_dict())) == 17
+```
+
+To run an interactive protocol across machines, wrap the network call with the `client` callable:
+
+```python
+def client(message: dict) -> list:
+    # e.g. an http request to the client, which answers with
+    # client_cs.serialize(client_cs.answer_knn(client_cs.deserialize(body)))
+    response = requests.post(CLIENT_URL, data = server_cs.serialize(message))
+    return server_cs.deserialize(response.text)
+
+result = server_cs.evaluate_knn(encrypted_query, gallery, k = 2, bit_length = 16, client = client)
+```
+
 ### Elliptic Curve Cryptography
 
 ECC is a powerful public-key cryptosystem based on the algebraic structure of elliptic curves over finite fields. The library supports 3 elliptic curve forms (weierstrass (default), edwards and koblitz) and 100+ standard elliptic curve configurations.

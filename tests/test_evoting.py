@@ -5,15 +5,32 @@ from lightphe.commons.logger import Logger
 
 logger = Logger(module="tests/test_evoting.py")
 
+# algorithm name, key size and keyword arguments. ElGamal variants need prime_order for
+# proofs, Paillier and Damgard-Jurik need safe_primes for proofs of partial decryptions
+ALL_ALGORITHMS = [
+    ("Exponential-ElGamal", 128, {"prime_order": True}),
+    ("EllipticCurve-ElGamal", None, {}),
+    ("Paillier", 128, {"safe_primes": True}),
+    ("Damgard-Jurik", 128, {"safe_primes": True}),
+]
 
-def test_encrypted_voting():
+# a party election encodes votes as base^k, so the tally is a large number. ElGamal
+# variants decrypt with a discrete logarithm, so only small tallies are feasible there.
+LARGE_PLAINTEXT_ALGORITHMS = [
+    ("Paillier", 128, {"safe_primes": True}),
+    ("Damgard-Jurik", 128, {"safe_primes": True}),
+]
+
+
+@pytest.mark.parametrize("algorithm_name,key_size,kwargs", ALL_ALGORITHMS)
+def test_encrypted_voting(algorithm_name, key_size, kwargs):
     """
     Voters cast 0/1 ballots with proofs, invalid ballots are rejected, valid ones are
         tallied homomorphically, and trustees threshold-decrypt the tally with proofs
     """
-    authority_cs = LightPHE(algorithm_name="Exponential-ElGamal", key_size=128, prime_order=True)
+    authority_cs = LightPHE(algorithm_name=algorithm_name, key_size=key_size, **kwargs)
     share_keys = authority_cs.generate_threshold_keys(threshold=2, parties=3)
-    trustees = [LightPHE(algorithm_name="Exponential-ElGamal", keys=keys) for keys in share_keys]
+    trustees = [LightPHE(algorithm_name=algorithm_name, keys=keys) for keys in share_keys]
 
     votes = {"alice": 1, "bob": 0, "carol": 1, "dave": 1}
     ballots = {
@@ -35,19 +52,27 @@ def test_encrypted_voting():
         tally = tally + ballot
 
     partials = [trustee.partial_decrypt(tally, prove=True) for trustee in trustees[:2]]
-    assert authority_cs.combine_partial_decryptions(tally, partials, verify=True) == 3
+    yes_votes = authority_cs.combine_partial_decryptions(tally, partials, verify=True)
+    assert yes_votes == 3
 
-    logger.info("✅ Encrypted voting test succeeded")
+    # each valid ballot is 0 or 1, so no votes are the rest of the valid ballots.
+    # referendum passes with a simple majority of yes votes.
+    no_votes = len(valid) - yes_votes
+    assert no_votes == 1
+    assert yes_votes > no_votes, "referendum is expected to pass"
+
+    logger.info(f"✅ Encrypted voting test succeeded for {algorithm_name}")
 
 
-def test_encrypted_election_of_parties():
+@pytest.mark.parametrize("algorithm_name,key_size,kwargs", LARGE_PLAINTEXT_ALGORITHMS)
+def test_encrypted_election_of_parties(algorithm_name, key_size, kwargs):
     """
     Voters cast a ballot for one of many parties with proofs. A vote for party k is
         encrypted as base^k, so the tally keeps the count of each party in a digit.
     """
-    authority_cs = LightPHE(algorithm_name="Paillier", key_size=128)
+    authority_cs = LightPHE(algorithm_name=algorithm_name, key_size=key_size, **kwargs)
     public_cs = LightPHE(
-        algorithm_name="Paillier", keys={"public_key": authority_cs.cs.keys["public_key"]}
+        algorithm_name=algorithm_name, keys={"public_key": authority_cs.cs.keys["public_key"]}
     )
 
     # a vote for party k is encrypted as base^k, i.e. 1 for red, 100 for green and
@@ -106,10 +131,11 @@ def test_encrypted_election_of_parties():
     counts = {party: (result // base**k) % base for k, party in enumerate(parties)}
     assert counts == {"red": 3, "green": 0, "blue": 2}
 
-    logger.info("✅ Encrypted election of parties test succeeded")
+    logger.info(f"✅ Encrypted election of parties test succeeded for {algorithm_name}")
 
 
-def test_trustees_tally_election_of_parties():
+@pytest.mark.parametrize("algorithm_name,key_size,kwargs", LARGE_PLAINTEXT_ALGORITHMS)
+def test_trustees_tally_election_of_parties(algorithm_name, key_size, kwargs):
     """
     Trustees from competing parties hold shares of the key of a party election. A cheating
         trustee shifts its partial decryption to add 50 votes to its own party. Without
@@ -117,9 +143,9 @@ def test_trustees_tally_election_of_parties():
     """
     from lightphe.commons.threshold import scaled_lagrange_coefficient
 
-    authority_cs = LightPHE(algorithm_name="Paillier", key_size=128, safe_primes=True)
+    authority_cs = LightPHE(algorithm_name=algorithm_name, key_size=key_size, **kwargs)
     share_keys = authority_cs.generate_threshold_keys(threshold=2, parties=3)
-    trustees = [LightPHE(algorithm_name="Paillier", keys=keys) for keys in share_keys]
+    trustees = [LightPHE(algorithm_name=algorithm_name, keys=keys) for keys in share_keys]
 
     parties = ["red", "green", "blue"]
     base = 100
@@ -167,19 +193,20 @@ def test_trustees_tally_election_of_parties():
     result = authority_cs.combine_partial_decryptions(tally, [forged] + partials[1:], verify=True)
     assert count(result) == {"red": 3, "green": 1, "blue": 1}
 
-    logger.info("✅ Trustees tally election of parties test succeeded")
+    logger.info(f"✅ Trustees tally election of parties test succeeded for {algorithm_name}")
 
 
-def test_one_hot_election():
+@pytest.mark.parametrize("algorithm_name,key_size,kwargs", ALL_ALGORITHMS)
+def test_one_hot_election(algorithm_name, key_size, kwargs):
     """
     Voters cast one-hot ballots, i.e. one 0/1 ciphertext per party with a proof that
         exactly one of them is 1. Slots are summed homomorphically, so each party's votes
         are counted separately, and the number of parties is not limited. Counts stay
         small, so exponential ElGamal can decrypt them. Trustees decrypt with proofs.
     """
-    authority_cs = LightPHE(algorithm_name="Exponential-ElGamal", key_size=128, prime_order=True)
+    authority_cs = LightPHE(algorithm_name=algorithm_name, key_size=key_size, **kwargs)
     share_keys = authority_cs.generate_threshold_keys(threshold=2, parties=3)
-    trustees = [LightPHE(algorithm_name="Exponential-ElGamal", keys=keys) for keys in share_keys]
+    trustees = [LightPHE(algorithm_name=algorithm_name, keys=keys) for keys in share_keys]
 
     parties = ["red", "green", "blue", "yellow", "purple", "orange", "black", "white"]
     votes = {
@@ -221,7 +248,7 @@ def test_one_hot_election():
         "red": 3, "green": 0, "blue": 2, "yellow": 0, "purple": 0, "orange": 0, "black": 0, "white": 1
     }
 
-    logger.info("✅ One-hot election test succeeded")
+    logger.info(f"✅ One-hot election test succeeded for {algorithm_name}")
 
 
 @pytest.mark.parametrize(
