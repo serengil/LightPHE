@@ -84,7 +84,7 @@ from lightphe.cryptosystems.GentrySahaiWaters import (
 
 logger = Logger(module="lightphe/__init__.py")
 
-VERSION = "0.0.27"
+VERSION = "0.0.28"
 
 
 class LightPHE:
@@ -457,10 +457,15 @@ class LightPHE:
         ):
             raise ValueError(LPR_FLOAT_NOT_SUPPORTED_MSG)
 
-        if self.algorithm_name == Algorithm.MLKEM and isinstance(plaintext, (list, float)):
+        if self.algorithm_name == Algorithm.MLKEM and isinstance(
+            plaintext, (list, float)
+        ):
             raise ValueError(MLKEM_FLOAT_NOT_SUPPORTED_MSG)
 
-        if self.algorithm_name == Algorithm.GentrySahaiWaters and plaintext not in [0, 1]:
+        if self.algorithm_name == Algorithm.GentrySahaiWaters and plaintext not in [
+            0,
+            1,
+        ]:
             raise ValueError(GSW_FLOAT_NOT_SUPPORTED_MSG)
 
         if isinstance(plaintext, list):
@@ -633,7 +638,9 @@ class LightPHE:
         self.__require_key("public_key", "generate threshold keys")
         threshold_utils.validate_threshold(threshold=threshold, parties=parties)
 
-        share_keys = self.cs.generate_threshold_keys(threshold=threshold, parties=parties)
+        share_keys = self.cs.generate_threshold_keys(
+            threshold=threshold, parties=parties
+        )
 
         # dealer forgets the private key, and public key now has threshold parameters
         del self.cs.keys["private_key"]
@@ -658,7 +665,9 @@ class LightPHE:
             partial decryption (dict or list of dict): to be sent to the combiner
         """
         if self.cs.keys.get("threshold_key") is None:
-            raise ValueError("You must have threshold key to perform partial decryption")
+            raise ValueError(
+                "You must have threshold key to perform partial decryption"
+            )
 
         if isinstance(ciphertext, CatalanoFioreCiphertext):
             raise ValueError(
@@ -671,7 +680,9 @@ class LightPHE:
                     "abs_dividend": self.cs.partial_decrypt(
                         ciphertext=c.abs_dividend, prove=prove
                     ),
-                    "divisor": self.cs.partial_decrypt(ciphertext=c.divisor, prove=prove),
+                    "divisor": self.cs.partial_decrypt(
+                        ciphertext=c.divisor, prove=prove
+                    ),
                 }
                 for c in ciphertext.fractions
             ]
@@ -705,7 +716,9 @@ class LightPHE:
             for k, c in enumerate(ciphertext.fractions):
                 abs_dividend = self.cs.combine_partial_decryptions(
                     ciphertext=c.abs_dividend,
-                    partial_decryptions=[p[k]["abs_dividend"] for p in partial_decryptions],
+                    partial_decryptions=[
+                        p[k]["abs_dividend"] for p in partial_decryptions
+                    ],
                     verify=verify,
                 )
                 divisor = self.cs.combine_partial_decryptions(
@@ -759,10 +772,14 @@ class LightPHE:
         self.__require_key("private_key", "perform decryption")
         self.__require_key("public_key", "perform decryption")
         if not isinstance(ciphertext, Ciphertext):
-            raise ValueError("Proofs of correct decryption are supported for Ciphertext only")
+            raise ValueError(
+                "Proofs of correct decryption are supported for Ciphertext only"
+            )
         return self.cs.decrypt_with_proof(ciphertext=ciphertext.value)
 
-    def verify_decryption(self, ciphertext: Ciphertext, plaintext: int, proof: dict) -> bool:
+    def verify_decryption(
+        self, ciphertext: Ciphertext, plaintext: int, proof: dict
+    ) -> bool:
         """
         Verify that a ciphertext is decrypted to the given plaintext. Public key is
             enough, so anyone can check the announced plaintext.
@@ -800,7 +817,9 @@ class LightPHE:
         values = self.__normalize_values(values)
         if not isinstance(plaintext, int) or isinstance(plaintext, bool):
             raise ValueError("Plaintext must be an integer")
-        plaintext = phe_utils.normalize_input(value=plaintext, modulo=self.cs.plaintext_modulo)
+        plaintext = phe_utils.normalize_input(
+            value=plaintext, modulo=self.cs.plaintext_modulo
+        )
         if plaintext not in values:
             raise ValueError("Plaintext must be one of the allowed values")
 
@@ -857,12 +876,16 @@ class LightPHE:
         if not isinstance(plaintext, int) or isinstance(plaintext, bool):
             raise ValueError("Plaintext must be an integer")
         ciphertext, proof = self.cs.encrypt_with_proof_of_knowledge(
-            plaintext=phe_utils.normalize_input(value=plaintext, modulo=self.cs.plaintext_modulo),
+            plaintext=phe_utils.normalize_input(
+                value=plaintext, modulo=self.cs.plaintext_modulo
+            ),
             context=context,
         )
         return self.__public_ciphertext(value=ciphertext), proof
 
-    def verify_knowledge(self, ciphertext: Ciphertext, proof: dict, context: Any = None) -> bool:
+    def verify_knowledge(
+        self, ciphertext: Ciphertext, proof: dict, context: Any = None
+    ) -> bool:
         """
         Verify that the encryptor of a ciphertext knows its plaintext without decrypting it.
             Public key is enough.
@@ -876,7 +899,9 @@ class LightPHE:
         self.__require_key("public_key", "verify knowledge")
         if not isinstance(ciphertext, Ciphertext):
             return False
-        return self.cs.verify_knowledge(ciphertext=ciphertext.value, proof=proof, context=context)
+        return self.cs.verify_knowledge(
+            ciphertext=ciphertext.value, proof=proof, context=context
+        )
 
     def encrypt_one_hot(
         self, choice: int, options: int, context: Any = None
@@ -975,12 +1000,22 @@ class LightPHE:
             raise ValueError(f"Plaintext must be in [{low}, {high}]")
 
         ciphertext, proof = zkp.prove_range(
-            cs=self.cs, plaintext=plaintext, low=low, high=high, values=values, context=context
+            cs=self.cs,
+            plaintext=plaintext,
+            low=low,
+            high=high,
+            values=values,
+            context=context,
         )
         return self.__public_ciphertext(value=ciphertext), proof
 
     def verify_range(
-        self, ciphertext: Ciphertext, proof: dict, low: int, high: int, context: Any = None
+        self,
+        ciphertext: Ciphertext,
+        proof: dict,
+        low: int,
+        high: int,
+        context: Any = None,
     ) -> bool:
         """
         Verify that a ciphertext encrypts a value in [low, high] without decrypting it.
@@ -1021,7 +1056,9 @@ class LightPHE:
             if not isinstance(bound, int) or isinstance(bound, bool):
                 raise ValueError("Bounds of the range must be integers")
         if low > high:
-            raise ValueError(f"Lower bound {low} must not be greater than upper bound {high}")
+            raise ValueError(
+                f"Lower bound {low} must not be greater than upper bound {high}"
+            )
         if high - low >= self.cs.plaintext_modulo:
             raise ValueError("Range must be narrower than the plaintext modulo")
         return [
@@ -1040,7 +1077,9 @@ class LightPHE:
         values = [0, 1] if values is None else values
         if not isinstance(values, (list, tuple)) or len(values) == 0:
             raise ValueError("Allowed values must be a non-empty list of integers")
-        if any(not isinstance(value, int) or isinstance(value, bool) for value in values):
+        if any(
+            not isinstance(value, int) or isinstance(value, bool) for value in values
+        ):
             raise ValueError("Allowed values must be a non-empty list of integers")
         normalized = [
             phe_utils.normalize_input(value=value, modulo=self.cs.plaintext_modulo)
@@ -1427,7 +1466,9 @@ class LightPHE:
         self.__require_key("public_key", "perform encrypted nearest neighbor search")
         self.__require_knn_support()
 
-        query = encrypted_query.get("query") if isinstance(encrypted_query, dict) else None
+        query = (
+            encrypted_query.get("query") if isinstance(encrypted_query, dict) else None
+        )
         if not isinstance(query, list) or len(query) == 0:
             raise ValueError("Encrypted query must be an output of encrypt_knn_query")
         if not isinstance(database, list) or len(database) == 0:
@@ -1446,10 +1487,17 @@ class LightPHE:
         if labels is not None and (
             not isinstance(labels, list)
             or len(labels) != len(database)
-            or any(not isinstance(label, int) or isinstance(label, bool) for label in labels)
+            or any(
+                not isinstance(label, int) or isinstance(label, bool)
+                for label in labels
+            )
         ):
             raise ValueError("Labels must be a list of integers, one for each vector")
-        if not isinstance(bit_length, int) or isinstance(bit_length, bool) or bit_length < 1:
+        if (
+            not isinstance(bit_length, int)
+            or isinstance(bit_length, bool)
+            or bit_length < 1
+        ):
             raise ValueError("Bit length must be a positive integer")
         # argmax validates that lifted values fit into the plaintext space
         largest_norm = max(sum(x * x for x in vector) for vector in database)
@@ -1530,7 +1578,9 @@ class LightPHE:
             )
 
         if not is_vector(encrypted_query):
-            raise ValueError("Encrypted query must be a non-empty list of encrypted integers")
+            raise ValueError(
+                "Encrypted query must be a non-empty list of encrypted integers"
+            )
         if not isinstance(encrypted_database, list) or len(encrypted_database) == 0:
             raise ValueError("Encrypted database must be a non-empty list of vectors")
         if any(
@@ -1552,7 +1602,9 @@ class LightPHE:
             distances.append(total)
         return distances
 
-    def decrypt_knn(self, encrypted_distances: List[CatalanoFioreCiphertext], k: int) -> dict:
+    def decrypt_knn(
+        self, encrypted_distances: List[CatalanoFioreCiphertext], k: int
+    ) -> dict:
         """
         Find the k nearest vectors from encrypted distances computed by
             evaluate_knn_distances. Runs on owner side, and requires the private key.
@@ -1567,7 +1619,11 @@ class LightPHE:
         self.__require_key("private_key", "perform decryption")
         if not isinstance(encrypted_distances, list) or len(encrypted_distances) == 0:
             raise ValueError("Encrypted distances must be a non-empty list")
-        if not isinstance(k, int) or isinstance(k, bool) or not 1 <= k <= len(encrypted_distances):
+        if (
+            not isinstance(k, int)
+            or isinstance(k, bool)
+            or not 1 <= k <= len(encrypted_distances)
+        ):
             raise ValueError(f"k must be in [1, {len(encrypted_distances)}]")
 
         distances = [self.decrypt(c) for c in encrypted_distances]
@@ -1575,7 +1631,10 @@ class LightPHE:
         return {"indices": indices, "distances": [distances[i] for i in indices]}
 
     def encrypt_update(
-        self, update: List[Union[int, float]], max_value: Union[int, float], max_clients: int
+        self,
+        update: List[Union[int, float]],
+        max_value: Union[int, float],
+        max_clients: int,
     ) -> dict:
         """
         Encrypt a model update of a client for secure aggregation in federated learning.
@@ -1648,7 +1707,9 @@ class LightPHE:
             chunks = [total + chunk for total, chunk in zip(chunks, update["chunks"])]
         return {"chunks": chunks, "layout": layout, "count": count}
 
-    def partial_decrypt_aggregate(self, encrypted_sum: dict, prove: bool = False) -> List[dict]:
+    def partial_decrypt_aggregate(
+        self, encrypted_sum: dict, prove: bool = False
+    ) -> List[dict]:
         """
         Decrypt an encrypted sum of updates partially with the share of a shareholder,
             e.g. a member of a committee of clients. Shareholders decrypt sums only,
@@ -1661,10 +1722,16 @@ class LightPHE:
             partial decryptions (list of dict): one for each chunk, to be sent to the combiner
         """
         self.__require_aggregation_support()
-        return [self.partial_decrypt(chunk, prove=prove) for chunk in encrypted_sum["chunks"]]
+        return [
+            self.partial_decrypt(chunk, prove=prove)
+            for chunk in encrypted_sum["chunks"]
+        ]
 
     def combine_aggregate(
-        self, encrypted_sum: dict, partial_decryptions: List[List[dict]], verify: bool = False
+        self,
+        encrypted_sum: dict,
+        partial_decryptions: List[List[dict]],
+        verify: bool = False,
     ) -> dict:
         """
         Restore the sum and the mean of updates from partial decryptions of at least
@@ -1688,7 +1755,9 @@ class LightPHE:
             )
             for i, chunk in enumerate(encrypted_sum["chunks"])
         ]
-        return self.__unpack_aggregate(encrypted_sum=encrypted_sum, plaintexts=plaintexts)
+        return self.__unpack_aggregate(
+            encrypted_sum=encrypted_sum, plaintexts=plaintexts
+        )
 
     def decrypt_aggregate(self, encrypted_sum: dict) -> dict:
         """
@@ -1701,8 +1770,12 @@ class LightPHE:
         """
         self.__require_key("private_key", "perform decryption")
         self.__require_aggregation_support()
-        plaintexts = [self.cs.decrypt(ciphertext=chunk.value) for chunk in encrypted_sum["chunks"]]
-        return self.__unpack_aggregate(encrypted_sum=encrypted_sum, plaintexts=plaintexts)
+        plaintexts = [
+            self.cs.decrypt(ciphertext=chunk.value) for chunk in encrypted_sum["chunks"]
+        ]
+        return self.__unpack_aggregate(
+            encrypted_sum=encrypted_sum, plaintexts=plaintexts
+        )
 
     def __unpack_aggregate(self, encrypted_sum: dict, plaintexts: List[int]) -> dict:
         """
@@ -1756,7 +1829,9 @@ class LightPHE:
         biases = biases if biases is not None else [0] * len(weights)
         values = [x for w in weights for x in w] + list(biases)
         if any(not isinstance(x, int) or isinstance(x, bool) for x in values):
-            raise ValueError("Weights and biases must be integers. Quantize them first.")
+            raise ValueError(
+                "Weights and biases must be integers. Quantize them first."
+            )
         if len(biases) != len(weights):
             raise ValueError("There must be a bias for each class")
         if (
@@ -1764,8 +1839,14 @@ class LightPHE:
             or len(encrypted_features) != len(weights[0])
             or any(not isinstance(c, Ciphertext) for c in encrypted_features)
         ):
-            raise ValueError(f"Encrypted features must be a list of {len(weights[0])} ciphertexts")
-        if not isinstance(bit_length, int) or isinstance(bit_length, bool) or bit_length < 1:
+            raise ValueError(
+                f"Encrypted features must be a list of {len(weights[0])} ciphertexts"
+            )
+        if (
+            not isinstance(bit_length, int)
+            or isinstance(bit_length, bool)
+            or bit_length < 1
+        ):
             raise ValueError("Bit length must be a positive integer")
 
         output = classifiers.evaluate_hyperplane(
@@ -1803,13 +1884,20 @@ class LightPHE:
         for feature, size in zip(features, domain_sizes):
             if not isinstance(size, int) or isinstance(size, bool) or size < 1:
                 raise ValueError("Domain sizes must be positive integers")
-            if not isinstance(feature, int) or isinstance(feature, bool) or not 0 <= feature < size:
+            if (
+                not isinstance(feature, int)
+                or isinstance(feature, bool)
+                or not 0 <= feature < size
+            ):
                 raise ValueError(f"Feature {feature} must be an integer in [0, {size})")
 
         encrypted = classifiers.encrypt_naive_bayes_input(
             cs=self.cs, features=features, domain_sizes=domain_sizes
         )
-        return [[self.__public_ciphertext(value=c) for c in one_hot] for one_hot in encrypted]
+        return [
+            [self.__public_ciphertext(value=c) for c in one_hot]
+            for one_hot in encrypted
+        ]
 
     def evaluate_naive_bayes(
         self,
@@ -1848,16 +1936,26 @@ class LightPHE:
         if (
             not isinstance(encrypted_input, list)
             or [len(one_hot) for one_hot in encrypted_input] != domain_sizes
-            or any(not isinstance(c, Ciphertext) for one_hot in encrypted_input for c in one_hot)
+            or any(
+                not isinstance(c, Ciphertext)
+                for one_hot in encrypted_input
+                for c in one_hot
+            )
         ):
             raise ValueError(
                 f"Encrypted input must be one-hot vectors of domain sizes {domain_sizes}"
             )
-        if not isinstance(precision, int) or isinstance(precision, bool) or precision < 0:
+        if (
+            not isinstance(precision, int)
+            or isinstance(precision, bool)
+            or precision < 0
+        ):
             raise ValueError("Precision must be a non-negative integer")
 
-        quantized_priors, quantized_likelihoods, bit_length = classifiers.quantize_naive_bayes(
-            priors=priors, likelihoods=likelihoods, precision=precision
+        quantized_priors, quantized_likelihoods, bit_length = (
+            classifiers.quantize_naive_bayes(
+                priors=priors, likelihoods=likelihoods, precision=precision
+            )
         )
         output = classifiers.evaluate_naive_bayes(
             cs=self.cs,
@@ -2034,18 +2132,25 @@ class LightPHE:
         if kind == serialization.POINT:
             ec = getattr(self.cs, "ec", None)
             if ec is None:
-                raise ValueError(f"{self.algorithm_name} ciphertexts are not elliptic curve points")
+                raise ValueError(
+                    f"{self.algorithm_name} ciphertexts are not elliptic curve points"
+                )
             if any(
-                isinstance(c, bool) or not isinstance(c, (int, float)) for c in fields.values()
+                isinstance(c, bool) or not isinstance(c, (int, float))
+                for c in fields.values()
             ):
-                raise ValueError("Coordinates of an elliptic curve point must be integers")
+                raise ValueError(
+                    "Coordinates of an elliptic curve point must be integers"
+                )
             try:
                 return EllipticCurvePoint(x=fields["x"], y=fields["y"], curve=ec.curve)
             except PointNotOnCurve as err:
                 raise ValueError("Serialized point is not on the curve") from err
 
         algorithm_name = (
-            self.cs.get_algorithm_name() if kind == serialization.TENSOR else self.algorithm_name
+            self.cs.get_algorithm_name()
+            if kind == serialization.TENSOR
+            else self.algorithm_name
         )
         if fields["algorithm_name"] != algorithm_name:
             raise ValueError(
@@ -2066,23 +2171,40 @@ class LightPHE:
 
         # Catalano-Fiore ciphertext
         if self.__deserialization_catalano_fiore is None:
-            self.__deserialization_catalano_fiore = self.__catalano_fiore or CatalanoFiore(
-                copy.copy(self)
+            self.__deserialization_catalano_fiore = (
+                self.__catalano_fiore or CatalanoFiore(copy.copy(self))
             )
         cf = self.__deserialization_catalano_fiore.public
-        a, beta, alpha, pairs = fields["a"], fields["beta"], fields["alpha"], fields["pairs"]
+        a, beta, alpha, pairs = (
+            fields["a"],
+            fields["beta"],
+            fields["alpha"],
+            fields["pairs"],
+        )
 
         if alpha is None:
-            if isinstance(a, bool) or not isinstance(a, int) or not 0 <= a < cf.plaintext_modulo:
-                raise ValueError(f"a of a Catalano-Fiore ciphertext must be in [0, {cf.plaintext_modulo})")
+            if (
+                isinstance(a, bool)
+                or not isinstance(a, int)
+                or not 0 <= a < cf.plaintext_modulo
+            ):
+                raise ValueError(
+                    f"a of a Catalano-Fiore ciphertext must be in [0, {cf.plaintext_modulo})"
+                )
             if not isinstance(beta, Ciphertext) or pairs:
-                raise ValueError("Non-multiplied Catalano-Fiore ciphertext must have a and beta only")
+                raise ValueError(
+                    "Non-multiplied Catalano-Fiore ciphertext must have a and beta only"
+                )
             return CatalanoFioreCiphertext(cf=cf, a=a, beta=beta)
 
         if a is not None or beta is not None or not isinstance(alpha, Ciphertext):
-            raise ValueError("Multiplied Catalano-Fiore ciphertext must have alpha and pairs only")
+            raise ValueError(
+                "Multiplied Catalano-Fiore ciphertext must have alpha and pairs only"
+            )
         if any(not isinstance(c, Ciphertext) for pair in pairs for c in pair):
-            raise ValueError("Pairs of a Catalano-Fiore ciphertext must have ciphertexts")
+            raise ValueError(
+                "Pairs of a Catalano-Fiore ciphertext must have ciphertexts"
+            )
         return CatalanoFioreCiphertext(cf=cf, alpha=alpha, pairs=pairs)
 
     def create_ciphertext_obj(self, ciphertext: Union[int, tuple, list]) -> Ciphertext:
