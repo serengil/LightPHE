@@ -976,6 +976,8 @@ You should be able run `make test` and `make lint` commands successfully before 
 | **Java** | [`lightphe4j`](https://github.com/serengil/lightphe4j) | Enterprise, Banking & Legacy Systems |
 | **TypeScript** | [`lightphe-ts`](https://github.com/serengil/lightphe-ts) | Client-Side Privacy & Node.js Backend |
 
+To see how the ports compare in speed, memory and package footprint across security levels, see [`lightphe-benchmarks`](https://github.com/serengil/lightphe-benchmarks).
+
 # Support
 
 There are many ways to support a project - starring⭐️ the GitHub repo is just one 🙏
